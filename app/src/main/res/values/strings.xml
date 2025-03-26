@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Receipt Splitter</string>
+    <string name="sign_in">Sign In</string>
+    <string name="something_went_wrong">Something Went Wrong</string>
+    <string name="select_receipt_photo">Select receipt photo</string>
+    <string name="receipt_photo_is_empty">Receipt photo is empty. Select a photo.</string>
+    <string name="split_the_receipt">Split the receipt</string>
+    <string name="clear_receipt_photo">Clear receipt photo</string>
+    <string name="receipt_photo">Receipt photo</string>
+    <string name="clear_quantity_button">Clear quantity button</string>
+    <string name="add_one_quantity_button">Add one quantity button</string>
+    <string name="total_sum">Total: %.2f</string>
+    <string name="sub_total_sum">Sub total: %.2f</string>
+    <string name="tax">Tax: %.2f %</string>
+    <string name="discount">Discount: %.2f %</string>
+    <string name="quantity">%d x</string>
+    <string name="share_order_report">Share</string>
+    <string name="share_receipt_button">Share receipt button</string>
+    <string name="no_order_report">No order report</string>
+    <string name="close_this_screen">Close this screen</string>
+    <string name="image_is_inappropriate">The image is inappropriate. Select another image.</string>
+</resources>
