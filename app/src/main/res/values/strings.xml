@@ -19,4 +19,10 @@
     <string name="no_order_report">No order report</string>
     <string name="close_this_screen">Close this screen</string>
     <string name="image_is_inappropriate">The image is inappropriate. Select another image.</string>
+    <string name="add_new_receipt_button">Add new receipt button</string>
+    <string name="total_of_receipt">Total: %.2f</string>
+    <string name="receipt_view_submenu_button">Open submenu of the receipt</string>
+    <string name="delete_receipt_button">Delete receipt button</string>
+    <string name="delete">Delete</string>
+    <string name="no_receipts_found">No receipts found. Add a new one.</string>
 </resources>
