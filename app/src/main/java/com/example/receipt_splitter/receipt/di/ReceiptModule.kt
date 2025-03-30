@@ -17,7 +17,6 @@ import com.example.receipt_splitter.receipt.domain.RoomReceiptUseCaseInterface
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

@@ -5,8 +5,6 @@ import com.example.receipt_splitter.receipt.data.ImageConverterInterface
 import com.example.receipt_splitter.receipt.data.ImageLabelingKitInterface
 import com.example.receipt_splitter.receipt.data.ReceiptRepositoryInterface
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
-import com.example.receipt_splitter.receipt.presentation.SplitOrderData
-import com.example.receipt_splitter.receipt.presentation.toSplitReceiptDataList
 import com.google.mlkit.vision.label.ImageLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

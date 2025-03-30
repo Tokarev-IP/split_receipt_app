@@ -1,7 +1,6 @@
 package com.example.receipt_splitter.receipt.presentation
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.receipt_splitter.main.basic.BasicFunResponse
 import com.example.receipt_splitter.main.basic.BasicViewModel
