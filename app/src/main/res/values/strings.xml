@@ -3,6 +3,7 @@
     <string name="sign_in">Sign In</string>
     <string name="something_went_wrong">Something Went Wrong</string>
     <string name="select_receipt_photo">Select receipt photo</string>
+    <string name="make_photo">Make photo</string>
     <string name="receipt_photo_is_empty">Receipt photo is empty. Select a photo.</string>
     <string name="split_the_receipt">Split the receipt</string>
     <string name="clear_receipt_photo">Clear receipt photo</string>
