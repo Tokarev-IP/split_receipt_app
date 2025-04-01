@@ -1,8 +1,13 @@
 package com.example.receipt_splitter.receipt.presentation.screens
 
+import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -40,16 +45,27 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.BasicCircularLoadingUi
+import com.example.receipt_splitter.receipt.data.DataConstantsReceipt
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiErrorIntent
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiState
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanner
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_PDF
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_BASE
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_BASE_WITH_FILTER
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_FULL
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChoosePhotoScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
+    currentActivity: Activity? = LocalActivity.current,
 ) {
     val uiState by receiptViewModel.getUiStateFlow().collectAsState()
     val uiErrorIntent by receiptViewModel.getUiErrorIntentFlow().collectAsState(null)
@@ -60,6 +76,28 @@ fun ChoosePhotoScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { newUri: Uri? ->
         receiptPhotoUri = newUri
+    }
+
+    val options = GmsDocumentScannerOptions.Builder()
+        .setGalleryImportAllowed(true)
+        .setPageLimit(DataConstantsReceipt.MAX_AMOUNT_OF_IMAGES)
+        .setResultFormats(RESULT_FORMAT_JPEG)
+        .setScannerMode(SCANNER_MODE_BASE)
+        .build()
+
+    val scanner = GmsDocumentScanning.getClient(options)
+    val scannerLaunch = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val result =
+                GmsDocumentScanningResult.fromActivityResultIntent(result.data)
+            result?.pages?.let { pages ->
+                for (page in pages) {
+                    receiptPhotoUri = page.imageUri
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -93,6 +131,17 @@ fun ChoosePhotoScreen(
                                 )
                             )
                         }
+                    },
+                    onMakePhotoClicked = {
+                        currentActivity?.let { myActivity ->
+                            scanner.getStartScanIntent(myActivity)
+                                .addOnSuccessListener { intentSender ->
+                                    scannerLaunch.launch(
+                                        IntentSenderRequest.Builder(intentSender).build()
+                                    )
+                                }
+                                .addOnFailureListener { }
+                        }
                     }
                 )
             }
@@ -119,9 +168,10 @@ fun ChoosePhotoScreen(
 private fun ChoosePhotoView(
     modifier: Modifier = Modifier,
     uri: () -> Uri?,
-    onChoosePhotoClicked: () -> Unit,
-    onClearPhotoClicked: () -> Unit,
-    onGetReceiptFromImageClicked: () -> Unit,
+    onChoosePhotoClicked: () -> Unit = {},
+    onClearPhotoClicked: () -> Unit = {},
+    onGetReceiptFromImageClicked: () -> Unit = {},
+    onMakePhotoClicked: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -132,11 +182,12 @@ private fun ChoosePhotoView(
             SplitReceiptView(
                 uri = { photoUri },
                 onClearPhotoClicked = { onClearPhotoClicked() },
-                onGetReceiptFromImageClicked = { onGetReceiptFromImageClicked() }
+                onGetReceiptFromImageClicked = { onGetReceiptFromImageClicked() },
             )
         } ?: run {
             ChoosePhotoBoxView(
-                onChoosePhotoClicked = { onChoosePhotoClicked() }
+                onChoosePhotoClicked = { onChoosePhotoClicked() },
+                onMakePhotoClicked = { onMakePhotoClicked() },
             )
         }
     }
@@ -202,6 +253,7 @@ private fun PhotoBoxView(
 private fun ChoosePhotoBoxView(
     modifier: Modifier = Modifier,
     onChoosePhotoClicked: () -> Unit,
+    onMakePhotoClicked: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -213,6 +265,12 @@ private fun ChoosePhotoBoxView(
         ) {
             Text(text = stringResource(id = R.string.select_receipt_photo))
         }
+        Spacer(modifier = modifier.height(40.dp))
+        OutlinedButton(
+            onClick = { onMakePhotoClicked() }
+        ) {
+            Text(text = stringResource(id = R.string.make_photo))
+        }
     }
 }
 
@@ -221,8 +279,5 @@ private fun ChoosePhotoBoxView(
 private fun ChoosePhotoViewPreview() {
     ChoosePhotoView(
         uri = { "1234".toUri() },
-        onChoosePhotoClicked = {},
-        onClearPhotoClicked = {},
-        onGetReceiptFromImageClicked = {}
     )
 }
