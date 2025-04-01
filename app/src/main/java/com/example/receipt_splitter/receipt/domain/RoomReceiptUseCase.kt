@@ -1,7 +1,8 @@
 package com.example.receipt_splitter.receipt.domain
 
 import com.example.receipt_splitter.main.basic.BasicFunResponse
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
+import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 import com.example.receipt_splitter.receipt.room.ReceiptDbRepositoryInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -11,16 +12,16 @@ class RoomReceiptUseCase(
     private val receiptDbRepository: ReceiptDbRepositoryInterface,
 ) : RoomReceiptUseCaseInterface {
 
-    override suspend fun getAllReceipts(): Flow<List<ReceiptData>> {
+    override suspend fun getAllReceipts(): Flow<List<SplitReceiptData>> {
         return withContext(Dispatchers.IO) {
             receiptDbRepository.getAllReceiptData()
         }
     }
 
-    override suspend fun addNewReceipt(receiptData: ReceiptData): BasicFunResponse {
+    override suspend fun addNewReceipt(receiptDataJson: ReceiptDataJson): BasicFunResponse {
         return withContext(Dispatchers.IO) {
             runCatching {
-                receiptDbRepository.insertReceiptData(receiptData)
+                receiptDbRepository.insertReceiptData(receiptDataJson)
             }
         }.fold(
             onSuccess = { BasicFunResponse.onSuccess },
@@ -41,7 +42,7 @@ class RoomReceiptUseCase(
 }
 
 interface RoomReceiptUseCaseInterface {
-    suspend fun getAllReceipts(): Flow<List<ReceiptData>>
-    suspend fun addNewReceipt(receiptData: ReceiptData): BasicFunResponse
+    suspend fun getAllReceipts(): Flow<List<SplitReceiptData>>
+    suspend fun addNewReceipt(receiptDataJson: ReceiptDataJson): BasicFunResponse
     suspend fun deleteReceipt(receiptId: Long): BasicFunResponse
 }
