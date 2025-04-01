@@ -9,15 +9,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ReceiptData(
-    @SerialName("id")
-    val id: Long = 0L,
+class ReceiptDataJson(
     @SerialName("restaurant_name")
     val restaurant: String = "no name",
     @SerialName("date_dd_mm-yyyy")
     val date: String = "no date",
     @SerialName("orders")
-    val orders: List<OrderData> = emptyList<OrderData>(),
+    val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
     @SerialName("sub_total_sum")
     val subTotal: Float? = null,
     @SerialName("total_sum")
@@ -32,18 +30,8 @@ data class ReceiptData(
     val tipSum: Float? = null,
 )
 
-fun ReceiptData.toSplitReceiptDataList(): List<SplitOrderData> {
-    return this.orders.map {
-        SplitOrderData(
-            name = it.name,
-            quantity = it.quantity,
-            price = it.price,
-        )
-    }
-}
-
 @Serializable
-class OrderData(
+class OrderDataJson(
     @SerialName("name")
     val name: String,
     @SerialName("quantity")
@@ -52,7 +40,21 @@ class OrderData(
     val price: Float,
 )
 
+data class SplitReceiptData(
+    val id: Long,
+    val restaurant: String,
+    val date: String,
+    val orders: List<SplitOrderData>,
+    val subTotal: Float? = null,
+    val total: Float?,
+    val tax: Float? = null,
+    val discount: Float? = null,
+    val tip: Float? = null,
+    val tipSum: Float? = null,
+)
+
 data class SplitOrderData(
+    val id: Long,
     val name: String,
     val selectedQuantity: Int = 0,
     val quantity: Int,
@@ -77,12 +79,12 @@ interface ReceiptUiState : BasicUiState {
 
 sealed interface ReceiptUiEvent : BasicUiEvent {
     class ConvertReceiptFromImage(val imageUri: Uri) : ReceiptUiEvent
-    class AddQuantityToSplitOrderData(val orderName: String): ReceiptUiEvent
-    class SubtractQuantityToSplitOrderData(val orderName: String): ReceiptUiEvent
+    class AddQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
+    class SubtractQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
     object AddNewReceipt : ReceiptUiEvent
     class ReceiptDeletion(val receiptId: Long) : ReceiptUiEvent
     object RetrieveAllReceipts : ReceiptUiEvent
-    class OpenSplitReceiptScreen(val receiptData: ReceiptData) : ReceiptUiEvent
+    class OpenSplitReceiptScreen(val splitReceiptData: SplitReceiptData) : ReceiptUiEvent
     object SetShowState : ReceiptUiEvent
 }
 
@@ -94,6 +96,5 @@ interface ReceiptIntent : BasicIntent {
 
 interface ReceiptUiErrorIntent : BasicUiErrorIntent {
     object ImageIsInappropriate : ReceiptUiErrorIntent
-    object JsonError : ReceiptUiErrorIntent
     class ReceiptError(val msg: String) : ReceiptUiErrorIntent
 }
