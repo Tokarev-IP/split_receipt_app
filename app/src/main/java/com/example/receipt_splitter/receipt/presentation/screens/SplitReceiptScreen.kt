@@ -25,11 +25,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,10 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.isNotZero
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.example.receipt_splitter.receipt.presentation.SplitOrderData
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +53,7 @@ fun SplitReceiptScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
 ) {
-    val receiptData by receiptViewModel.getReceiptData().collectAsState()
+    val splitReceiptData by receiptViewModel.getReceiptData().collectAsState()
     val splitReceiptDataList by receiptViewModel.getSplitReceiptItems().collectAsState()
     val orderReportText by receiptViewModel.getOrderReportText().collectAsState()
 
@@ -57,17 +61,33 @@ fun SplitReceiptScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {}
 
-    Scaffold() { innerPadding ->
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        maxLines = 1,
+                        text = splitReceiptData?.restaurant
+                            ?: stringResource(R.string.split_the_receipt)
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        }
+    ) { innerPadding ->
         SplitReceiptView(
             modifier = modifier.padding(innerPadding),
-            receiptData = { receiptData },
+            splitReceiptData = { splitReceiptData },
             splitOrderDataList = { splitReceiptDataList },
             orderReportText = { orderReportText },
-            onSubtractOrderClicked = { name ->
-                receiptViewModel.setUiEvent(ReceiptUiEvent.SubtractQuantityToSplitOrderData(name))
+            onSubtractOneQuantityClicked = { orderId ->
+                receiptViewModel.setUiEvent(ReceiptUiEvent.SubtractQuantityToSplitOrderData(orderId))
             },
-            onAddOneQuantityClicked = { name ->
-                receiptViewModel.setUiEvent(ReceiptUiEvent.AddQuantityToSplitOrderData(name))
+            onAddOneQuantityClicked = { orderId ->
+                receiptViewModel.setUiEvent(ReceiptUiEvent.AddQuantityToSplitOrderData(orderId))
             },
             onShareOrderReportText = {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -83,22 +103,24 @@ fun SplitReceiptScreen(
 @Composable
 private fun SplitReceiptView(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    splitReceiptData: () -> SplitReceiptData?,
     splitOrderDataList: () -> List<SplitOrderData>,
     orderReportText: () -> String?,
-    onSubtractOrderClicked: (name: String) -> Unit = {},
-    onAddOneQuantityClicked: (name: String) -> Unit = {},
+    onSubtractOneQuantityClicked: (orderId: Long) -> Unit = {},
+    onAddOneQuantityClicked: (orderId: Long) -> Unit = {},
     onShareOrderReportText: () -> Unit = {},
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
         item {
-            ReceiptInfoView(receiptData = { receiptData() })
+            splitReceiptData()?.let { data ->
+                ReceiptInfoView(splitReceiptData = { data })
+            }
         }
         items(splitOrderDataList().size) { index ->
             SplitItemView(
                 splitOrderData = { splitOrderDataList()[index] },
-                onSubtractOrderClicked = { onSubtractOrderClicked(splitOrderDataList()[index].name) },
-                onAddOneQuantityClicked = { onAddOneQuantityClicked(splitOrderDataList()[index].name) }
+                onSubtractQuantityClicked = { onSubtractOneQuantityClicked(splitOrderDataList()[index].id) },
+                onAddOneQuantityClicked = { onAddOneQuantityClicked(splitOrderDataList()[index].id) }
             )
         }
         item {
@@ -113,7 +135,7 @@ private fun SplitReceiptView(
 @Composable
 private fun ReceiptInfoView(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    splitReceiptData: () -> SplitReceiptData,
 ) {
     Column(
         modifier = modifier
@@ -123,17 +145,17 @@ private fun ReceiptInfoView(
     ) {
         Text(
             fontSize = 24.sp,
-            text = receiptData().restaurant
+            text = splitReceiptData().restaurant
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             fontSize = 20.sp,
-            text = receiptData().date
+            text = splitReceiptData().date
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        receiptData().subTotal?.let { subTotal ->
+        splitReceiptData().subTotal?.let { subTotal ->
             Text(
                 fontSize = 18.sp,
                 text = stringResource(R.string.sub_total_sum, subTotal)
@@ -141,7 +163,7 @@ private fun ReceiptInfoView(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        receiptData().discount?.let { discount ->
+        splitReceiptData().discount?.let { discount ->
             Text(
                 fontSize = 18.sp,
                 text = stringResource(R.string.discount, discount)
@@ -149,7 +171,7 @@ private fun ReceiptInfoView(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        receiptData().tax?.let { tax ->
+        splitReceiptData().tax?.let { tax ->
             Text(
                 fontSize = 18.sp,
                 text = stringResource(R.string.tax, tax)
@@ -157,7 +179,7 @@ private fun ReceiptInfoView(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        receiptData().total?.let { total ->
+        splitReceiptData().total?.let { total ->
             Text(
                 fontSize = 18.sp,
                 text = stringResource(R.string.total_sum, total)
@@ -170,7 +192,7 @@ private fun ReceiptInfoView(
 private fun SplitItemView(
     modifier: Modifier = Modifier,
     splitOrderData: () -> SplitOrderData,
-    onSubtractOrderClicked: () -> Unit,
+    onSubtractQuantityClicked: () -> Unit,
     onAddOneQuantityClicked: () -> Unit,
 ) {
     ElevatedCard(
@@ -190,7 +212,7 @@ private fun SplitItemView(
             HorizontalDivider()
             Spacer(modifier = modifier.height(4.dp))
             SplitOrderItemView(
-                onSubtractOrderClicked = { onSubtractOrderClicked() },
+                onSubtractOrderClicked = { onSubtractQuantityClicked() },
                 onAddOneQuantityClicked = { onAddOneQuantityClicked() },
                 quantity = { splitOrderData().selectedQuantity },
                 isAddButtonEnabled = { splitOrderData().selectedQuantity < splitOrderData().quantity },
@@ -287,16 +309,26 @@ private fun ReportBottomSheetView(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        HorizontalDivider(modifier = modifier.fillMaxWidth())
+        Spacer(modifier = modifier.height(12.dp))
         orderReportText()?.let { orderText ->
             Text(
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
                 textAlign = TextAlign.Right,
                 text = orderText,
             )
-            Spacer(modifier = modifier.height(20.dp))
+            Spacer(modifier = modifier.height(12.dp))
+            HorizontalDivider(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            )
+            Spacer(modifier = modifier.height(12.dp))
             OutlinedButton(onClick = { onShareOrderReportText() }) {
                 Icon(
                     Icons.Filled.Share,
@@ -309,7 +341,7 @@ private fun ReportBottomSheetView(
                 )
             }
         } ?: run {
-            Spacer(modifier = modifier.height(20.dp))
+            Spacer(modifier = modifier.height(12.dp))
             Text(
                 fontSize = 24.sp,
                 text = stringResource(R.string.no_order_report),
@@ -322,28 +354,36 @@ private fun ReportBottomSheetView(
 @Preview(showBackground = true)
 private fun SplitReceiptViewPreview() {
     SplitReceiptView(
-        receiptData = {
-            ReceiptData(
+        splitReceiptData = {
+            SplitReceiptData(
+                id = 1,
                 restaurant = "restaurant",
                 date = "18/03/2024",
                 subTotal = 60.0f,
                 total = 60.0f,
-                id = 4L,
+                tax = null,
+                discount = null,
+                orders = emptyList(),
+                tip = null,
+                tipSum = null,
             )
         },
         splitOrderDataList = {
             listOf(
                 SplitOrderData(
+                    id = 1,
                     name = "order1",
                     quantity = 79,
                     price = 100000.0f
                 ),
                 SplitOrderData(
+                    id = 2,
                     name = "order2",
                     quantity = 2,
                     price = 20.0f
                 ),
                 SplitOrderData(
+                    id = 3,
                     name = "order3 fdgdf dfgfdg dfgdfg erter xcxv sdfdsf sdfsdf asd jyhn vcvf erret fgdfg",
                     quantity = 3,
                     price = 30.0f

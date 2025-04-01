@@ -16,12 +16,16 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,26 +34,38 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.receipt_splitter.R
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowReceiptsScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
 ) {
-    val receiptDataList by receiptViewModel.getAllReceiptsList().collectAsState()
+    val splitReceiptDataList by receiptViewModel.getAllReceiptsList().collectAsState()
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.history_of_receipts)) },
+                scrollBehavior = scrollBehavior
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
+                modifier = modifier.padding(20.dp),
                 onClick = { receiptViewModel.setUiEvent(ReceiptUiEvent.AddNewReceipt) }
             ) {
                 Icon(
@@ -59,8 +75,10 @@ fun ShowReceiptsScreen(
             }
         }
     ) { innerPadding ->
-        if (receiptDataList.isEmpty())
-            Box(modifier = modifier.fillMaxSize().padding(innerPadding)) {
+        if (splitReceiptDataList.isEmpty())
+            Box(modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)) {
                 Text(
                     modifier = modifier.align(Alignment.Center),
                     text = stringResource(R.string.no_receipts_found)
@@ -69,9 +87,13 @@ fun ShowReceiptsScreen(
         else
             ShowReceiptsView(
                 modifier = modifier.padding(innerPadding),
-                receiptDataList = { receiptDataList },
-                onReceiptClicked = { receiptData ->
-                    receiptViewModel.setUiEvent(ReceiptUiEvent.OpenSplitReceiptScreen(receiptData))
+                splitReceiptDataList = { splitReceiptDataList },
+                onReceiptClicked = { splitReceiptData ->
+                    receiptViewModel.setUiEvent(
+                        ReceiptUiEvent.OpenSplitReceiptScreen(
+                            splitReceiptData
+                        )
+                    )
                 },
                 onDeleteReceiptClicked = { receiptId ->
                     receiptViewModel.setUiEvent(ReceiptUiEvent.ReceiptDeletion(receiptId))
@@ -83,21 +105,21 @@ fun ShowReceiptsScreen(
 @Composable
 private fun ShowReceiptsView(
     modifier: Modifier = Modifier,
-    receiptDataList: () -> List<ReceiptData>,
-    onReceiptClicked: (receiptData: ReceiptData) -> Unit = {},
+    splitReceiptDataList: () -> List<SplitReceiptData>,
+    onReceiptClicked: (splitReceiptData: SplitReceiptData) -> Unit = {},
     onDeleteReceiptClicked: (receiptId: Long) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
     ) {
         items(
-            count = receiptDataList().size,
-            key = { index -> receiptDataList()[index].id }
+            count = splitReceiptDataList().size,
+            key = { index -> splitReceiptDataList()[index].id }
         ) { index ->
             ReceiptViewItem(
-                receiptData = { receiptDataList()[index] },
-                onReceiptClicked = { onReceiptClicked(receiptDataList()[index]) },
-                onDeleteReceiptClicked = { onDeleteReceiptClicked(receiptDataList()[index].id) },
+                splitReceiptData = { splitReceiptDataList()[index] },
+                onReceiptClicked = { onReceiptClicked(splitReceiptDataList()[index]) },
+                onDeleteReceiptClicked = { onDeleteReceiptClicked(splitReceiptDataList()[index].id) },
             )
         }
     }
@@ -106,7 +128,7 @@ private fun ShowReceiptsView(
 @Composable
 private fun ReceiptViewItem(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    splitReceiptData: () -> SplitReceiptData,
     onReceiptClicked: () -> Unit = {},
     onDeleteReceiptClicked: () -> Unit = {},
 ) {
@@ -128,7 +150,7 @@ private fun ReceiptViewItem(
                     modifier = modifier
                         .align(Alignment.Start)
                         .padding(end = 40.dp),
-                    text = receiptData().restaurant,
+                    text = splitReceiptData().restaurant,
                 )
                 Spacer(modifier = modifier.height(16.dp))
                 Row(
@@ -138,8 +160,8 @@ private fun ReceiptViewItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = receiptData().date)
-                    receiptData().total?.let { total ->
+                    Text(text = splitReceiptData().date)
+                    splitReceiptData().total?.let { total ->
                         Text(text = stringResource(R.string.total_of_receipt, total))
                     }
                 }
@@ -190,25 +212,28 @@ private fun ReceiptViewSubmenuBox(
 @Composable
 private fun ShowReceiptViewPreview() {
     ShowReceiptsView(
-        receiptDataList = {
-            listOf<ReceiptData>(
-                ReceiptData(
+        splitReceiptDataList = {
+            listOf<SplitReceiptData>(
+                SplitReceiptData(
                     id = 1L,
                     restaurant = "restaurant fhfghgfnvbncvnghfghfghd",
                     date = "15/05/2023",
                     total = 1000000.0f,
+                    orders = emptyList(),
                 ),
-                ReceiptData(
+                SplitReceiptData(
                     id = 2L,
                     restaurant = "restaurant",
                     date = "04/10/2022",
                     total = 10078.0f,
+                    orders = emptyList(),
                 ),
-                ReceiptData(
+                SplitReceiptData(
                     id = 3L,
                     restaurant = "restaurant",
                     date = "01/01/2023",
                     total = 57465.0f,
+                    orders = emptyList(),
                 ),
             )
         }

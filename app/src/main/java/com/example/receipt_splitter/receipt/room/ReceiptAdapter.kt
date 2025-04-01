@@ -1,98 +1,80 @@
 package com.example.receipt_splitter.receipt.room
 
-import com.example.receipt_splitter.receipt.presentation.OrderData
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import com.example.receipt_splitter.receipt.presentation.OrderDataJson
+import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
+import com.example.receipt_splitter.receipt.presentation.SplitOrderData
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 
-class ReceiptAdapter: ReceiptAdapterInterface {
+class ReceiptAdapter : ReceiptAdapterInterface {
 
-    override suspend fun transformReceiptWithDataListToReceiptDateList(
+    override suspend fun transformReceiptWithDataListToSplitReceiptDateList(
         receiptWithOrdersList: List<ReceiptWithOrders>,
-    ): List<ReceiptData> {
-        return suspendCoroutine { continuation ->
-            val receiptDataList = mutableListOf<ReceiptData>()
-            for (receiptWithOrders in receiptWithOrdersList) {
-                val ordersList = mutableListOf<OrderData>()
-                for (order in receiptWithOrders.orders) {
-                    ordersList.add(
-                        OrderData(
-                            name = order.name,
-                            quantity = order.quantity,
-                            price = order.price,
-                        )
-                    )
-                }
-
-                val receiptData = ReceiptData(
-                    id = receiptWithOrders.receipt.id,
-                    restaurant = receiptWithOrders.receipt.restaurant,
-                    date = receiptWithOrders.receipt.date,
-                    orders = ordersList,
-                    subTotal = receiptWithOrders.receipt.subTotal,
-                    total = receiptWithOrders.receipt.total,
-                    tax = receiptWithOrders.receipt.tax,
-                    discount = receiptWithOrders.receipt.discount,
-                    tip = receiptWithOrders.receipt.tip,
-                    tipSum = receiptWithOrders.receipt.tipSum,
+    ): List<SplitReceiptData> {
+        return receiptWithOrdersList.map { receiptWithOrders ->
+            val splitOrdersList = receiptWithOrders.orders.map { order ->
+                SplitOrderData(
+                    id = order.id,
+                    name = order.name,
+                    quantity = order.quantity,
+                    price = order.price,
                 )
-                receiptDataList.add(receiptData)
             }
-
-            continuation.resume(receiptDataList)
+            SplitReceiptData(
+                id = receiptWithOrders.receipt.id,
+                restaurant = receiptWithOrders.receipt.restaurant,
+                date = receiptWithOrders.receipt.date,
+                orders = splitOrdersList,
+                subTotal = receiptWithOrders.receipt.subTotal,
+                total = receiptWithOrders.receipt.total,
+                tax = receiptWithOrders.receipt.tax,
+                discount = receiptWithOrders.receipt.discount,
+                tip = receiptWithOrders.receipt.tip,
+                tipSum = receiptWithOrders.receipt.tipSum,
+            )
         }
     }
 
     override suspend fun transformReceiptDataToReceiptEntity(
-        receiptData: ReceiptData
+        receiptDataJson: ReceiptDataJson
     ): ReceiptEntity {
-        return suspendCoroutine { continuation ->
-            val receiptEntity = ReceiptEntity(
-                restaurant = receiptData.restaurant,
-                date = receiptData.date,
-                subTotal = receiptData.subTotal,
-                total = receiptData.total,
-                tax = receiptData.tax,
-                discount = receiptData.discount,
-                tip = receiptData.tip,
-                tipSum = receiptData.tipSum,
-            )
-            continuation.resume(receiptEntity)
-        }
+        return ReceiptEntity(
+            restaurant = receiptDataJson.restaurant,
+            date = receiptDataJson.date,
+            subTotal = receiptDataJson.subTotal,
+            total = receiptDataJson.total,
+            tax = receiptDataJson.tax,
+            discount = receiptDataJson.discount,
+            tip = receiptDataJson.tip,
+            tipSum = receiptDataJson.tipSum,
+        )
     }
 
     override suspend fun transformOrderListToOrderEntity(
-        orderListData: List<OrderData>,
+        orderListData: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity> {
-        return suspendCoroutine { continuation ->
-            val orderEntityList = mutableListOf<OrderEntity>()
-            for (order in orderListData) {
-                orderEntityList.add(
-                    OrderEntity(
-                        name = order.name,
-                        quantity = order.quantity,
-                        price = order.price,
-                        receiptId = receiptId,
-                    )
-                )
-            }
-            continuation.resume(orderEntityList)
+        return orderListData.map {
+            OrderEntity(
+                name = it.name,
+                quantity = it.quantity,
+                price = it.price,
+                receiptId = receiptId,
+            )
         }
     }
 }
 
 interface ReceiptAdapterInterface {
-    suspend fun transformReceiptWithDataListToReceiptDateList(
+    suspend fun transformReceiptWithDataListToSplitReceiptDateList(
         receiptWithOrdersList: List<ReceiptWithOrders>,
-    ): List<ReceiptData>
+    ): List<SplitReceiptData>
 
     suspend fun transformReceiptDataToReceiptEntity(
-        receiptData: ReceiptData
+        receiptDataJson: ReceiptDataJson
     ): ReceiptEntity
 
     suspend fun transformOrderListToOrderEntity(
-        orderListData: List<OrderData>,
+        orderListData: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity>
 }

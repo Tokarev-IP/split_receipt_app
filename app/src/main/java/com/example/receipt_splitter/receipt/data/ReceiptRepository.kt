@@ -14,10 +14,10 @@ class ReceiptRepository() : ReceiptRepositoryInterface {
             mapOf(
                 "restaurant_name" to Schema.string(),
                 "date_dd_mm-yyyy" to Schema.string(),
-//                "sub_total_sum" to Schema.float(),
+                "sub_total_sum" to Schema.float(),
                 "total_sum" to Schema.float(),
-//                "tax_in_percent" to Schema.float(),
-//                "discount_in_percent" to Schema.float(),
+                "tax_in_percent" to Schema.float(),
+                "discount_in_percent" to Schema.float(),
                 "orders" to Schema.array(
                     Schema.obj(
                         mapOf(
@@ -31,9 +31,9 @@ class ReceiptRepository() : ReceiptRepositoryInterface {
             optionalProperties = listOf(
                 "restaurant_name",
                 "date_dd_mm-yyyy",
-//                "sub_total_sum",
-//                "tax_in_percent",
-//                "discount_in_percent"
+                "sub_total_sum",
+                "tax_in_percent",
+                "discount_in_percent"
             )
         )
 

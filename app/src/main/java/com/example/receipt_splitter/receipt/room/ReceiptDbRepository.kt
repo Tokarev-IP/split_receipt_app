@@ -1,6 +1,7 @@
 package com.example.receipt_splitter.receipt.room
 
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
+import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -9,11 +10,11 @@ class ReceiptDbRepository(
     private val receiptAdapter: ReceiptAdapter,
 ) : ReceiptDbRepositoryInterface {
 
-    override suspend fun insertReceiptData(receiptData: ReceiptData) {
-        val receiptEntity = receiptAdapter.transformReceiptDataToReceiptEntity(receiptData)
+    override suspend fun insertReceiptData(receiptDataJson: ReceiptDataJson) {
+        val receiptEntity = receiptAdapter.transformReceiptDataToReceiptEntity(receiptDataJson)
         val receiptId = receiptDao.insertReceipt(receipt = receiptEntity)
         val orderEntityList = receiptAdapter.transformOrderListToOrderEntity(
-                orderListData = receiptData.orders,
+                orderListData = receiptDataJson.orders,
                 receiptId = receiptId,
             )
         receiptDao.insertOrders(orders = orderEntityList)
@@ -23,15 +24,15 @@ class ReceiptDbRepository(
         receiptDao.deleteReceipt(receiptId = receiptId)
     }
 
-    override suspend fun getAllReceiptData(): Flow<List<ReceiptData>> {
+    override suspend fun getAllReceiptData(): Flow<List<SplitReceiptData>> {
         return receiptDao.getAllReceiptsWithOrders().map { list ->
-            receiptAdapter.transformReceiptWithDataListToReceiptDateList(list)
+            receiptAdapter.transformReceiptWithDataListToSplitReceiptDateList(list)
         }
     }
 }
 
 interface ReceiptDbRepositoryInterface {
-    suspend fun insertReceiptData(receiptData: ReceiptData)
+    suspend fun insertReceiptData(receiptDataJson: ReceiptDataJson)
     suspend fun deleteReceiptData(receiptId: Long)
-    suspend fun getAllReceiptData(): Flow<List<ReceiptData>>
+    suspend fun getAllReceiptData(): Flow<List<SplitReceiptData>>
 }

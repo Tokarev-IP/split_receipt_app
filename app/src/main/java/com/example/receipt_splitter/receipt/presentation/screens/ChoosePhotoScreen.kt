@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.example.receipt_splitter.R
+import com.example.receipt_splitter.main.basic.BasicCircularLoadingUi
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiErrorIntent
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiState
@@ -69,30 +68,35 @@ fun ChoosePhotoScreen(
     ) { innerPadding ->
 
         when (uiState) {
-            ReceiptUiState.Loading -> {
-                LinearProgressIndicator(
+            is ReceiptUiState.Loading -> {
+                BasicCircularLoadingUi(
                     modifier = modifier
-                        .fillMaxWidth()
                         .padding(innerPadding)
                 )
             }
-        }
 
-        ChoosePhotoView(
-            modifier = modifier.padding(innerPadding),
-            uri = { receiptPhotoUri },
-            onChoosePhotoClicked = {
-                choosePhotoLaunch.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            is ReceiptUiState.Show -> {
+                ChoosePhotoView(
+                    modifier = modifier.padding(innerPadding),
+                    uri = { receiptPhotoUri },
+                    onChoosePhotoClicked = {
+                        choosePhotoLaunch.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    onClearPhotoClicked = { receiptPhotoUri = null },
+                    onGetReceiptFromImageClicked = {
+                        receiptPhotoUri?.let { photoUri ->
+                            receiptViewModel.setUiEvent(
+                                ReceiptUiEvent.ConvertReceiptFromImage(
+                                    photoUri
+                                )
+                            )
+                        }
+                    }
                 )
-            },
-            onClearPhotoClicked = { receiptPhotoUri = null },
-            onGetReceiptFromImageClicked = {
-                receiptPhotoUri?.let { photoUri ->
-                    receiptViewModel.setUiEvent(ReceiptUiEvent.ConvertReceiptFromImage(photoUri))
-                }
             }
-        )
+        }
 
         when (uiErrorIntent) {
             is ReceiptUiErrorIntent.ImageIsInappropriate -> {
