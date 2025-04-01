@@ -25,4 +25,5 @@
     <string name="delete_receipt_button">Delete receipt button</string>
     <string name="delete">Delete</string>
     <string name="no_receipts_found">No receipts found. Add a new one.</string>
+    <string name="history_of_receipts">History of receipts</string>
 </resources>
