@@ -1,13 +1,14 @@
 package com.example.receipt_splitter.receipt.domain
 
-import com.example.receipt_splitter.receipt.presentation.ReceiptData
 import com.example.receipt_splitter.receipt.presentation.SplitOrderData
+import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 
 class ReceiptDataConverterUseCase() : ReceiptDataConverterUseCaseInterface {
 
-    override fun convertReceiptDataToSplitData(receiptData: ReceiptData): List<SplitOrderData> {
-        return receiptData.orders.map { order ->
+    override fun convertReceiptDataToSplitData(splitReceiptData: SplitReceiptData): List<SplitOrderData> {
+        return splitReceiptData.orders.map { order ->
             SplitOrderData(
+                id = order.id,
                 name = order.name,
                 quantity = order.quantity,
                 price = order.price,
@@ -17,10 +18,10 @@ class ReceiptDataConverterUseCase() : ReceiptDataConverterUseCaseInterface {
 
     override fun addQuantityToSplitOrderData(
         splitOrderDataList: List<SplitOrderData>,
-        orderName: String,
+        orderId: Long,
     ): List<SplitOrderData> {
         return splitOrderDataList.map { currentData ->
-                if (currentData.name == orderName && currentData.selectedQuantity < currentData.quantity) {
+                if (currentData.id == orderId && currentData.selectedQuantity < currentData.quantity) {
                     currentData.let {
                         val updatedQuantity = it.selectedQuantity + 1
                         it.copy(selectedQuantity = updatedQuantity)
@@ -33,10 +34,10 @@ class ReceiptDataConverterUseCase() : ReceiptDataConverterUseCaseInterface {
 
     override fun subtractQuantityToSplitOrderData(
         splitOrderDataList: List<SplitOrderData>,
-        orderName: String
+        orderId: Long,
     ): List<SplitOrderData> {
         return splitOrderDataList.map { currentData ->
-            if (currentData.name == orderName && currentData.selectedQuantity > 0) {
+            if (currentData.id == orderId && currentData.selectedQuantity > 0) {
                 currentData.let {
                     val updatedQuantity = it.selectedQuantity - 1
                     it.copy(selectedQuantity = updatedQuantity)
@@ -49,14 +50,14 @@ class ReceiptDataConverterUseCase() : ReceiptDataConverterUseCaseInterface {
 }
 
 interface ReceiptDataConverterUseCaseInterface {
-    fun convertReceiptDataToSplitData(receiptData: ReceiptData): List<SplitOrderData>
+    fun convertReceiptDataToSplitData(splitReceiptData: SplitReceiptData): List<SplitOrderData>
     fun addQuantityToSplitOrderData(
         splitOrderDataList: List<SplitOrderData>,
-        orderName: String,
+        orderId: Long,
     ): List<SplitOrderData>
 
     fun subtractQuantityToSplitOrderData(
         splitOrderDataList: List<SplitOrderData>,
-        orderName: String,
+        orderId: Long,
     ): List<SplitOrderData>
 }
