@@ -20,7 +20,7 @@ class ImageReceiptConverterUseCase(
 
     private companion object {
         private const val REQUEST_TEXT =
-            "Read this receipt without spaces and extract using English"
+            "Read this images of the one receipt without spaces and extract using English"
 
         // Labels for images are the following:
         // https://developers.google.com/ml-kit/vision/image-labeling/label-map
@@ -28,33 +28,40 @@ class ImageReceiptConverterUseCase(
         private val APPROPRIATE_LABELS: List<Int> = listOf(273, 135, 240, 93)
     }
 
-    override suspend fun convertReceiptFromImage(image: Uri): ImageReceiptConverterUseCaseResponse {
-        return convertReceiptFromImageImpl(image = image)
+    override suspend fun convertReceiptFromImage(listOfImages: List<Uri>): ImageReceiptConverterUseCaseResponse {
+        return convertReceiptFromImageImpl(listOfImages = listOfImages)
     }
 
     private suspend fun convertReceiptFromImageImpl(
-        image: Uri,
+        listOfImages: List<Uri>,
         requestText: String = REQUEST_TEXT,
     ): ImageReceiptConverterUseCaseResponse {
         return withContext(Dispatchers.IO) {
             runCatching {
-                val imageBitmap = imageConverter.convertImageFromUriToBitmap(image)
-                val imageLabels = imageLabelingKit.getLabelsOfImage(imageBitmap)
-                val isReceiptAppropriate = hasAppropriateLabel(imageLabels)
-                if (isReceiptAppropriate) {
-                    val receiptJsonString: String? =
-                        receiptRepository.getReceiptJsonString(imageBitmap, requestText)
-                    if (receiptJsonString != null) {
-                        val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJsonString)
-                        if (receiptDataJson.orders.isNotEmpty()) {
-                            receiptDbRepository.insertReceiptData(receiptDataJson)
-                            return@withContext ImageReceiptConverterUseCaseResponse.Success
-                        } else
-                            return@withContext ImageReceiptConverterUseCaseResponse.ImageIsInappropriate
+                val listOfBitmaps = listOfImages.map { image ->
+                    imageConverter.convertImageFromUriToBitmap(image)
+                }
+                for (imageBitmap in listOfBitmaps) {
+                    val imageLabels = imageLabelingKit.getLabelsOfImage(imageBitmap)
+                    val isImageAppropriate = hasAppropriateLabel(imageLabels)
+                    if (!isImageAppropriate) {
+                        return@withContext ImageReceiptConverterUseCaseResponse.ImageIsInappropriate
+                    }
+                }
+                val receiptJsonString: String? =
+                    receiptRepository.getReceiptJsonString(
+                        listOfBitmaps = listOfBitmaps,
+                        requestText = requestText,
+                    )
+                if (receiptJsonString != null) {
+                    val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJsonString)
+                    if (receiptDataJson.orders.isNotEmpty()) {
+                        receiptDbRepository.insertReceiptData(receiptDataJson)
+                        return@withContext ImageReceiptConverterUseCaseResponse.Success
                     } else
-                        return@withContext ImageReceiptConverterUseCaseResponse.JsonError
+                        return@withContext ImageReceiptConverterUseCaseResponse.ImageIsInappropriate
                 } else
-                    return@withContext ImageReceiptConverterUseCaseResponse.ImageIsInappropriate
+                    return@withContext ImageReceiptConverterUseCaseResponse.JsonError
             }.getOrElse { e: Throwable ->
                 return@withContext ImageReceiptConverterUseCaseResponse.Error(
                     e.message ?: "Some errors"
@@ -78,7 +85,7 @@ class ImageReceiptConverterUseCase(
 }
 
 interface ImageReceiptConverterUseCaseInterface {
-    suspend fun convertReceiptFromImage(image: Uri): ImageReceiptConverterUseCaseResponse
+    suspend fun convertReceiptFromImage(listOfImages: List<Uri>): ImageReceiptConverterUseCaseResponse
 }
 
 sealed interface ImageReceiptConverterUseCaseResponse {
