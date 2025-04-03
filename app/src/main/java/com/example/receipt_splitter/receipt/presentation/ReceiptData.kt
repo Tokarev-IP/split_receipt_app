@@ -78,7 +78,7 @@ interface ReceiptUiState : BasicUiState {
 }
 
 sealed interface ReceiptUiEvent : BasicUiEvent {
-    class ConvertReceiptFromImage(val imageUri: Uri) : ReceiptUiEvent
+    class ConvertImagesToReceipt(val listOfImages: List<Uri>) : ReceiptUiEvent
     class AddQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
     class SubtractQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
     object AddNewReceipt : ReceiptUiEvent
