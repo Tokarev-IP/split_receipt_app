@@ -60,9 +60,9 @@ class ReceiptViewModel(
 
     override fun setUiEvent(newUiEvent: ReceiptUiEvent) {
         when (newUiEvent) {
-            is ReceiptUiEvent.ConvertReceiptFromImage -> {
+            is ReceiptUiEvent.ConvertImagesToReceipt -> {
                 setUiState(ReceiptUiState.Loading)
-                convertReceiptFromImage(newUiEvent.imageUri)
+                convertReceiptFromImage(newUiEvent.listOfImages)
             }
 
             is ReceiptUiEvent.AddQuantityToSplitOrderData -> {
@@ -99,10 +99,10 @@ class ReceiptViewModel(
         }
     }
 
-    private fun convertReceiptFromImage(image: Uri) {
+    private fun convertReceiptFromImage(listOfImages: List<Uri>) {
         viewModelScope.launch {
             val response: ImageReceiptConverterUseCaseResponse =
-                imageReceiptConverterUseCase.convertReceiptFromImage(image = image)
+                imageReceiptConverterUseCase.convertReceiptFromImage(listOfImages = listOfImages)
             when (response) {
                 is ImageReceiptConverterUseCaseResponse.ImageIsInappropriate -> {
                     setUiState(ReceiptUiState.Show)
