@@ -2,6 +2,7 @@ package com.example.receipt_splitter.receipt.data
 
 import android.graphics.Bitmap
 import com.google.firebase.Firebase
+import com.google.firebase.vertexai.type.Content
 import com.google.firebase.vertexai.type.Schema
 import com.google.firebase.vertexai.type.content
 import com.google.firebase.vertexai.type.generationConfig
@@ -38,10 +39,14 @@ class ReceiptRepository() : ReceiptRepositoryInterface {
         )
 
         private const val RESPONSE_MIME_TYPE = "application/json"
+
+        private const val ONE_IMAGE = 1
+        private const val TWO_IMAGES = 2
+        private const val THREE_IMAGES = 3
     }
 
     private suspend fun getReceiptJsonStringImpl(
-        bitmap: Bitmap,
+        listOfBitmaps: List<Bitmap>,
         requestText: String,
         vertexJson: Schema = vertexReceiptJson,
         vertexAiModel: String = DataConstantsReceipt.VERTEX_AI_MODEL,
@@ -56,25 +61,56 @@ class ReceiptRepository() : ReceiptRepositoryInterface {
                 }
             )
 
-        val prompt = content {
-            image(bitmap)
-            text(requestText)
-        }
+        val prompt = getPrompt(listOfBitmaps, requestText)
         val result = generativeModel.generateContent(prompt)
         return result.text
     }
 
+    private fun getPrompt(listOfBitmaps: List<Bitmap>, requestText: String): Content {
+        return when (listOfBitmaps.size) {
+            ONE_IMAGE -> {
+                content {
+                    image(listOfBitmaps[0])
+                    text(requestText)
+                }
+            }
+
+            TWO_IMAGES -> {
+                content {
+                    image(listOfBitmaps[0])
+                    image(listOfBitmaps[1])
+                    text(requestText)
+                }
+            }
+
+            THREE_IMAGES -> {
+                content {
+                    image(listOfBitmaps[0])
+                    image(listOfBitmaps[1])
+                    image(listOfBitmaps[2])
+                    text(requestText)
+                }
+            }
+
+            else -> {
+                content {
+                    text(requestText)
+                }
+            }
+        }
+    }
+
     override suspend fun getReceiptJsonString(
-        bitmap: Bitmap,
+        listOfBitmaps: List<Bitmap>,
         requestText: String
     ): String? {
         return getReceiptJsonStringImpl(
-            bitmap = bitmap,
+            listOfBitmaps = listOfBitmaps,
             requestText = requestText
         )
     }
 }
 
 interface ReceiptRepositoryInterface {
-    suspend fun getReceiptJsonString(bitmap: Bitmap, requestText: String): String?
+    suspend fun getReceiptJsonString(listOfBitmaps: List<Bitmap>, requestText: String): String?
 }
