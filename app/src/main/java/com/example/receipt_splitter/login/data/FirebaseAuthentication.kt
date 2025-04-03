@@ -25,16 +25,11 @@ class FirebaseAuthentication : FirebaseAuthenticationInterface {
     }
 
     override suspend fun signOut() {
-        return suspendCancellableCoroutine { continuation ->
-            firebaseAuth.signOut()
-            continuation.resume(Unit)
-        }
+        firebaseAuth.signOut()
     }
 
     override suspend fun getCurrentUserId(): String? {
-        return suspendCancellableCoroutine { continuation ->
-            continuation.resume(firebaseAuth.currentUser?.uid)
-        }
+        return firebaseAuth.currentUser?.uid
     }
 }
 
