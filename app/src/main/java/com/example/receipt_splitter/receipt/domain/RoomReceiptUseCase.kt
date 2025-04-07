@@ -24,8 +24,8 @@ class RoomReceiptUseCase(
                 receiptDbRepository.insertReceiptData(receiptDataJson)
             }
         }.fold(
-            onSuccess = { BasicFunResponse.onSuccess },
-            onFailure = { e -> BasicFunResponse.onError(e.message ?: "An error") }
+            onSuccess = { BasicFunResponse.Success },
+            onFailure = { e -> BasicFunResponse.Error(e.message ?: "An error") }
         )
     }
 
@@ -35,8 +35,8 @@ class RoomReceiptUseCase(
                 receiptDbRepository.deleteReceiptData(receiptId = receiptId)
             }
         }.fold(
-            onSuccess = { BasicFunResponse.onSuccess },
-            onFailure = { e -> BasicFunResponse.onError(e.message ?: "An error") }
+            onSuccess = { BasicFunResponse.Success },
+            onFailure = { e -> BasicFunResponse.Error(e.message ?: "An error") }
         )
     }
 }
