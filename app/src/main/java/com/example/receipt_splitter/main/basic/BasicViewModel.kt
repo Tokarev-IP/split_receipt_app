@@ -11,7 +11,7 @@ abstract class BasicViewModel<
         basicUiState : BasicUiState,
         basicIntent : BasicIntent,
         basicUiEvent : BasicUiEvent,
-        basicUiErrorIntent : BasicUiErrorIntent>(initialUiState: basicUiState) : ViewModel() {
+        basicUiErrorIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
 
     private val uiState = MutableStateFlow(initialUiState)
     private val uiStateFlow = uiState.asStateFlow()

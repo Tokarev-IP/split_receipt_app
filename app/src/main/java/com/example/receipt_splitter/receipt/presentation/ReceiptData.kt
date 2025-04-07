@@ -2,7 +2,7 @@ package com.example.receipt_splitter.receipt.presentation
 
 import android.net.Uri
 import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicUiErrorIntent
+import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiEvent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import kotlinx.serialization.SerialName
@@ -94,7 +94,7 @@ interface ReceiptIntent : BasicIntent {
     object GoToShowReceiptsScreen : ReceiptIntent
 }
 
-interface ReceiptUiErrorIntent : BasicUiErrorIntent {
-    object ImageIsInappropriate : ReceiptUiErrorIntent
-    class ReceiptError(val msg: String) : ReceiptUiErrorIntent
+interface ReceiptUiMessageIntent : BasicUiMessageIntent {
+    object ImageIsInappropriate : ReceiptUiMessageIntent
+    class ReceiptMessage(val msg: String) : ReceiptUiMessageIntent
 }

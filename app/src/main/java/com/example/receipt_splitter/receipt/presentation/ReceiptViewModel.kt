@@ -22,7 +22,7 @@ class ReceiptViewModel(
         ReceiptUiState,
         ReceiptIntent,
         ReceiptUiEvent,
-        ReceiptUiErrorIntent>(
+        ReceiptUiMessageIntent>(
     initialUiState = ReceiptUiState.Show,
 ) {
     private val splitOrderDataFlow = MutableStateFlow<List<SplitOrderData>>(emptyList())
@@ -106,7 +106,7 @@ class ReceiptViewModel(
             when (response) {
                 is ImageReceiptConverterUseCaseResponse.ImageIsInappropriate -> {
                     setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiErrorIntent.ImageIsInappropriate)
+                    setUiErrorIntent(ReceiptUiMessageIntent.ImageIsInappropriate)
                 }
 
                 is ImageReceiptConverterUseCaseResponse.JsonError -> {
@@ -123,7 +123,7 @@ class ReceiptViewModel(
 
                 is ImageReceiptConverterUseCaseResponse.Error -> {
                     setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiErrorIntent.ReceiptError(msg = response.msg))
+                    setUiErrorIntent(ReceiptUiMessageIntent.ReceiptMessage(msg = response.msg))
                 }
             }
         }
@@ -176,8 +176,8 @@ class ReceiptViewModel(
             val response: BasicFunResponse =
                 roomReceiptUseCase.deleteReceipt(receiptId = receiptId)
             when (response) {
-                is BasicFunResponse.onSuccess -> {}
-                is BasicFunResponse.onError -> {}
+                is BasicFunResponse.Success -> {}
+                is BasicFunResponse.Error -> {}
             }
         }
     }

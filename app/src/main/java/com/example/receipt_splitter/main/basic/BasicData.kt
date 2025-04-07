@@ -3,9 +3,9 @@ package com.example.receipt_splitter.main.basic
 interface BasicUiState
 interface BasicIntent
 interface BasicUiEvent
-interface BasicUiErrorIntent
+interface BasicUiMessageIntent
 
 sealed interface BasicFunResponse{
-    object onSuccess : BasicFunResponse
-    class onError(val msg: String) : BasicFunResponse
+    object Success : BasicFunResponse
+    class Error(val msg: String) : BasicFunResponse
 }
