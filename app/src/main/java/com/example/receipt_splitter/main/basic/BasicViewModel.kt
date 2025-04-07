@@ -11,7 +11,7 @@ abstract class BasicViewModel<
         basicUiState : BasicUiState,
         basicIntent : BasicIntent,
         basicUiEvent : BasicUiEvent,
-        basicUiErrorIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
+        basicUiMessageIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
 
     private val uiState = MutableStateFlow(initialUiState)
     private val uiStateFlow = uiState.asStateFlow()
@@ -23,12 +23,12 @@ abstract class BasicViewModel<
     )
     private val intentFlow = intent.asSharedFlow()
 
-    private val uiErrorIntent = MutableSharedFlow<basicUiErrorIntent?>(
+    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent?>(
         replay = 1,
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    private val uiErrorIntentFlow = uiErrorIntent.asSharedFlow()
+    private val uiMessageIntentFlow = uiMessageIntent.asSharedFlow()
 
     protected fun setUiState(newUiState: basicUiState) {
         uiState.value = newUiState
@@ -36,19 +36,19 @@ abstract class BasicViewModel<
     protected fun setIntent(newIntent: basicIntent) {
         intent.tryEmit(newIntent)
     }
-    protected fun setUiErrorIntent(newUiErrorIntent: basicUiErrorIntent) {
-        uiErrorIntent.tryEmit(newUiErrorIntent)
+    protected fun setUiMessageIntent(newUiErrorIntent: basicUiMessageIntent) {
+        uiMessageIntent.tryEmit(newUiErrorIntent)
     }
 
     fun getUiStateFlow() = uiStateFlow
     fun getIntentFlow() = intentFlow
-    fun getUiErrorIntentFlow() = uiErrorIntentFlow
+    fun getUiMessageIntentFlow() = uiMessageIntentFlow
 
     fun clearIntentFlow() {
         intent.tryEmit(null)
     }
-    fun clearUiErrorIntentFlow() {
-        uiErrorIntent.tryEmit(null)
+    fun clearUiMessageIntentFlow() {
+        uiMessageIntent.tryEmit(null)
     }
 
     abstract fun setUiEvent(newUiEvent: basicUiEvent)

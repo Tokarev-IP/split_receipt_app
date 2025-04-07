@@ -106,7 +106,7 @@ class ReceiptViewModel(
             when (response) {
                 is ImageReceiptConverterUseCaseResponse.ImageIsInappropriate -> {
                     setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiMessageIntent.ImageIsInappropriate)
+                    setUiMessageIntent(ReceiptUiMessageIntent.ImageIsInappropriate)
                 }
 
                 is ImageReceiptConverterUseCaseResponse.JsonError -> {
@@ -123,7 +123,7 @@ class ReceiptViewModel(
 
                 is ImageReceiptConverterUseCaseResponse.Error -> {
                     setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiMessageIntent.ReceiptMessage(msg = response.msg))
+                    setUiMessageIntent(ReceiptUiMessageIntent.ReceiptMessage(msg = response.msg))
                 }
             }
         }
