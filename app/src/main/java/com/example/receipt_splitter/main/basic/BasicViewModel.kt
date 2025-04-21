@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 abstract class BasicViewModel<
         basicUiState : BasicUiState,
         basicIntent : BasicIntent,
-        basicUiEvent : BasicUiEvent,
+        basicUiEvent : BasicEvent,
+        basicNavigationEvent : BasicNavigationEvent,
         basicUiMessageIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
 
     private val uiState = MutableStateFlow(initialUiState)
@@ -18,14 +19,14 @@ abstract class BasicViewModel<
 
     private val intent = MutableSharedFlow<basicIntent?>(
         replay = 1,
-        extraBufferCapacity = 2,
+        extraBufferCapacity = 3,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val intentFlow = intent.asSharedFlow()
 
     private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent?>(
         replay = 1,
-        extraBufferCapacity = 2,
+        extraBufferCapacity = 3,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val uiMessageIntentFlow = uiMessageIntent.asSharedFlow()
@@ -33,9 +34,11 @@ abstract class BasicViewModel<
     protected fun setUiState(newUiState: basicUiState) {
         uiState.value = newUiState
     }
+
     protected fun setIntent(newIntent: basicIntent) {
         intent.tryEmit(newIntent)
     }
+
     protected fun setUiMessageIntent(newUiErrorIntent: basicUiMessageIntent) {
         uiMessageIntent.tryEmit(newUiErrorIntent)
     }
@@ -47,9 +50,11 @@ abstract class BasicViewModel<
     fun clearIntentFlow() {
         intent.tryEmit(null)
     }
+
     fun clearUiMessageIntentFlow() {
         uiMessageIntent.tryEmit(null)
     }
 
     abstract fun setUiEvent(newUiEvent: basicUiEvent)
+    abstract fun setNavigationEvent(newNavigationEvent: basicNavigationEvent)
 }
