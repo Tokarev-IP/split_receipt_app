@@ -26,26 +26,26 @@ fun ReceiptCompose(
     val intent by receiptViewModel.getIntentFlow().collectAsState(initial = null)
 
     LaunchedEffect(key1 = Unit) {
-        receiptViewModel.setUiEvent(ReceiptUiEvent.RetrieveAllReceipts)
+        receiptViewModel.setUiEvent(ReceiptEvent.RetrieveAllReceipts)
     }
 
     when (intent) {
         is ReceiptIntent.GoToSplitReceiptScreen -> {
             receiptViewModel.clearIntentFlow()
             navHostController.navigate(ReceiptNavHostDestinations.SplitReceiptScreenNav)
-            receiptViewModel.setUiEvent(ReceiptUiEvent.SetShowState)
+            receiptViewModel.setUiEvent(ReceiptEvent.SetShowState)
         }
 
         is ReceiptIntent.GoToChoosePhotoScreen -> {
             receiptViewModel.clearIntentFlow()
             navHostController.navigate(ReceiptNavHostDestinations.ChoosePhotoScreenNav)
-            receiptViewModel.setUiEvent(ReceiptUiEvent.SetShowState)
+            receiptViewModel.setUiEvent(ReceiptEvent.SetShowState)
         }
 
         is ReceiptIntent.GoToShowReceiptsScreen -> {
             receiptViewModel.clearIntentFlow()
             navHostController.navigate(ReceiptNavHostDestinations.ShowReceiptsScreenNav)
-            receiptViewModel.setUiEvent(ReceiptUiEvent.SetShowState)
+            receiptViewModel.setUiEvent(ReceiptEvent.SetShowState)
         }
     }
 
