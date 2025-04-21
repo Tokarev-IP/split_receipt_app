@@ -42,10 +42,6 @@ fun LoginCompose(
     )
 
     LaunchedEffect(key1 = Unit) {
-        loginViewModel.setUiEvent(LoginEvent.SignOut)
-    }
-
-    LaunchedEffect(key1 = Unit) {
         loginViewModel.getIntentFlow().collect { intent ->
             intent?.let {
                 loginViewModel.clearIntentFlow()
