@@ -51,7 +51,12 @@ fun LoginCompose(
                 loginViewModel.clearIntentFlow()
                 when (intent) {
                     is LoginIntent.GoToSignInScreen -> {
-                        navHostController.navigate(LoginNavHostDestinations.ChooseSignInOptionScreenNav)
+                        navHostController.navigate(LoginNavHostDestinations.ChooseSignInOptionScreenNav){
+                            popUpTo(navHostController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
 
                     is LoginIntent.UserIsAuthorized -> {
