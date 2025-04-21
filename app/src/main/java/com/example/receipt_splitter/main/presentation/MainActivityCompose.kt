@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,13 +23,15 @@ fun MainActivityCompose(
     startDestination: MainNavHostDestinations = MainNavHostDestinations.LoginNav,
     mainViewModel: MainViewModel = koinViewModel(),
 ) {
-    val intent by mainViewModel.getIntentFlow().collectAsState(initial = null)
+    val intent by mainViewModel.getIntentFlow().collectAsStateWithLifecycle(null)
     when (intent) {
         is MainIntent.GoToReceiptScreen -> {
+            mainViewModel.clearIntentFlow()
             navHostController.navigate(MainNavHostDestinations.ReceiptNav)
         }
 
         is MainIntent.GoToLoginScreen -> {
+            mainViewModel.clearIntentFlow()
             navHostController.navigate(MainNavHostDestinations.LoginNav)
         }
     }
