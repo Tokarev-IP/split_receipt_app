@@ -21,7 +21,8 @@ class ReceiptViewModel(
 ) : BasicViewModel<
         ReceiptUiState,
         ReceiptIntent,
-        ReceiptUiEvent,
+        ReceiptEvent,
+        ReceiptNavigationEvent,
         ReceiptUiMessageIntent>(
     initialUiState = ReceiptUiState.Show,
 ) {
@@ -58,45 +59,49 @@ class ReceiptViewModel(
     fun getAllReceiptsList() = allReceiptsListState
     fun getReceiptData() = splitReceiptDataState
 
-    override fun setUiEvent(newUiEvent: ReceiptUiEvent) {
+    override fun setUiEvent(newUiEvent: ReceiptEvent) {
         when (newUiEvent) {
-            is ReceiptUiEvent.ConvertImagesToReceipt -> {
+            is ReceiptEvent.ConvertImagesToReceipt -> {
                 setUiState(ReceiptUiState.Loading)
                 convertReceiptFromImage(newUiEvent.listOfImages)
             }
 
-            is ReceiptUiEvent.AddQuantityToSplitOrderData -> {
+            is ReceiptEvent.AddQuantityToSplitOrderData -> {
                 addQuantityToSplitOrderData(newUiEvent.orderId, splitOrderDataFlow.value)
             }
 
-            is ReceiptUiEvent.SubtractQuantityToSplitOrderData -> {
+            is ReceiptEvent.SubtractQuantityToSplitOrderData -> {
                 subtractQuantityToSplitOrderData(newUiEvent.orderId, splitOrderDataFlow.value)
             }
 
-            is ReceiptUiEvent.AddNewReceipt -> {
+            is ReceiptEvent.AddNewReceipt -> {
                 setIntent(ReceiptIntent.GoToChoosePhotoScreen)
             }
 
-            is ReceiptUiEvent.ReceiptDeletion -> {
+            is ReceiptEvent.ReceiptDeletion -> {
                 removeReceipt(newUiEvent.receiptId)
             }
 
-            is ReceiptUiEvent.RetrieveAllReceipts -> {
+            is ReceiptEvent.RetrieveAllReceipts -> {
                 setUiState(ReceiptUiState.Loading)
                 retrieveAllReceipts()
             }
 
-            is ReceiptUiEvent.OpenSplitReceiptScreen -> {
+            is ReceiptEvent.OpenSplitReceiptScreen -> {
                 setSplitReceiptData(newUiEvent.splitReceiptData)
                 setSplitOrderDataList(newUiEvent.splitReceiptData.orders)
                 setOrderReportText(null)
                 setIntent(ReceiptIntent.GoToSplitReceiptScreen)
             }
 
-            is ReceiptUiEvent.SetShowState -> {
+            is ReceiptEvent.SetShowState -> {
                 setUiState(ReceiptUiState.Show)
             }
         }
+    }
+
+    override fun setNavigationEvent(newNavigationEvent: ReceiptNavigationEvent) {
+        TODO("Not yet implemented")
     }
 
     private fun convertReceiptFromImage(listOfImages: List<Uri>) {
@@ -181,5 +186,4 @@ class ReceiptViewModel(
             }
         }
     }
-
 }
