@@ -51,8 +51,8 @@ import coil3.compose.AsyncImage
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.BasicCircularLoadingUi
 import com.example.receipt_splitter.receipt.data.DataConstantsReceipt
-import com.example.receipt_splitter.receipt.presentation.ReceiptUiErrorIntent
-import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
+import com.example.receipt_splitter.receipt.presentation.ReceiptUiMessageIntent
+import com.example.receipt_splitter.receipt.presentation.ReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiState
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
@@ -69,7 +69,7 @@ fun ChoosePhotoScreen(
     currentActivity: Activity? = LocalActivity.current,
 ) {
     val uiState by receiptViewModel.getUiStateFlow().collectAsState()
-    val uiErrorIntent by receiptViewModel.getUiErrorIntentFlow().collectAsState(null)
+    val uiErrorIntent by receiptViewModel.getUiMessageIntentFlow().collectAsState(null)
 
     var listOfImages: List<Uri> by rememberSaveable { mutableStateOf(emptyList()) }
 
@@ -132,7 +132,7 @@ fun ChoosePhotoScreen(
                     onClearPhotoClicked = { listOfImages = emptyList() },
                     onGetReceiptFromImageClicked = {
                         receiptViewModel.setUiEvent(
-                            ReceiptUiEvent.ConvertImagesToReceipt(listOfImages = listOfImages)
+                            ReceiptEvent.ConvertImagesToReceipt(listOfImages = listOfImages)
                         )
                     },
                     onMakePhotoClicked = {
@@ -151,7 +151,7 @@ fun ChoosePhotoScreen(
         }
 
         when (uiErrorIntent) {
-            is ReceiptUiErrorIntent.ImageIsInappropriate -> {
+            is ReceiptUiMessageIntent.ImageIsInappropriate -> {
                 Toast.makeText(
                     LocalContext.current,
                     stringResource(R.string.image_is_inappropriate),
@@ -159,8 +159,8 @@ fun ChoosePhotoScreen(
                 ).show()
             }
 
-            is ReceiptUiErrorIntent.ReceiptError -> {
-                val msg = (uiErrorIntent as ReceiptUiErrorIntent.ReceiptError).msg
+            is ReceiptUiMessageIntent.ReceiptMessage -> {
+                val msg = (uiErrorIntent as ReceiptUiMessageIntent.ReceiptMessage).msg
                 Toast.makeText(LocalContext.current, msg, Toast.LENGTH_SHORT).show()
             }
         }
