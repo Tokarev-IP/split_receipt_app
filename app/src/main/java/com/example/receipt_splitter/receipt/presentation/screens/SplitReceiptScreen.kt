@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.isNotZero
-import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
+import com.example.receipt_splitter.receipt.presentation.ReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.example.receipt_splitter.receipt.presentation.SplitOrderData
 import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
@@ -84,10 +84,10 @@ fun SplitReceiptScreen(
             splitOrderDataList = { splitReceiptDataList },
             orderReportText = { orderReportText },
             onSubtractOneQuantityClicked = { orderId ->
-                receiptViewModel.setUiEvent(ReceiptUiEvent.SubtractQuantityToSplitOrderData(orderId))
+                receiptViewModel.setUiEvent(ReceiptEvent.SubtractQuantityToSplitOrderData(orderId))
             },
             onAddOneQuantityClicked = { orderId ->
-                receiptViewModel.setUiEvent(ReceiptUiEvent.AddQuantityToSplitOrderData(orderId))
+                receiptViewModel.setUiEvent(ReceiptEvent.AddQuantityToSplitOrderData(orderId))
             },
             onShareOrderReportText = {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {

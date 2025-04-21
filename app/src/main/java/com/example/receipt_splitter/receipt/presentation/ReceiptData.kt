@@ -1,10 +1,5 @@
 package com.example.receipt_splitter.receipt.presentation
 
-import android.net.Uri
-import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicUiErrorIntent
-import com.example.receipt_splitter.main.basic.BasicUiEvent
-import com.example.receipt_splitter.main.basic.BasicUiState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -70,31 +65,4 @@ sealed interface ReceiptNavHostDestinations {
 
     @Serializable
     object SplitReceiptScreenNav : ReceiptNavHostDestinations
-}
-
-interface ReceiptUiState : BasicUiState {
-    object Loading : ReceiptUiState
-    object Show : ReceiptUiState
-}
-
-sealed interface ReceiptUiEvent : BasicUiEvent {
-    class ConvertImagesToReceipt(val listOfImages: List<Uri>) : ReceiptUiEvent
-    class AddQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
-    class SubtractQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
-    object AddNewReceipt : ReceiptUiEvent
-    class ReceiptDeletion(val receiptId: Long) : ReceiptUiEvent
-    object RetrieveAllReceipts : ReceiptUiEvent
-    class OpenSplitReceiptScreen(val splitReceiptData: SplitReceiptData) : ReceiptUiEvent
-    object SetShowState : ReceiptUiEvent
-}
-
-interface ReceiptIntent : BasicIntent {
-    object GoToSplitReceiptScreen : ReceiptIntent
-    object GoToChoosePhotoScreen : ReceiptIntent
-    object GoToShowReceiptsScreen : ReceiptIntent
-}
-
-interface ReceiptUiErrorIntent : BasicUiErrorIntent {
-    object ImageIsInappropriate : ReceiptUiErrorIntent
-    class ReceiptError(val msg: String) : ReceiptUiErrorIntent
 }

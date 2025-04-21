@@ -1,6 +1,7 @@
 package com.example.receipt_splitter.login.domain
 
 import com.example.receipt_splitter.login.data.FirebaseAuthenticationInterface
+import com.example.receipt_splitter.login.presentation.LoginUiMessages
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
@@ -11,35 +12,62 @@ class SignInUseCase(
     private val firebaseAuthentication: FirebaseAuthenticationInterface,
 ) : SignInUseCaseInterface {
 
+    private companion object {
+        private const val DELAY_TIME = 1000L
+    }
+
     override suspend fun signInWithAuthCredential(
         authCredential: AuthCredential
     ): SignInUseCaseResponse {
         return withContext(Dispatchers.IO) {
             runCatching {
-                val user: FirebaseUser? =
+                delay(DELAY_TIME)
+                val user: FirebaseUser =
                     firebaseAuthentication.signInWithCredential(credential = authCredential)
-                delay(1000)
-                if (user != null)
-                    return@withContext SignInUseCaseResponse.UserId(user.uid)
-                else
-                    return@withContext SignInUseCaseResponse.UserIsNull
+                return@withContext SignInUseCaseResponse.User(user)
             }.getOrElse { e: Throwable ->
-                return@withContext SignInUseCaseResponse.Error(e.message ?: "Some errors")
+                return@withContext SignInUseCaseResponse.Error(
+                    e.message ?: LoginUiMessages.INTERNAL_ERROR.message
+                )
             }
         }
     }
 
-    override suspend fun getCurrentUserId(): SignInUseCaseResponse {
+    override suspend fun signInWithEmailAndPassword(
+        email: String,
+        password: String
+    ): SignInUseCaseResponse {
         return withContext(Dispatchers.IO) {
             runCatching {
-                val userId: String? = firebaseAuthentication.getCurrentUserId()
-                delay(1000)
-                if (userId != null)
-                    return@withContext SignInUseCaseResponse.UserId(userId)
-                else
-                    return@withContext SignInUseCaseResponse.UserIsNull
+                delay(DELAY_TIME)
+                val user: FirebaseUser =
+                    firebaseAuthentication.signInWithEmailAndPassword(email, password)
+                if (!user.isEmailVerified)
+                    firebaseAuthentication.sendEmailVerification(user)
+                return@withContext SignInUseCaseResponse.User(user)
             }.getOrElse { e: Throwable ->
-                return@withContext SignInUseCaseResponse.Error(e.message ?: "Some errors")
+                return@withContext SignInUseCaseResponse.Error(
+                    e.message ?: LoginUiMessages.INTERNAL_ERROR.message
+                )
+            }
+        }
+    }
+
+    override suspend fun createAccount(
+        email: String,
+        password: String
+    ): SignInUseCaseResponse {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                delay(DELAY_TIME)
+                val user: FirebaseUser =
+                    firebaseAuthentication.createUserWithEmailAndPassword(email, password)
+                firebaseAuthentication.sendEmailVerification(user)
+                return@withContext SignInUseCaseResponse.User(user)
+            }.getOrElse { e: Throwable ->
+                return@withContext SignInUseCaseResponse.Error(
+                    e.message ?: LoginUiMessages.INTERNAL_ERROR.message
+                )
             }
         }
     }
@@ -47,12 +75,11 @@ class SignInUseCase(
 
 interface SignInUseCaseInterface {
     suspend fun signInWithAuthCredential(authCredential: AuthCredential): SignInUseCaseResponse
-
-    suspend fun getCurrentUserId(): SignInUseCaseResponse
+    suspend fun signInWithEmailAndPassword(email: String, password: String): SignInUseCaseResponse
+    suspend fun createAccount(email: String, password: String): SignInUseCaseResponse
 }
 
 sealed interface SignInUseCaseResponse {
-    class UserId(val userId: String) : SignInUseCaseResponse
-    object UserIsNull : SignInUseCaseResponse
+    class User(val currentUser: FirebaseUser) : SignInUseCaseResponse
     class Error(val msg: String) : SignInUseCaseResponse
 }

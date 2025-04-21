@@ -6,7 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import com.example.receipt_splitter.login.presentation.LoginUiEvent
+import com.example.receipt_splitter.login.presentation.LoginEvent
 import com.example.receipt_splitter.login.presentation.LoginViewModel
 import com.example.receipt_splitter.main.basic.BasicCircularLoadingUi
 
@@ -16,7 +16,7 @@ fun SignInLoadingScreen(
     loginViewModel: LoginViewModel,
 ) {
     LaunchedEffect(Unit) {
-        loginViewModel.setUiEvent(LoginUiEvent.CheckIfUserIsSignedIn)
+        loginViewModel.setUiEvent(LoginEvent.CheckIfUserIsSignedIn)
     }
 
     Scaffold(

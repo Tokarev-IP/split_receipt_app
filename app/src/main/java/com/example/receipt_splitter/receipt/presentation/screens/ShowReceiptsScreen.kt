@@ -41,7 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.receipt_splitter.R
-import com.example.receipt_splitter.receipt.presentation.ReceiptUiEvent
+import com.example.receipt_splitter.receipt.presentation.ReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
 
@@ -59,14 +59,14 @@ fun ShowReceiptsScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.history_of_receipts)) },
+                title = { Text(text = stringResource(R.string.receipts)) },
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 modifier = modifier.padding(20.dp),
-                onClick = { receiptViewModel.setUiEvent(ReceiptUiEvent.AddNewReceipt) }
+                onClick = { receiptViewModel.setUiEvent(ReceiptEvent.AddNewReceipt) }
             ) {
                 Icon(
                     Icons.Filled.Add,
@@ -90,13 +90,13 @@ fun ShowReceiptsScreen(
                 splitReceiptDataList = { splitReceiptDataList },
                 onReceiptClicked = { splitReceiptData ->
                     receiptViewModel.setUiEvent(
-                        ReceiptUiEvent.OpenSplitReceiptScreen(
+                        ReceiptEvent.OpenSplitReceiptScreen(
                             splitReceiptData
                         )
                     )
                 },
                 onDeleteReceiptClicked = { receiptId ->
-                    receiptViewModel.setUiEvent(ReceiptUiEvent.ReceiptDeletion(receiptId))
+                    receiptViewModel.setUiEvent(ReceiptEvent.ReceiptDeletion(receiptId))
                 }
             )
     }

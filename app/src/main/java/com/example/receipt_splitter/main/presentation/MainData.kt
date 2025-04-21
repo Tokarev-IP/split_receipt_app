@@ -1,8 +1,9 @@
 package com.example.receipt_splitter.main.presentation
 
+import com.example.receipt_splitter.main.basic.BasicEvent
 import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicUiErrorIntent
-import com.example.receipt_splitter.main.basic.BasicUiEvent
+import com.example.receipt_splitter.main.basic.BasicNavigationEvent
+import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import kotlinx.serialization.Serializable
 
@@ -24,9 +25,11 @@ interface MainIntent : BasicIntent {
     object GoToReceiptScreen : MainIntent
 }
 
-sealed interface MainUiEvent : BasicUiEvent {
-    class UserIsSignedIn(val userId: String) : MainUiEvent
-    object UserIsSignedOut : MainUiEvent
+sealed interface MainEvent : BasicEvent {
+    object UserIsSignedIn : MainEvent
+    object UserIsSignedOut : MainEvent
 }
 
-sealed interface MainUiErrorIntent : BasicUiErrorIntent
+sealed interface MainNavigationEvent : BasicNavigationEvent
+
+sealed interface MainUiMessageIntent : BasicUiMessageIntent
