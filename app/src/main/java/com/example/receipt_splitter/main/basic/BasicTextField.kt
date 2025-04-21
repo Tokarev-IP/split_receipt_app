@@ -1,5 +1,6 @@
 package com.example.receipt_splitter.main.basic
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -31,6 +32,9 @@ fun BasicEmailTextField(
     onEmailTextFieldErrorStateChanged: (Boolean) -> Unit,
     enabled: () -> Boolean,
     labelText: String,
+    errorText: String,
+    supportingText: String? = null,
+    interactionSource: MutableInteractionSource? = null
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -52,9 +56,13 @@ fun BasicEmailTextField(
         enabled = enabled(),
         supportingText = {
             if (emailTextFieldErrorState())
-                Text(text = stringResource(R.string.email_might_be_incorrect))
+                Text(text = errorText)
+            else {
+                supportingText?.let { Text(text = supportingText) }
+            }
         },
         isError = emailTextFieldErrorState(),
+        interactionSource = interactionSource,
     )
 }
 
@@ -69,6 +77,8 @@ fun BasicPasswordTextField(
     onShowPasswordChanged: (Boolean) -> Unit,
     enabled: () -> Boolean,
     labelText: String,
+    errorText: String,
+    supportingText: String? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -101,7 +111,10 @@ fun BasicPasswordTextField(
         visualTransformation = if (showPassword()) VisualTransformation.None else PasswordVisualTransformation(),
         supportingText = {
             if (passwordTextFieldErrorState())
-                Text(text = stringResource(R.string.password_might_be_incorrect))
+                Text(text = errorText)
+            else {
+                supportingText?.let { Text(text = supportingText) }
+            }
         },
         isError = passwordTextFieldErrorState(),
     )
