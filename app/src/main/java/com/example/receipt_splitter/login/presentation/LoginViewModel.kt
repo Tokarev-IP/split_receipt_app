@@ -51,7 +51,7 @@ class LoginViewModel(
             is LoginEvent.SendVerificationEmail -> {
                 firebaseUser?.let { currentUser ->
                     sendVerificationEmail(currentUser)
-                } ?: setIntent(LoginIntent.UserHasToSignIn)
+                } ?: setIntent(LoginIntent.GoToSignInScreen)
             }
 
             is LoginEvent.SendResetPasswordRequest -> {
@@ -121,11 +121,11 @@ class LoginViewModel(
                 }
 
                 is CurrentUseCaseResponse.UserIsNull -> {
-                    setIntent(LoginIntent.UserHasToSignIn)
+                    setIntent(LoginIntent.GoToSignInScreen)
                 }
 
                 is CurrentUseCaseResponse.Error -> {
-                    setIntent(LoginIntent.UserHasToSignIn)
+                    setIntent(LoginIntent.GoToSignInScreen)
                     setUiMessageIntent(messageHandlerUseCase.handlerUiMessage(text = response.msg))
                 }
             }

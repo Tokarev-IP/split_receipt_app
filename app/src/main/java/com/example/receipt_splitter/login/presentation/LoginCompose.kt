@@ -50,7 +50,7 @@ fun LoginCompose(
             intent?.let {
                 loginViewModel.clearIntentFlow()
                 when (intent) {
-                    is LoginIntent.UserHasToSignIn -> {
+                    is LoginIntent.GoToSignInScreen -> {
                         navHostController.navigate(LoginNavHostDestinations.ChooseSignInOptionScreenNav)
                     }
 

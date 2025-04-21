@@ -49,7 +49,7 @@ interface LoginUiState : BasicUiState {
 }
 
 interface LoginIntent : BasicIntent {
-    object UserHasToSignIn : LoginIntent
+    object GoToSignInScreen : LoginIntent
     object UserIsAuthorized : LoginIntent
     object GoToRegistrationScreen : LoginIntent
     class GoToEmailVerificationScreen(val email: String, val password: String) : LoginIntent
