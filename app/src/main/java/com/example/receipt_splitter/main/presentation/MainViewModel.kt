@@ -3,22 +3,24 @@ package com.example.receipt_splitter.main.presentation
 import com.example.receipt_splitter.main.basic.BasicViewModel
 
 class MainViewModel :
-    BasicViewModel<MainUiState, MainIntent, MainUiEvent, MainUiErrorIntent>(
+    BasicViewModel<MainUiState, MainIntent, MainEvent, MainNavigationEvent, MainUiMessageIntent>(
         initialUiState = MainUiState.Show
     ) {
-    private var userId: String? = null
 
-    override fun setUiEvent(newUiEvent: MainUiEvent) {
+    override fun setUiEvent(newUiEvent: MainEvent) {
         when (newUiEvent) {
-            is MainUiEvent.UserIsSignedIn -> {
-                userId = newUiEvent.userId
+            is MainEvent.UserIsSignedIn -> {
                 setIntent(MainIntent.GoToReceiptScreen)
             }
 
-            is MainUiEvent.UserIsSignedOut -> {
+            is MainEvent.UserIsSignedOut -> {
                 setIntent(MainIntent.GoToLoginScreen)
             }
 
         }
+    }
+
+    override fun setNavigationEvent(newNavigationEvent: MainNavigationEvent) {
+        TODO("Not yet implemented")
     }
 }
