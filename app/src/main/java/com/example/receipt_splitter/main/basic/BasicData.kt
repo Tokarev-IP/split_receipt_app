@@ -2,7 +2,8 @@ package com.example.receipt_splitter.main.basic
 
 interface BasicUiState
 interface BasicIntent
-interface BasicUiEvent
+interface BasicEvent
+interface BasicNavigationEvent
 interface BasicUiMessageIntent
 
 sealed interface BasicFunResponse{
