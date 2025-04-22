@@ -1,25 +1,25 @@
-package com.example.receipt_splitter.receipt.room
+package com.example.receipt_splitter.receipt.data.room
 
 import com.example.receipt_splitter.receipt.presentation.OrderDataJson
 import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
-import com.example.receipt_splitter.receipt.presentation.SplitOrderData
-import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
+import com.example.receipt_splitter.receipt.presentation.OrderData
+import com.example.receipt_splitter.receipt.presentation.ReceiptData
 
 class ReceiptAdapter : ReceiptAdapterInterface {
 
     override suspend fun transformReceiptWithDataListToSplitReceiptDateList(
         receiptWithOrdersList: List<ReceiptWithOrders>,
-    ): List<SplitReceiptData> {
+    ): List<ReceiptData> {
         return receiptWithOrdersList.map { receiptWithOrders ->
             val splitOrdersList = receiptWithOrders.orders.map { order ->
-                SplitOrderData(
+                OrderData(
                     id = order.id,
                     name = order.name,
                     quantity = order.quantity,
                     price = order.price,
                 )
             }
-            SplitReceiptData(
+            ReceiptData(
                 id = receiptWithOrders.receipt.id,
                 restaurant = receiptWithOrders.receipt.restaurant,
                 date = receiptWithOrders.receipt.date,
@@ -67,7 +67,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
 interface ReceiptAdapterInterface {
     suspend fun transformReceiptWithDataListToSplitReceiptDateList(
         receiptWithOrdersList: List<ReceiptWithOrders>,
-    ): List<SplitReceiptData>
+    ): List<ReceiptData>
 
     suspend fun transformReceiptDataToReceiptEntity(
         receiptDataJson: ReceiptDataJson

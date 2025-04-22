@@ -1,4 +1,4 @@
-package com.example.receipt_splitter.receipt.room
+package com.example.receipt_splitter.receipt.data.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

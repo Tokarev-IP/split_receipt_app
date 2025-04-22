@@ -1,7 +1,7 @@
-package com.example.receipt_splitter.receipt.room
+package com.example.receipt_splitter.receipt.data.room
 
 import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
-import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
+import com.example.receipt_splitter.receipt.presentation.ReceiptData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -24,7 +24,7 @@ class ReceiptDbRepository(
         receiptDao.deleteReceipt(receiptId = receiptId)
     }
 
-    override suspend fun getAllReceiptData(): Flow<List<SplitReceiptData>> {
+    override suspend fun getAllReceiptData(): Flow<List<ReceiptData>> {
         return receiptDao.getAllReceiptsWithOrders().map { list ->
             receiptAdapter.transformReceiptWithDataListToSplitReceiptDateList(list)
         }
@@ -34,5 +34,5 @@ class ReceiptDbRepository(
 interface ReceiptDbRepositoryInterface {
     suspend fun insertReceiptData(receiptDataJson: ReceiptDataJson)
     suspend fun deleteReceiptData(receiptId: Long)
-    suspend fun getAllReceiptData(): Flow<List<SplitReceiptData>>
+    suspend fun getAllReceiptData(): Flow<List<ReceiptData>>
 }
