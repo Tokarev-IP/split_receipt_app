@@ -8,7 +8,7 @@ import com.example.receipt_splitter.login.domain.MessageHandlerUseCaseInterface
 import com.example.receipt_splitter.login.domain.SignInUseCaseInterface
 import com.example.receipt_splitter.login.domain.SignInUseCaseResponse
 import com.example.receipt_splitter.main.basic.BasicFunResponse
-import com.example.receipt_splitter.main.basic.BasicViewModel
+import com.example.receipt_splitter.main.basic.BasicLoginViewModel
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
@@ -17,15 +17,15 @@ class LoginViewModel(
     private val signInUseCase: SignInUseCaseInterface,
     private val currentUserUseCase: CurrentUserUseCaseInterface,
     private val messageHandlerUseCase: MessageHandlerUseCaseInterface,
-) : BasicViewModel<LoginUiState, LoginIntent, LoginEvent, LoginNavigationEvent, LoginUiMessageIntent>(
+) : BasicLoginViewModel<LoginUiState, LoginIntent, LoginEvent, LoginNavigationEvent, LoginUiMessageIntent>(
     initialUiState = LoginUiState.Show
 ) {
     private var firebaseUser: FirebaseUser? = null
 
-    override fun setUiEvent(newUiEvent: LoginEvent) {
-        when (newUiEvent) {
+    override fun setEvent(newEvent: LoginEvent) {
+        when (newEvent) {
             is LoginEvent.GoogleAuthCredentialWasChosen -> {
-                newUiEvent.authCredential?.let {
+                newEvent.authCredential?.let {
                     signInWithCredential(authCredential = it)
                 } ?: setUiState(LoginUiState.Show)
             }
@@ -36,15 +36,15 @@ class LoginViewModel(
 
             is LoginEvent.EmailAndPasswordLoginWasClicked -> {
                 signInWithEmailAndPassword(
-                    email = newUiEvent.email,
-                    password = newUiEvent.password
+                    email = newEvent.email,
+                    password = newEvent.password
                 )
             }
 
             is LoginEvent.SavedEmailAndPasswordSignIn -> {
                 signInWithSavedEmailAndPassword(
-                    email = newUiEvent.email,
-                    password = newUiEvent.password
+                    email = newEvent.email,
+                    password = newEvent.password
                 )
             }
 
@@ -55,20 +55,20 @@ class LoginViewModel(
             }
 
             is LoginEvent.SendResetPasswordRequest -> {
-                sendResetPasswordRequest(newUiEvent.email)
+                sendResetPasswordRequest(newEvent.email)
             }
 
             is LoginEvent.CreateNewAccount -> {
                 createNewUserAccount(
-                    email = newUiEvent.email,
-                    password = newUiEvent.password
+                    email = newEvent.email,
+                    password = newEvent.password
                 )
             }
 
             is LoginEvent.ConfirmEmailVerification -> {
                 confirmEmailVerification(
-                    email = newUiEvent.email,
-                    password = newUiEvent.password
+                    email = newEvent.email,
+                    password = newEvent.password
                 )
             }
 
@@ -81,7 +81,7 @@ class LoginViewModel(
             }
 
             is LoginEvent.SetErrorIntent -> {
-                setUiMessageIntent(messageHandlerUseCase.handlerUiMessage(text = newUiEvent.msg))
+                setUiMessageIntent(messageHandlerUseCase.handlerUiMessage(text = newEvent.msg))
             }
 
             is LoginEvent.SignOut -> {
