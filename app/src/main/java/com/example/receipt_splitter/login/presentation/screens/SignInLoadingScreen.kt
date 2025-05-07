@@ -16,7 +16,7 @@ fun SignInLoadingScreen(
     loginViewModel: LoginViewModel,
 ) {
     LaunchedEffect(Unit) {
-        loginViewModel.setUiEvent(LoginEvent.CheckIfUserIsSignedIn)
+        loginViewModel.setEvent(LoginEvent.CheckIfUserIsSignedIn)
     }
 
     Scaffold(
