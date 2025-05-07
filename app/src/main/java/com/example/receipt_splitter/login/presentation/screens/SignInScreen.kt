@@ -28,6 +28,7 @@ import com.example.receipt_splitter.login.data.SignInWithCredential
 import com.example.receipt_splitter.login.presentation.LoginEvent
 import com.example.receipt_splitter.login.presentation.LoginNavigationEvent
 import com.example.receipt_splitter.login.presentation.LoginUiMessageIntent
+import com.example.receipt_splitter.login.presentation.LoginUiMessages
 import com.example.receipt_splitter.login.presentation.LoginUiState
 import com.example.receipt_splitter.login.presentation.LoginViewModel
 import com.example.receipt_splitter.login.presentation.views.SignInScreenView
@@ -109,7 +110,7 @@ fun SignInScreen(
             modifier = modifier.padding(innerPadding),
             onEmailAndPasswordSignInClick = { email, password ->
                 signInTextFieldErrorState = SignInTextFieldErrorState()
-                loginViewModel.setUiEvent(
+                loginViewModel.setEvent(
                     LoginEvent.EmailAndPasswordLoginWasClicked(
                         email,
                         password
@@ -169,13 +170,15 @@ private suspend fun showCredentialSignInPopUp(
         val credentials: Pair<String, String> =
             SignInWithCredential().signInWithSavedCredential(myActivity)
         onCredentialResponse(credentials.first, credentials.second)
-        loginViewModel.setUiEvent(
+        loginViewModel.setEvent(
             LoginEvent.SavedEmailAndPasswordSignIn(
                 email = credentials.first,
                 password = credentials.second
             )
         )
-    }.onFailure { e: Throwable -> }
+    }.onFailure { e: Throwable ->
+//        loginViewModel.setEvent(LoginEvent.SetErrorIntent(msg = LoginUiMessages.INTERNAL_ERROR.message))
+    }
 }
 
 private suspend fun showGoogleSignInPopUp(
@@ -185,11 +188,11 @@ private suspend fun showGoogleSignInPopUp(
     runCatching {
         val authCredential: AuthCredential =
             SignInWithCredential().signInWithGoogle(myActivity)
-        loginViewModel.setUiEvent(
+        loginViewModel.setEvent(
             LoginEvent.GoogleAuthCredentialWasChosen(authCredential)
         )
     }.onFailure { e: Throwable ->
-
+//        loginViewModel.setEvent(LoginEvent.SetErrorIntent(msg = LoginUiMessages.INTERNAL_ERROR.message))
     }
 }
 
@@ -218,5 +221,6 @@ private fun handleUiMessages(
                 )
             )
         }
+
     }
 }
