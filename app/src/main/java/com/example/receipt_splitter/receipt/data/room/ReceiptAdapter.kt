@@ -1,63 +1,128 @@
 package com.example.receipt_splitter.receipt.data.room
 
-import com.example.receipt_splitter.receipt.presentation.OrderDataJson
-import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
+import com.example.receipt_splitter.main.basic.roundToTwoDecimalPlaces
 import com.example.receipt_splitter.receipt.presentation.OrderData
+import com.example.receipt_splitter.receipt.presentation.OrderDataJson
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
+import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
 
 class ReceiptAdapter : ReceiptAdapterInterface {
 
-    override suspend fun transformReceiptWithDataListToSplitReceiptDateList(
-        receiptWithOrdersList: List<ReceiptWithOrders>,
+    override suspend fun transformReceiptEntityListToReceiptDateList(
+        receiptEntityList: List<ReceiptEntity>,
     ): List<ReceiptData> {
-        return receiptWithOrdersList.map { receiptWithOrders ->
-            val splitOrdersList = receiptWithOrders.orders.map { order ->
-                OrderData(
-                    id = order.id,
-                    name = order.name,
-                    quantity = order.quantity,
-                    price = order.price,
-                )
-            }
+        return receiptEntityList.map { receiptEntity ->
             ReceiptData(
-                id = receiptWithOrders.receipt.id,
-                restaurant = receiptWithOrders.receipt.restaurant,
-                date = receiptWithOrders.receipt.date,
-                orders = splitOrdersList,
-                subTotal = receiptWithOrders.receipt.subTotal,
-                total = receiptWithOrders.receipt.total,
-                tax = receiptWithOrders.receipt.tax,
-                discount = receiptWithOrders.receipt.discount,
-                tip = receiptWithOrders.receipt.tip,
-                tipSum = receiptWithOrders.receipt.tipSum,
+                id = receiptEntity.id,
+                restaurant = receiptEntity.restaurant,
+                translatedRestaurant = receiptEntity.translatedRestaurant,
+                date = receiptEntity.date,
+                total = receiptEntity.total,
+                tax = receiptEntity.tax,
+                discount = receiptEntity.discount,
+                tip = receiptEntity.tip,
+                tipSum = receiptEntity.tipSum,
             )
         }
     }
 
-    override suspend fun transformReceiptDataToReceiptEntity(
+    override suspend fun transformReceiptEntityToReceiptDate(
+        receiptEntity: ReceiptEntity
+    ): ReceiptData {
+        return receiptEntity.run {
+            ReceiptData(
+                id = id,
+                restaurant = restaurant,
+                translatedRestaurant = translatedRestaurant,
+                date = date,
+                total = total,
+                tax = tax,
+                discount = discount,
+                tip = tip,
+                tipSum = tipSum,
+            )
+        }
+    }
+
+    override suspend fun transformReceiptDataJsonToReceiptEntity(
         receiptDataJson: ReceiptDataJson
     ): ReceiptEntity {
         return ReceiptEntity(
             restaurant = receiptDataJson.restaurant,
             date = receiptDataJson.date,
-            subTotal = receiptDataJson.subTotal,
-            total = receiptDataJson.total,
-            tax = receiptDataJson.tax,
-            discount = receiptDataJson.discount,
-            tip = receiptDataJson.tip,
-            tipSum = receiptDataJson.tipSum,
+            total = receiptDataJson.total.roundToTwoDecimalPlaces(),
+            tax = receiptDataJson.tax?.roundToTwoDecimalPlaces(),
+            discount = receiptDataJson.discount?.roundToTwoDecimalPlaces(),
+            tip = receiptDataJson.tip?.roundToTwoDecimalPlaces(),
+            tipSum = receiptDataJson.tipSum?.roundToTwoDecimalPlaces(),
         )
     }
 
-    override suspend fun transformOrderListToOrderEntity(
-        orderListData: List<OrderDataJson>,
+    override suspend fun transformOrderDataJsonListToOrderEntity(
+        orderDataJsonList: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity> {
-        return orderListData.map {
+        return orderDataJsonList.map { orderDataJson ->
             OrderEntity(
-                name = it.name,
-                quantity = it.quantity,
-                price = it.price,
+                name = orderDataJson.name,
+                quantity = orderDataJson.quantity,
+                price = orderDataJson.price.roundToTwoDecimalPlaces(),
+                receiptId = receiptId,
+            )
+        }
+    }
+
+    override suspend fun transformOrderEntityListToOrderDataList(
+        orderEntityList: List<OrderEntity>
+    ): List<OrderData> {
+        return orderEntityList.map { orderEntity ->
+            OrderData(
+                id = orderEntity.id,
+                name = orderEntity.name,
+                translatedName = orderEntity.translatedName,
+                quantity = orderEntity.quantity,
+                price = orderEntity.price,
+                receiptId = orderEntity.receiptId,
+            )
+        }
+    }
+
+    override suspend fun transformReceiptDataToReceiptEntity(
+        receiptData: ReceiptData
+    ): ReceiptEntity {
+        return ReceiptEntity(
+            id = receiptData.id,
+            restaurant = receiptData.restaurant,
+            translatedRestaurant = receiptData.translatedRestaurant,
+            date = receiptData.date,
+            total = receiptData.total.roundToTwoDecimalPlaces(),
+            tax = receiptData.tax?.roundToTwoDecimalPlaces(),
+            discount = receiptData.discount?.roundToTwoDecimalPlaces(),
+            tip = receiptData.tip?.roundToTwoDecimalPlaces(),
+            tipSum = receiptData.tipSum?.roundToTwoDecimalPlaces(),
+        )
+    }
+
+    override suspend fun transformOrderDataToOrderEntity(orderData: OrderData): OrderEntity {
+        return orderData.run {
+            OrderEntity(
+                id = id,
+                name = name,
+                translatedName = translatedName,
+                quantity = quantity,
+                price = price.roundToTwoDecimalPlaces(),
+                receiptId = receiptId,
+            )
+        }
+    }
+
+    override suspend fun transformOrderDataToNewOrderEntity(orderData: OrderData): OrderEntity {
+        return orderData.run {
+            OrderEntity(
+                name = name,
+                translatedName = translatedName,
+                quantity = quantity,
+                price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
             )
         }
@@ -65,16 +130,36 @@ class ReceiptAdapter : ReceiptAdapterInterface {
 }
 
 interface ReceiptAdapterInterface {
-    suspend fun transformReceiptWithDataListToSplitReceiptDateList(
-        receiptWithOrdersList: List<ReceiptWithOrders>,
+    suspend fun transformReceiptEntityListToReceiptDateList(
+        receiptEntityList: List<ReceiptEntity>,
     ): List<ReceiptData>
 
-    suspend fun transformReceiptDataToReceiptEntity(
+    suspend fun transformReceiptEntityToReceiptDate(
+        receiptEntity: ReceiptEntity,
+    ): ReceiptData
+
+    suspend fun transformReceiptDataJsonToReceiptEntity(
         receiptDataJson: ReceiptDataJson
     ): ReceiptEntity
 
-    suspend fun transformOrderListToOrderEntity(
+    suspend fun transformOrderDataJsonListToOrderEntity(
         orderListData: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity>
+
+    suspend fun transformOrderEntityListToOrderDataList(
+        orderEntityList: List<OrderEntity>,
+    ): List<OrderData>
+
+    suspend fun transformReceiptDataToReceiptEntity(
+        receiptData: ReceiptData,
+    ): ReceiptEntity
+
+    suspend fun transformOrderDataToOrderEntity(
+        orderData: OrderData,
+    ): OrderEntity
+
+    suspend fun transformOrderDataToNewOrderEntity(
+        orderData: OrderData
+    ): OrderEntity
 }
