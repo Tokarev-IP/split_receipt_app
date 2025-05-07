@@ -13,8 +13,18 @@ class ImageConverter(private val appContext: Context) : ImageConverterInterface 
         inputStream?.close()
         return bitmap
     }
+
+    override suspend fun convertImageListFromUriToBitmapList(listOfImages: List<Uri>): List<Bitmap> {
+        return listOfImages.map {  imageUri ->
+            val inputStream = appContext.contentResolver.openInputStream(imageUri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+            bitmap
+        }
+    }
 }
 
 interface ImageConverterInterface {
     suspend fun convertImageFromUriToBitmap(imageUri: Uri): Bitmap
+    suspend fun convertImageListFromUriToBitmapList(listOfImages: List<Uri>): List<Bitmap>
 }
