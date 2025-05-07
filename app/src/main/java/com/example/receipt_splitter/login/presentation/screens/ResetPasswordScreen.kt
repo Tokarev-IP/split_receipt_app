@@ -90,7 +90,7 @@ fun ResetPasswordScreen(
             modifier = modifier.padding(innerPadding),
             enabled = { uiState is LoginUiState.Show },
             onResetPasswordClick = { email ->
-                loginViewModel.setUiEvent(LoginEvent.SendResetPasswordRequest(email = email))
+                loginViewModel.setEvent(LoginEvent.SendResetPasswordRequest(email = email))
             },
             resetPasswordFieldErrorState = { resetPasswordTextFieldErrorState },
             onResetPasswordFieldState = { state ->
