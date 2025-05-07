@@ -68,10 +68,10 @@ fun EmailVerificationScreen(
             modifier = modifier.padding(innerPadding),
             email = email,
             onConfirmEmailVerificationClick = {
-                loginViewModel.setUiEvent(LoginEvent.ConfirmEmailVerification(email, password))
+                loginViewModel.setEvent(LoginEvent.ConfirmEmailVerification(email, password))
             },
             onResendVerificationEmailClick = {
-                loginViewModel.setUiEvent(LoginEvent.SendVerificationEmail)
+                loginViewModel.setEvent(LoginEvent.SendVerificationEmail)
             },
             enabled = { uiState is LoginUiState.Show }
         )
