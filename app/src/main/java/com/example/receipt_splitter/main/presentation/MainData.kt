@@ -13,6 +13,9 @@ sealed interface MainNavHostDestinations {
 
     @Serializable
     object LoginNav : MainNavHostDestinations
+
+    @Serializable
+    object SettingsNav : MainNavHostDestinations
 }
 
 interface MainUiState : BasicUiState {
@@ -23,13 +26,15 @@ interface MainUiState : BasicUiState {
 interface MainIntent : BasicIntent {
     object GoToLoginScreen : MainIntent
     object GoToReceiptScreen : MainIntent
+    object GoToSettingsScreen : MainIntent
+    object GoBackNavigation : MainIntent
 }
 
 sealed interface MainEvent : BasicEvent {
     object UserIsSignedIn : MainEvent
     object UserIsSignedOut : MainEvent
+    object OpenSettings : MainEvent
+    object GoBackNavigation : MainEvent
 }
-
-sealed interface MainNavigationEvent : BasicNavigationEvent
 
 sealed interface MainUiMessageIntent : BasicUiMessageIntent
