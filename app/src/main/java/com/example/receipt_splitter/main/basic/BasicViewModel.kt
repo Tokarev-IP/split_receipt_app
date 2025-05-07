@@ -10,7 +10,57 @@ import kotlinx.coroutines.flow.asStateFlow
 abstract class BasicViewModel<
         basicUiState : BasicUiState,
         basicIntent : BasicIntent,
-        basicUiEvent : BasicEvent,
+        basicEvent : BasicEvent,
+        basicUiMessageIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
+
+    private val uiState = MutableStateFlow(initialUiState)
+    private val uiStateFlow = uiState.asStateFlow()
+
+    private val intent = MutableSharedFlow<basicIntent?>(
+        replay = 1,
+        extraBufferCapacity = 3,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    private val intentFlow = intent.asSharedFlow()
+
+    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent?>(
+        replay = 1,
+        extraBufferCapacity = 3,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    private val uiMessageIntentFlow = uiMessageIntent.asSharedFlow()
+
+    protected fun setUiState(newUiState: basicUiState) {
+        uiState.value = newUiState
+    }
+
+    protected fun setIntent(newIntent: basicIntent) {
+        intent.tryEmit(newIntent)
+    }
+
+    protected fun setUiMessageIntent(newUiErrorIntent: basicUiMessageIntent) {
+        uiMessageIntent.tryEmit(newUiErrorIntent)
+    }
+
+    fun getUiStateFlow() = uiStateFlow
+    fun getIntentFlow() = intentFlow
+    fun getUiMessageIntentFlow() = uiMessageIntentFlow
+
+    fun clearIntentFlow() {
+        intent.tryEmit(null)
+    }
+
+    fun clearUiMessageIntentFlow() {
+        uiMessageIntent.tryEmit(null)
+    }
+
+    abstract fun setEvent(newEvent: basicEvent)
+}
+
+abstract class BasicLoginViewModel<
+        basicUiState : BasicUiState,
+        basicIntent : BasicIntent,
+        basicEvent : BasicEvent,
         basicNavigationEvent : BasicNavigationEvent,
         basicUiMessageIntent : BasicUiMessageIntent>(initialUiState: basicUiState) : ViewModel() {
 
@@ -55,6 +105,6 @@ abstract class BasicViewModel<
         uiMessageIntent.tryEmit(null)
     }
 
-    abstract fun setUiEvent(newUiEvent: basicUiEvent)
+    abstract fun setEvent(newEvent: basicEvent)
     abstract fun setNavigationEvent(newNavigationEvent: basicNavigationEvent)
 }
