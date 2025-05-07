@@ -12,6 +12,8 @@ import com.example.receipt_splitter.login.presentation.LoginCompose
 import com.example.receipt_splitter.login.presentation.LoginViewModel
 import com.example.receipt_splitter.receipt.presentation.ReceiptCompose
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
+import com.example.receipt_splitter.settings.SettingsCompose
+import com.example.receipt_splitter.settings.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -43,6 +45,14 @@ fun MainActivityCompose(
                             launchSingleTop = true
                         }
                     }
+
+                    is MainIntent.GoToSettingsScreen -> {
+                        navHostController.navigate(MainNavHostDestinations.SettingsNav)
+                    }
+
+                    is MainIntent.GoBackNavigation -> {
+                        navHostController.popBackStack()
+                    }
                 }
             }
         }
@@ -66,6 +76,14 @@ fun MainActivityCompose(
             ReceiptCompose(
                 mainViewModel = mainViewModel,
                 receiptViewModel = receiptViewModel,
+            )
+        }
+
+        composable<MainNavHostDestinations.SettingsNav> {
+            val settingsViewModel: SettingsViewModel = koinViewModel()
+            SettingsCompose(
+                settingsViewModel = settingsViewModel,
+                mainViewModel = mainViewModel,
             )
         }
     }
