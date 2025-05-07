@@ -56,7 +56,7 @@ fun LoginCompose(
                     }
 
                     is LoginIntent.UserIsAuthorized -> {
-                        mainViewModel.setUiEvent(MainEvent.UserIsSignedIn)
+                        mainViewModel.setEvent(MainEvent.UserIsSignedIn)
                     }
 
                     is LoginIntent.GoToRegistrationScreen -> {
