@@ -1,16 +1,16 @@
 package com.example.receipt_splitter.receipt.domain
 
 import com.example.receipt_splitter.main.basic.isNotZero
-import com.example.receipt_splitter.receipt.presentation.SplitOrderData
-import com.example.receipt_splitter.receipt.presentation.SplitReceiptData
+import com.example.receipt_splitter.receipt.presentation.OrderData
+import com.example.receipt_splitter.receipt.presentation.ReceiptData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class OrderReportCreatorUseCase() : OrderReportCreatorUseCaseInterface {
+class OrderReportCreator() : OrderReportCreatorInterface {
 
     override suspend fun buildOrderReport(
-        receiptData: SplitReceiptData,
-        splitOrderDataList: List<SplitOrderData>,
+        receiptData: ReceiptData,
+        orderDataList: List<OrderData>,
     ): String? {
         return withContext(Dispatchers.Default) {
             runCatching {
@@ -23,7 +23,7 @@ class OrderReportCreatorUseCase() : OrderReportCreatorUseCaseInterface {
                     orderReport.append("${receiptData.date} \n")
                 orderReport.append("--------------------\n")
 
-                for (splitReceiptData in splitOrderDataList) {
+                for (splitReceiptData in orderDataList) {
                     if (splitReceiptData.selectedQuantity.isNotZero()) {
                         val sumPrice = splitReceiptData.selectedQuantity * splitReceiptData.price
                         finalPrice += sumPrice
@@ -34,26 +34,22 @@ class OrderReportCreatorUseCase() : OrderReportCreatorUseCaseInterface {
                         )
                     }
                 }
-                if (orderReport.isBlank())
-                    return@withContext null
-                else {
-                    if (receiptData.discount != null || receiptData.tax != null)
-                        orderReport.append("--------------------\n")
 
-                    receiptData.discount?.let { discount ->
-                        finalPrice -= (finalPrice * discount) / 100
-                        orderReport.append("- $discount % \n")
-                    }
-                    receiptData.tax?.let { tax ->
-                        finalPrice += (finalPrice * tax) / 100
-                        orderReport.append("+ $tax % \n")
-                    }
-                    orderReport.append("--------------------\n")
-
-                    orderReport.append(finalPrice)
-
-                    return@withContext orderReport.toString()
+                receiptData.discount?.let { discount ->
+                    orderReport.append("-------------\n")
+                    finalPrice -= (finalPrice * discount) / 100
+                    orderReport.append("- $discount % \n")
                 }
+                receiptData.tax?.let { tax ->
+                    orderReport.append("-------------\n")
+                    finalPrice += (finalPrice * tax) / 100
+                    orderReport.append("+ $tax % \n")
+                }
+                orderReport.append("-------------\n")
+
+                orderReport.append(finalPrice)
+
+                return@withContext orderReport.toString()
             }.getOrElse { e ->
                 return@withContext null
             }
@@ -61,9 +57,9 @@ class OrderReportCreatorUseCase() : OrderReportCreatorUseCaseInterface {
     }
 }
 
-interface OrderReportCreatorUseCaseInterface {
+interface OrderReportCreatorInterface {
     suspend fun buildOrderReport(
-        receiptData: SplitReceiptData,
-        splitOrderDataList: List<SplitOrderData>,
+        receiptData: ReceiptData,
+        orderDataList: List<OrderData>,
     ): String?
 }
