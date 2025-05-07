@@ -53,7 +53,9 @@ fun CreateReceiptScreen(
     val uiState by createReceiptViewModel.getUiStateFlow().collectAsStateWithLifecycle()
 
     LaunchedEffect(key1 = Unit) {
-        createReceiptViewModel.getIntentFlow().collect { intent ->
+        createReceiptViewModel.getIntentFlow().collect { createIntent ->
+            createIntent?.let { intent ->
+                createReceiptViewModel.clearIntentFlow()
                 when (intent) {
                     is CreateReceiptIntent.GoToEditReceiptScreen -> {
                         receiptViewModel.setEvent(
@@ -63,6 +65,7 @@ fun CreateReceiptScreen(
                         )
                     }
                 }
+            }
         }
     }
 
