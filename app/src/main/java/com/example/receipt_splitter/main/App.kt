@@ -4,7 +4,8 @@ import android.app.Application
 import com.example.receipt_splitter.login.di.signInModule
 import com.example.receipt_splitter.main.di.mainModule
 import com.example.receipt_splitter.receipt.di.receiptModule
-import com.example.receipt_splitter.receipt.room.receiptDbModule
+import com.example.receipt_splitter.receipt.data.room.receiptDbModule
+import com.example.receipt_splitter.settings.settingsModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -15,7 +16,7 @@ class App : Application() {
 
         startKoin {
             androidContext(this@App)
-            modules(mainModule, signInModule, receiptModule, receiptDbModule())
+            modules(mainModule, signInModule, receiptModule, receiptDbModule, settingsModule)
         }
     }
 
