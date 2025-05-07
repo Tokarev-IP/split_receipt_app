@@ -14,19 +14,19 @@ data class ReceiptEntity(
     val id: Long = 0,
     @ColumnInfo(name = "restaurant_name")
     val restaurant: String = "",
+    @ColumnInfo(name = "translated_restaurant_name")
+    val translatedRestaurant: String? = null,
     @ColumnInfo(name = "date")
     val date: String = "",
-    @ColumnInfo(name = "sub_total_sum")
-    val subTotal: Float? = null,
     @ColumnInfo(name = "total_sum")
-    val total: Float? = null,
-    @ColumnInfo(name = "tax_in_percent")
+    val total: Float = 0.0F,
+    @ColumnInfo(name = "additional_tax_in_percent")
     val tax: Float? = null,
-    @ColumnInfo(name = "discount_in_percent")
+    @ColumnInfo(name = "total_discount_in_percent")
     val discount: Float? = null,
-    @ColumnInfo(name = "tip_in_percent")
+    @ColumnInfo(name = "total_tip_in_percent")
     val tip: Float? = null,
-    @ColumnInfo(name = "tip_sum")
+    @ColumnInfo(name = "total_tip_sum")
     val tipSum: Float? = null
 )
 
@@ -45,6 +45,8 @@ data class OrderEntity(
     val id: Long = 0,
     @ColumnInfo(name = "name")
     val name: String,
+    @ColumnInfo(name = "translated_name")
+    val translatedName: String? = null,
     @ColumnInfo(name = "quantity")
     val quantity: Int,
     @ColumnInfo(name = "price")
@@ -53,7 +55,7 @@ data class OrderEntity(
     val receiptId: Long
 )
 
-data class ReceiptWithOrders(
+data class ReceiptWithOrdersEntity(
     @Embedded val receipt: ReceiptEntity,
     @Relation(
         parentColumn = "id",
