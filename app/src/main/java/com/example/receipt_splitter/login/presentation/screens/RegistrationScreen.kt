@@ -93,7 +93,7 @@ fun RegistrationScreen(
             textFieldErrorState = { registrationTextFieldErrorState },
             onTextFieldErrorState = { state -> registrationTextFieldErrorState = state },
             onCreateAccountClick = { email, password ->
-                loginViewModel.setUiEvent(
+                loginViewModel.setEvent(
                     LoginEvent.CreateNewAccount(email = email, password = password)
                 )
             }
