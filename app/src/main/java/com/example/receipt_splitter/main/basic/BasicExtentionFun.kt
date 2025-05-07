@@ -1,5 +1,9 @@
 package com.example.receipt_splitter.main.basic
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 fun Int.isZero(): Boolean = this == 0
 
 fun Int.isNotZero(): Boolean = this > 0
@@ -46,4 +50,13 @@ fun String.isCorrectPassword(): Boolean {
 
     return isLength() && isContainNumeric() &&
             isContainLowercaseLetter() && isContainUppercaseLetter()
+}
+
+fun Float.roundToTwoDecimalPlaces(): Float {
+    return (this * 100).toInt() / 100f
+}
+
+fun Long.convertMillisToDate(): String {
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return formatter.format(Date(this))
 }
