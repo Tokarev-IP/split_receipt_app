@@ -46,14 +46,12 @@ fun RegistrationScreen(
 
     LaunchedEffect(key1 = Unit) {
         loginViewModel.getUiMessageIntentFlow().collect { uiMessageIntent ->
-            uiMessageIntent?.let { intent ->
-                handleUiMessages(
-                    intent,
-                    onRegistrationTextFieldErrorState = { state ->
-                        registrationTextFieldErrorState = state
-                    }
-                )
-            }
+            handleUiMessages(
+                uiMessageIntent = uiMessageIntent,
+                onRegistrationTextFieldErrorState = { state ->
+                    registrationTextFieldErrorState = state
+                }
+            )
         }
     }
 
