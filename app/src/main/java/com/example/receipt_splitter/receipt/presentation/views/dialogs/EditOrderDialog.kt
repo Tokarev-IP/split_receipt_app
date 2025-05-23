@@ -1,19 +1,21 @@
 package com.example.receipt_splitter.receipt.presentation.views.dialogs
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,13 +25,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.receipt.presentation.OrderData
-import com.example.receipt_splitter.receipt.presentation.views.CancelSaveRowView
+import com.example.receipt_splitter.receipt.presentation.views.basic.CancelSaveButtonView
 
 @Composable
 internal fun AddNewOrderDialog(
@@ -40,20 +44,25 @@ internal fun AddNewOrderDialog(
     Dialog(
         onDismissRequest = { onCancelButtonClicked() }
     ) {
-        EditOrderDialogCard(
-            orderData = OrderData(
-                id = 0,
-                name = EMPTY_STRING,
-                translatedName = EMPTY_STRING,
-                receiptId = receiptId,
-            ),
-            onCancelButtonClicked = {
-                onCancelButtonClicked()
-            },
-            onSaveButtonClicked = { orderData ->
-                onSaveButtonClicked(orderData)
-            }
-        )
+        Surface(
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            EditOrderDialogView(
+                orderData = OrderData(
+                    id = 0,
+                    name = EMPTY_STRING,
+                    translatedName = EMPTY_STRING,
+                    receiptId = receiptId,
+                ),
+                onCancelButtonClicked = {
+                    onCancelButtonClicked()
+                },
+                onSaveButtonClicked = { orderData ->
+                    onSaveButtonClicked(orderData)
+                },
+                titleText = stringResource(R.string.add_new_order_dialog_title)
+            )
+        }
     }
 }
 
@@ -66,27 +75,9 @@ internal fun EditOrderDialog(
     Dialog(
         onDismissRequest = { onCancelButtonClicked() }
     ) {
-        EditOrderDialogCard(
-            orderData = orderData,
-            onCancelButtonClicked = {
-                onCancelButtonClicked()
-            },
-            onSaveButtonClicked = { orderData ->
-                onSaveButtonClicked(orderData)
-            }
-        )
-    }
-}
-
-@Composable
-private fun EditOrderDialogCard(
-    modifier: Modifier = Modifier,
-    orderData: OrderData,
-    onCancelButtonClicked: () -> Unit = {},
-    onSaveButtonClicked: (orderData: OrderData) -> Unit = {},
-) {
-    ElevatedCard {
-        Box {
+        Surface(
+            shape = RoundedCornerShape(16.dp)
+        ) {
             EditOrderDialogView(
                 orderData = orderData,
                 onCancelButtonClicked = {
@@ -94,17 +85,9 @@ private fun EditOrderDialogCard(
                 },
                 onSaveButtonClicked = { orderData ->
                     onSaveButtonClicked(orderData)
-                }
+                },
+                titleText = stringResource(R.string.edit_order_dialog_title)
             )
-            IconButton(
-                modifier = modifier.align(Alignment.TopEnd),
-                onClick = { onCancelButtonClicked() },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = stringResource(R.string.close_the_dialog),
-                )
-            }
         }
     }
 }
@@ -113,8 +96,9 @@ private fun EditOrderDialogCard(
 private fun EditOrderDialogView(
     modifier: Modifier = Modifier,
     orderData: OrderData,
-    onCancelButtonClicked: () -> Unit,
-    onSaveButtonClicked: (orderData: OrderData) -> Unit,
+    onCancelButtonClicked: () -> Unit = {},
+    onSaveButtonClicked: (orderData: OrderData) -> Unit = {},
+    titleText: String = EMPTY_STRING,
 ) {
     var nameText by rememberSaveable { mutableStateOf(orderData.name) }
     var translatedNameText by rememberSaveable {
@@ -136,11 +120,32 @@ private fun EditOrderDialogView(
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
-            Spacer(modifier = modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier.fillMaxWidth()
+            ) {
+                Text(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                    text = titleText,
+                )
+                IconButton(
+                    onClick = { onCancelButtonClicked() },
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.close_the_dialog),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedTextField(
                 value = nameText,
                 onValueChange = { value ->
@@ -175,7 +180,7 @@ private fun EditOrderDialogView(
                         )
                 },
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = translatedNameText,
@@ -202,7 +207,7 @@ private fun EditOrderDialogView(
                         )
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = quantityText,
@@ -232,14 +237,14 @@ private fun EditOrderDialogView(
                     } else
                         Text(
                             text = stringResource(
-                                R.string.must_be_from_to,
+                                R.string.must_be_even_from_to,
                                 MINIMUM_QUANTITY,
                                 MAXIMUM_QUANTITY
                             )
                         )
                 },
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = priceText,
@@ -278,7 +283,7 @@ private fun EditOrderDialogView(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            CancelSaveRowView(
+            CancelSaveButtonView(
                 onCancelClicked = {
                     onCancelButtonClicked()
                 },
@@ -295,7 +300,7 @@ private fun EditOrderDialogView(
                             isPriceError = true
                     } ?: run { isPriceError = true }
                     if (isNameError || isQuantityError || isPriceError)
-                        return@CancelSaveRowView
+                        return@CancelSaveButtonView
                     val orderData = orderData.copy(
                         name = nameText.trim(),
                         translatedName = if (translatedNameText.isEmpty()) null else translatedNameText.trim(),
@@ -322,7 +327,7 @@ private const val MAXIMUM_LINES = 5
 @Composable
 @Preview(showBackground = true)
 private fun EditOrderDialogViewPreview() {
-    EditOrderDialogCard(
+    EditOrderDialogView(
         orderData = OrderData(
             id = 1,
             name = "sopu with tomato plants",
