@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.credentials.exceptions.CreateCredentialCancellationException
+import androidx.credentials.exceptions.CreateCredentialUnknownException
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,74 +35,32 @@ fun LoginCompose(
     myActivity: Activity? = LocalActivity.current
 ) {
     val uiMessageTextList = mapOf<String, String>(
-        "internal_error" to stringResource(R.string.internal_error),
-        "too_many_requests_try_again_later" to stringResource(R.string.too_many_requests_try_again_later),
-        "no_internet_connection" to stringResource(R.string.no_internet_connection),
-        "email_is_not_verified" to stringResource(R.string.email_is_not_verified),
-        "password_reset_email_was_sent" to stringResource(R.string.password_reset_email_was_sent),
-        "email_verification_has_been_sent" to stringResource(R.string.email_verification_has_been_sent),
+        LoginUiMessages.INTERNAL_ERROR.message to stringResource(R.string.internal_error),
+        LoginUiMessages.BLOCKED_ALL_REQUESTS.message to stringResource(R.string.too_many_requests_try_again_later),
+        LoginUiMessages.NETWORK_ERROR.message to stringResource(R.string.no_internet_connection),
+        LoginUiMessages.EMAIL_IS_NOT_VERIFIED.message to stringResource(R.string.email_is_not_verified),
+        LoginUiMessages.RESET_PASSWORD_EMAIL_WAS_SENT.message to stringResource(R.string.password_reset_email_was_sent),
+        LoginUiMessages.VERIFICATION_EMAIL_WAS_SENT.message to stringResource(R.string.email_verification_has_been_sent),
+        LoginUiMessages.ABSENT_OF_GOOGLE_ACCOUNT.message to stringResource(R.string.absent_of_google_account),
+        LoginUiMessages.NO_SAVED_ACCOUNTS.message to stringResource(R.string.no_saved_accounts),
     )
 
     LaunchedEffect(key1 = Unit) {
         loginViewModel.getIntentFlow().collect { intent ->
-            intent?.let {
-                loginViewModel.clearIntentFlow()
-                when (intent) {
-                    is LoginIntent.GoToSignInScreen -> {
-                        navHostController.navigate(LoginNavHostDestinations.ChooseSignInOptionScreenNav){
-                            popUpTo(navHostController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is LoginIntent.UserIsAuthorized -> {
-                        mainViewModel.setEvent(MainEvent.UserIsSignedIn)
-                    }
-
-                    is LoginIntent.GoToRegistrationScreen -> {
-                        navHostController.navigate(LoginNavHostDestinations.RegistrationScreenNav)
-                    }
-
-                    is LoginIntent.GoToEmailVerificationScreen -> {
-                        navHostController.navigate(
-                            LoginNavHostDestinations.EmailVerificationScreenNav(
-                                intent.email,
-                                intent.password
-                            )
-                        )
-                    }
-
-                    is LoginIntent.GoToResetPasswordScreen -> {
-                        navHostController.navigate(LoginNavHostDestinations.ResetPasswordScreenNav)
-                    }
-
-                    is LoginIntent.GoNavigationBack -> {
-                        navHostController.popBackStack()
-                    }
-
-                    is LoginIntent.ShowSaveCredentialsPopup -> {
-                        myActivity?.let {
-                            handleEmailAndPasswordSavingPopUp(
-                                myActivity = it,
-                                email = intent.email,
-                                password = intent.password,
-                            )
-                        }
-                    }
-                }
-            }
+            handleLoginIntent(
+                intent = intent,
+                navHostController = navHostController,
+                mainViewModel = mainViewModel,
+                loginViewModel = loginViewModel,
+                myActivity = myActivity
+            )
         }
     }
 
     LaunchedEffect(key1 = Unit) {
         loginViewModel.getUiMessageIntentFlow().collect { intent ->
-            intent?.let {
-                loginViewModel.clearUiMessageIntentFlow()
-                myActivity?.let { activity ->
-                    handleUiMessages(intent, activity, uiMessageTextList)
-                }
+            myActivity?.let { activity ->
+                handleUiMessages(intent, activity, uiMessageTextList)
             }
         }
     }
@@ -142,6 +102,7 @@ private suspend fun handleEmailAndPasswordSavingPopUp(
     myActivity: Activity,
     email: String,
     password: String,
+    loginViewModel: LoginViewModel,
 ) {
     runCatching {
         SignInWithCredential().registerPassword(
@@ -149,7 +110,65 @@ private suspend fun handleEmailAndPasswordSavingPopUp(
             password = password,
             activity = myActivity
         )
-    }.onFailure { e: Throwable -> }
+    }.onFailure { e: Throwable ->
+        if (e !is CreateCredentialCancellationException && e !is CreateCredentialUnknownException)
+            loginViewModel.setEvent(LoginEvent.SetErrorIntent(e.message.toString()))
+    }
+}
+
+private suspend fun handleLoginIntent(
+    intent: LoginIntent,
+    navHostController: NavHostController,
+    mainViewModel: MainViewModel,
+    loginViewModel: LoginViewModel,
+    myActivity: Activity?
+) {
+    when (intent) {
+        is LoginIntent.GoToSignInScreen -> {
+            navHostController.navigate(LoginNavHostDestinations.ChooseSignInOptionScreenNav) {
+                popUpTo(navHostController.graph.startDestinationId) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+
+        is LoginIntent.UserIsAuthorized -> {
+            mainViewModel.setEvent(MainEvent.UserIsSignedIn)
+        }
+
+        is LoginIntent.GoToRegistrationScreen -> {
+            navHostController.navigate(LoginNavHostDestinations.RegistrationScreenNav)
+        }
+
+        is LoginIntent.GoToEmailVerificationScreen -> {
+            navHostController.navigate(
+                LoginNavHostDestinations.EmailVerificationScreenNav(
+                    intent.email,
+                    intent.password
+                )
+            )
+        }
+
+        is LoginIntent.GoToResetPasswordScreen -> {
+            navHostController.navigate(LoginNavHostDestinations.ResetPasswordScreenNav)
+        }
+
+        is LoginIntent.GoNavigationBack -> {
+            navHostController.popBackStack()
+        }
+
+        is LoginIntent.ShowSaveCredentialsPopup -> {
+            myActivity?.let {
+                handleEmailAndPasswordSavingPopUp(
+                    myActivity = it,
+                    email = intent.email,
+                    password = intent.password,
+                    loginViewModel = loginViewModel,
+                )
+            }
+        }
+    }
 }
 
 private fun handleUiMessages(
@@ -169,7 +188,8 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.InternalError -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["internal_error"] ?: LoginUiMessages.INTERNAL_ERROR.message,
+                uiMessagesMap[LoginUiMessages.INTERNAL_ERROR.message]
+                    ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -177,7 +197,7 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.TooManyRequests -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["too_many_requests_try_again_later"]
+                uiMessagesMap[LoginUiMessages.BLOCKED_ALL_REQUESTS.message]
                     ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
@@ -186,7 +206,8 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.NoInternetConnection -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["no_internet_connection"] ?: LoginUiMessages.INTERNAL_ERROR.message,
+                uiMessagesMap[LoginUiMessages.NETWORK_ERROR.message]
+                    ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -194,7 +215,8 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.EmailIsNotVerified -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["email_is_not_verified"] ?: LoginUiMessages.INTERNAL_ERROR.message,
+                uiMessagesMap[LoginUiMessages.EMAIL_IS_NOT_VERIFIED.message]
+                    ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -202,7 +224,7 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.ResetPasswordEmailWasSent -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["password_reset_email_was_sent"]
+                uiMessagesMap[LoginUiMessages.RESET_PASSWORD_EMAIL_WAS_SENT.message]
                     ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
@@ -211,7 +233,25 @@ private fun handleUiMessages(
         is LoginUiMessageIntent.VerificationEmailWasSent -> {
             Toast.makeText(
                 currentActivity,
-                uiMessagesMap["email_verification_has_been_sent"]
+                uiMessagesMap[LoginUiMessages.VERIFICATION_EMAIL_WAS_SENT.message]
+                    ?: LoginUiMessages.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
+        is LoginUiMessageIntent.AbsentOfGoogleAccount -> {
+            Toast.makeText(
+                currentActivity,
+                uiMessagesMap[LoginUiMessages.ABSENT_OF_GOOGLE_ACCOUNT.message]
+                    ?: LoginUiMessages.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
+        is LoginUiMessageIntent.NoSavedAccounts -> {
+            Toast.makeText(
+                currentActivity,
+                uiMessagesMap[LoginUiMessages.NO_SAVED_ACCOUNTS.message]
                     ?: LoginUiMessages.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT,
             ).show()
