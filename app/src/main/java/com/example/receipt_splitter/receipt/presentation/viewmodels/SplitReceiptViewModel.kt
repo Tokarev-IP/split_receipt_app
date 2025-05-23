@@ -1,17 +1,17 @@
 package com.example.receipt_splitter.receipt.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.receipt_splitter.main.basic.BasicEvent
 import com.example.receipt_splitter.main.basic.BasicSimpleViewModel
-import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import com.example.receipt_splitter.receipt.domain.OrderDataSplitter
 import com.example.receipt_splitter.receipt.domain.OrderReportCreatorInterface
 import com.example.receipt_splitter.receipt.domain.usecases.SplitReceiptUseCase
 import com.example.receipt_splitter.receipt.presentation.OrderData
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -19,10 +19,7 @@ class SplitReceiptViewModel(
     private val orderReportCreator: OrderReportCreatorInterface,
     private val splitReceiptUseCase: SplitReceiptUseCase,
     private val orderDataSplitter: OrderDataSplitter,
-) : BasicSimpleViewModel<
-        SplitReceiptUiState,
-        SplitReceiptEvent,
-        SplitReceiptUiMessageIntent>(initialUiState = SplitReceiptUiState.Show) {
+) : BasicSimpleViewModel<SplitReceiptEvent>() {
 
     private val splitReceiptDataFlow = MutableStateFlow<ReceiptData?>(null)
     private val splitReceiptDataState = splitReceiptDataFlow.asStateFlow()
@@ -30,10 +27,10 @@ class SplitReceiptViewModel(
     private val splitOrderDataListFlow = MutableStateFlow<List<OrderData>>(emptyList())
     private val splitOrderDataListState = splitOrderDataListFlow.asStateFlow()
 
-    private val orderReportTextFlow = MutableStateFlow<String?>(null)
-    private val orderReportTextState = orderReportTextFlow.asStateFlow()
+    private val orderReportTextFlow = MutableSharedFlow<String?>()
+    private val orderReportTextState = orderReportTextFlow.asSharedFlow()
 
-    fun setSplitReceiptData(data: ReceiptData) {
+    fun setSplitReceiptData(data: ReceiptData?) {
         splitReceiptDataFlow.value = data
     }
 
@@ -41,8 +38,8 @@ class SplitReceiptViewModel(
         splitOrderDataListFlow.value = list
     }
 
-    fun setOrderReportText(text: String?) {
-        orderReportTextFlow.value = text
+    suspend fun setOrderReportText(text: String?) {
+        orderReportTextFlow.emit(text)
     }
 
     fun getSplitReceiptData() = splitReceiptDataState
@@ -62,7 +59,9 @@ class SplitReceiptViewModel(
                         orderDataList = splitOrderDataListFlow.value,
                     )
                 } ?: {
-                    //todo
+                    viewModelScope.launch {
+                        setOrderReportText(null)
+                    }
                 }
             }
 
@@ -83,6 +82,26 @@ class SplitReceiptViewModel(
             is SplitReceiptEvent.ActivateOrderReportCreator -> {
                 monitorOrderData()
             }
+
+            is SplitReceiptEvent.AddAdditionalSum -> {
+                splitReceiptDataFlow.value?.let { receiptData ->
+                    addAdditionalSum(
+                        receiptData = receiptData,
+                        additionalSum = newEvent.pair,
+                        orderList = splitOrderDataListState.value,
+                    )
+                }
+            }
+
+            is SplitReceiptEvent.RemoveAdditionalSum -> {
+                splitReceiptDataFlow.value?.let { receiptData ->
+                    removeSpecificAdditionalSum(
+                        receiptData = receiptData,
+                        additionalSum = newEvent.pair,
+                        orderList = splitOrderDataListState.value,
+                    )
+                }
+            }
         }
     }
 
@@ -101,14 +120,16 @@ class SplitReceiptViewModel(
 
     private fun retrieveReceiptData(receiptId: Long) {
         viewModelScope.launch {
-            splitReceiptUseCase.retrieveReceiptData(receiptId = receiptId).run {
-                if (this != null)
-                    setSplitReceiptData(this)
-                Log.d("TOKAR", "receipt data: $this")
+            launch {
+                splitReceiptUseCase.retrieveReceiptData(receiptId = receiptId).run {
+                    if (this != null)
+                        setSplitReceiptData(this)
+                }
             }
-            splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
-                setOrderDataList(this)
-                Log.d("TOKAR", "order data list: $this")
+            launch {
+                splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
+                    setOrderDataList(this)
+                }
             }
         }
     }
@@ -139,7 +160,7 @@ class SplitReceiptViewModel(
         }
     }
 
-    private fun monitorOrderData(){
+    private fun monitorOrderData() {
         viewModelScope.launch {
             splitOrderDataListFlow.collect { orders ->
                 splitReceiptDataFlow.value?.let { receipt ->
@@ -150,6 +171,38 @@ class SplitReceiptViewModel(
                 }
             }
         }
+    }
+
+    private fun addAdditionalSum(
+        receiptData: ReceiptData,
+        additionalSum: Pair<String, Float>,
+        orderList: List<OrderData>,
+    ) {
+        val newList = receiptData.additionalSum.toMutableList().apply { add(additionalSum) }
+        val newReceipt = receiptData.copy(
+            additionalSum = newList
+        )
+        setSplitReceiptData(newReceipt)
+        createOrderReport(
+            receiptData = newReceipt,
+            orderDataList = orderList,
+        )
+    }
+
+    private fun removeSpecificAdditionalSum(
+        receiptData: ReceiptData,
+        additionalSum: Pair<String, Float>,
+        orderList: List<OrderData>,
+    ) {
+        val newList = receiptData.additionalSum.toMutableList().apply { remove(additionalSum) }
+        val newReceipt = receiptData.copy(
+            additionalSum = newList
+        )
+        setSplitReceiptData(newReceipt)
+        createOrderReport(
+            receiptData = newReceipt,
+            orderDataList = orderList,
+        )
     }
 }
 
@@ -164,6 +217,6 @@ sealed interface SplitReceiptEvent : BasicEvent {
     class AddOneQuantityToSpecificOrder(val orderId: Long) : SplitReceiptEvent
     class RemoveOneQuantityToSpecificOrder(val orderId: Long) : SplitReceiptEvent
     object ActivateOrderReportCreator : SplitReceiptEvent
+    class RemoveAdditionalSum(val pair: Pair<String, Float>) : SplitReceiptEvent
+    class AddAdditionalSum(val pair: Pair<String, Float>) : SplitReceiptEvent
 }
-
-interface SplitReceiptUiMessageIntent : BasicUiMessageIntent
