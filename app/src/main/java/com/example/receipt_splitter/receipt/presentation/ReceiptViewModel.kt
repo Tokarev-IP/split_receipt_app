@@ -65,9 +65,8 @@ interface ReceiptIntent : BasicIntent {
     object GoToSettings : ReceiptIntent
 }
 
-interface ReceiptUiMessageIntent : BasicUiMessageIntent {}
+interface ReceiptUiMessageIntent : BasicUiMessageIntent
 
 enum class ReceiptUiMessage(val msg: String) {
     INTERNAL_ERROR("Internal error"),
-    NETWORK_ERROR("A network error (such as timeout, interrupted connection or unreachable host) has occurred."),
 }
