@@ -2,8 +2,6 @@ package com.example.receipt_splitter.login.presentation.screens
 
 import android.app.Activity
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialProviderConfigurationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.login.data.SignInWithCredential
@@ -34,9 +35,13 @@ import com.example.receipt_splitter.login.presentation.LoginViewModel
 import com.example.receipt_splitter.login.presentation.views.SignInScreenView
 import com.google.firebase.auth.AuthCredential
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun SignInScreen(
     modifier: Modifier = Modifier,
@@ -53,26 +58,24 @@ fun SignInScreen(
     }
 
     LaunchedEffect(key1 = Unit) {
-        loginViewModel.getUiMessageIntentFlow().collect { uiMessageIntent ->
-            uiMessageIntent?.let {
-                loginViewModel.clearUiMessageIntentFlow()
+        loginViewModel.getUiMessageIntentFlow()
+            .debounce(500L)
+            .collectLatest { uiMessageIntent ->
                 handleUiMessages(
-                    uiMessageIntent,
+                    uiMessageIntent = uiMessageIntent,
                     onSignInTextFieldErrorState = { state -> signInTextFieldErrorState = state }
                 )
             }
-        }
     }
 
     var emailText by rememberSaveable { mutableStateOf("") }
     var passwordText by rememberSaveable { mutableStateOf("") }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
+    var showSavedCredential by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = isFocused) {
-        if (isFocused && emailText.isEmpty()) {
-            localActivity?.let { myActivity ->
+    if (showSavedCredential){
+        localActivity?.let { myActivity ->
+            coroutineScope.launch {
                 showCredentialSignInPopUp(
                     myActivity,
                     loginViewModel,
@@ -84,6 +87,7 @@ fun SignInScreen(
                 )
             }
         }
+        showSavedCredential = false
     }
 
     Scaffold(
@@ -149,7 +153,7 @@ fun SignInScreen(
             onPasswordTextChanged = { value: String ->
                 passwordText = value
             },
-            interactionSource = { interactionSource },
+            onGetSavedCredentialClick = { showSavedCredential = true }
         )
     }
 }
@@ -177,7 +181,20 @@ private suspend fun showCredentialSignInPopUp(
             )
         )
     }.onFailure { e: Throwable ->
-//        loginViewModel.setEvent(LoginEvent.SetErrorIntent(msg = LoginUiMessages.INTERNAL_ERROR.message))
+        if (e is NoCredentialException) {
+            loginViewModel.setEvent(LoginEvent.SetLoadingState)
+            delay(DELAY)
+            loginViewModel.setEvent(LoginEvent.SetShowState)
+            loginViewModel.setEvent(LoginEvent.SetErrorIntent(msg = LoginUiMessages.NO_SAVED_ACCOUNTS.message))
+        } else if (e !is GetCredentialProviderConfigurationException
+            && e !is GetCredentialCancellationException
+        ) {
+            loginViewModel.setEvent(
+                LoginEvent.SetErrorIntent(
+                    msg = e.message ?: LoginUiMessages.INTERNAL_ERROR.message
+                )
+            )
+        }
     }
 }
 
@@ -186,13 +203,27 @@ private suspend fun showGoogleSignInPopUp(
     loginViewModel: LoginViewModel,
 ) {
     runCatching {
+        loginViewModel.setEvent(LoginEvent.SetLoadingState)
         val authCredential: AuthCredential =
             SignInWithCredential().signInWithGoogle(myActivity)
+        loginViewModel.setEvent(LoginEvent.SetShowState)
         loginViewModel.setEvent(
             LoginEvent.GoogleAuthCredentialWasChosen(authCredential)
         )
     }.onFailure { e: Throwable ->
-//        loginViewModel.setEvent(LoginEvent.SetErrorIntent(msg = LoginUiMessages.INTERNAL_ERROR.message))
+        if (e is GetCredentialProviderConfigurationException)
+            loginViewModel.setEvent(
+                LoginEvent.SetErrorIntent(
+                    msg = LoginUiMessages.ABSENT_OF_GOOGLE_ACCOUNT.message
+                )
+            )
+        if (e !is GetCredentialCancellationException)
+            loginViewModel.setEvent(
+                LoginEvent.SetErrorIntent(
+                    msg = e.message ?: LoginUiMessages.INTERNAL_ERROR.message
+                )
+            )
+        loginViewModel.setEvent(LoginEvent.SetShowState)
     }
 }
 
@@ -221,6 +252,7 @@ private fun handleUiMessages(
                 )
             )
         }
-
     }
 }
+
+private const val DELAY = 3000L
