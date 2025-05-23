@@ -1,4 +1,4 @@
-package com.example.receipt_splitter.receipt.presentation.views
+package com.example.receipt_splitter.receipt.presentation.views.basic
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,60 +65,10 @@ internal fun OrderItemView(
     }
 }
 
-@Composable
-internal fun CancelSaveRowView(
-    modifier: Modifier = Modifier,
-    onCancelClicked: () -> Unit = {},
-    onSaveClicked: () -> Unit = {},
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedButton(
-            onClick = { onCancelClicked() },
-        ) {
-            Text(text = stringResource(R.string.cancel))
-        }
-
-        Button(
-            onClick = { onSaveClicked() },
-        ) {
-            Text(text = stringResource(R.string.save))
-        }
-    }
-}
-
-@Composable
-internal fun CancelDeleteRowView(
-    modifier: Modifier = Modifier,
-    onCancelClicked: () -> Unit = {},
-    onAcceptClicked: () -> Unit = {},
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedButton(
-            onClick = { onCancelClicked() },
-        ) {
-            Text(text = stringResource(R.string.cancel))
-        }
-
-        Button(
-            onClick = { onAcceptClicked() },
-        ) {
-            Text(text = stringResource(R.string.delete))
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
-private fun OrderItemViewPreview(){
+private fun OrderItemViewPreview() {
     OrderItemView(
-        orderData = { OrderData(id = 1, receiptId = 2)}
+        orderData = { OrderData(id = 1, receiptId = 2) }
     )
 }
