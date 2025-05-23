@@ -1,26 +1,15 @@
 package com.example.receipt_splitter.receipt.presentation.screens
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -28,6 +17,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -36,14 +28,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.receipt.presentation.OrderData
 import com.example.receipt_splitter.receipt.presentation.ReceiptEvent
+import com.example.receipt_splitter.receipt.presentation.ReceiptUIConstants
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.example.receipt_splitter.receipt.presentation.viewmodels.EditReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.viewmodels.EditReceiptViewModel
@@ -59,6 +53,8 @@ fun EditReceiptScreen(
     modifier: Modifier = Modifier,
     editReceiptViewModel: EditReceiptViewModel,
     receiptViewModel: ReceiptViewModel,
+    topAppBarState: TopAppBarState = rememberTopAppBarState(),
+    orderListState: LazyListState = rememberLazyListState(),
 ) {
     var showDeleteOrderDialog by rememberSaveable { mutableStateOf(false) }
     var orderIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -71,72 +67,29 @@ fun EditReceiptScreen(
     var showEditOrderDialog by rememberSaveable { mutableStateOf(false) }
     var orderId by rememberSaveable { mutableLongStateOf(0L) }
 
-    val ordersListState = rememberLazyListState()
-    val isOrderListAlmostAtBottom = remember {
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+
+    val isOrderListAtTheBottom = remember {
         derivedStateOf {
-            val lastVisibleItem = ordersListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= ordersListState.layoutInfo.totalItemsCount - 5
-        }
-    }
-    val isOrderListAtBottom = remember {
-        derivedStateOf {
-            val lastVisibleItem = ordersListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= ordersListState.layoutInfo.totalItemsCount - 1
-        }
-    }
-
-    if (showEditReceiptDialog) {
-        receiptData?.let { receipt ->
-            EditReceiptDialog(
-                receiptData = { receipt },
-                onCancelButtonClicked = {
-                    showEditReceiptDialog = false
-                },
-                onSaveButtonClicked = { receiptData ->
-                    showEditReceiptDialog = false
-                    editReceiptViewModel.setEvent(EditReceiptEvent.EditReceipt(receipt = receiptData))
-                },
-            )
-        }
-    }
-
-    if (showAddNewOrderDialog) {
-        receiptData?.let { receipt ->
-            AddNewOrderDialog(
-                receiptId = receipt.id,
-                onCancelButtonClicked = {
-                    showAddNewOrderDialog = false
-                },
-                onSaveButtonClicked = { orderData ->
-                    showAddNewOrderDialog = false
-                    editReceiptViewModel.setEvent(EditReceiptEvent.AddNewOrder(order = orderData))
-                },
-            )
-        }
-    }
-
-    if (showEditOrderDialog) {
-        val specificOrderData: OrderData? = orderDataList.find { it.id == orderId }
-        specificOrderData?.let { order ->
-            EditOrderDialog(
-                orderData = order,
-                onCancelButtonClicked = {
-                    showEditOrderDialog = false
-                },
-                onSaveButtonClicked = { orderData ->
-                    showEditOrderDialog = false
-                    editReceiptViewModel.setEvent(EditReceiptEvent.EditOrder(order = orderData))
-                },
-            )
+            val lastVisibleItem = orderListState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem != null &&
+                    lastVisibleItem.index >= orderListState.layoutInfo.totalItemsCount - AMOUNT_OF_ELEMENTS
         }
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
+                scrollBehavior = scrollBehavior,
                 title = {
-                    Text(text = stringResource(R.string.edit_the_receipt))
+                    Text(
+                        maxLines = ReceiptUIConstants.ONE_LINE,
+                        text = receiptData?.receiptName
+                            ?: stringResource(R.string.edit_the_receipt),
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 },
                 navigationIcon = {
                     IconButton(
@@ -148,71 +101,107 @@ fun EditReceiptScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            receiptData?.id?.let { id ->
+                                receiptViewModel.setEvent(
+                                    ReceiptEvent.OpenSplitReceiptScreen(
+                                        receiptId = id
+                                    )
+                                )
+                            }
+                        },
+                    ) {
+                        Icon(
+                            Icons.Outlined.Share,
+                            contentDescription = stringResource(R.string.go_to_split_the_receipt_button)
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isOrderListAlmostAtBottom.value,
-                enter = fadeIn() + scaleIn(),
-                exit = fadeOut() + scaleOut(),
+                visible = isOrderListAtTheBottom.value,
+                enter = scaleIn(),
+                exit = scaleOut(),
             ) {
-                Box(
-                    contentAlignment = Alignment.BottomEnd,
+                FloatingActionButton(
+                    modifier = Modifier.padding(12.dp),
+                    onClick = { showAddNewOrderDialog = true }
                 ) {
-                    FloatingActionButton(
-                        modifier = modifier
-                            .padding(12.dp)
-                            .animateContentSize(),
-                        onClick = {
-                            showAddNewOrderDialog = true
-                        }
-                    ) {
-                        Box(
-                            modifier = modifier.padding(12.dp),
-                        ) {
-                            if (isOrderListAtBottom.value)
-                                Text(
-                                    modifier = modifier.animateEnterExit(
-                                        enter = fadeIn(),
-                                        exit = slideOutHorizontally()
-                                    ),
-                                    text = stringResource(id = R.string.add_new_order)
-                                )
-                            else
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = stringResource(id = R.string.add_new_receipt_button),
-                                    modifier = modifier.animateEnterExit(
-                                        enter = fadeIn(),
-                                        exit = fadeOut(),
-                                    ),
-                                )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = stringResource(R.string.add_new_order_button),
+                    )
                 }
             }
         }
     ) { innerPadding ->
         EditReceiptScreenView(
             modifier = modifier.padding(innerPadding),
-            receiptData = { receiptData },
-            orderDataList = { orderDataList },
+            receiptData = receiptData,
+            orderDataList = orderDataList,
             onEditOrderClicked = { id ->
                 orderId = id
                 showEditOrderDialog = true
-            },
-            onEditReceiptClicked = {
-                showEditReceiptDialog = true
             },
             onDeleteOrderClicked = { id ->
                 orderIdToDelete = id
                 showDeleteOrderDialog = true
             },
-            onSplitScreenClicked = { receiptId ->
-                receiptViewModel.setEvent(ReceiptEvent.OpenSplitReceiptScreen(receiptId = receiptId))
+            orderListState = orderListState,
+            onEditReceiptClicked = {
+                showEditReceiptDialog = true
             },
-            ordersListState = ordersListState,
         )
+
+        if (showEditReceiptDialog) {
+            receiptData?.let { receipt ->
+                EditReceiptDialog(
+                    receiptData = receipt,
+                    onCancelButtonClicked = {
+                        showEditReceiptDialog = false
+                    },
+                    onSaveButtonClicked = { receiptData ->
+                        showEditReceiptDialog = false
+                        editReceiptViewModel.setEvent(EditReceiptEvent.EditReceipt(receipt = receiptData))
+                    },
+                )
+            }
+        }
+
+        if (showAddNewOrderDialog) {
+            receiptData?.let { receipt ->
+                AddNewOrderDialog(
+                    receiptId = receipt.id,
+                    onCancelButtonClicked = {
+                        showAddNewOrderDialog = false
+                    },
+                    onSaveButtonClicked = { orderData ->
+                        showAddNewOrderDialog = false
+                        editReceiptViewModel.setEvent(EditReceiptEvent.AddNewOrder(order = orderData))
+                    },
+                )
+            }
+        }
+
+        if (showEditOrderDialog) {
+            val specificOrderData: OrderData? = orderDataList.find { it.id == orderId }
+            specificOrderData?.let { order ->
+                EditOrderDialog(
+                    orderData = order,
+                    onCancelButtonClicked = {
+                        showEditOrderDialog = false
+                    },
+                    onSaveButtonClicked = { orderData ->
+                        showEditOrderDialog = false
+                        editReceiptViewModel.setEvent(EditReceiptEvent.EditOrder(order = orderData))
+                    },
+                )
+            }
+        }
 
         if (showDeleteOrderDialog && orderIdToDelete != null)
             AcceptDeletionDialog(
@@ -224,7 +213,9 @@ fun EditReceiptScreen(
                     }
                     orderIdToDelete = null
                     showDeleteOrderDialog = false
-                }
+                },
             )
     }
 }
+
+private const val AMOUNT_OF_ELEMENTS = 1
