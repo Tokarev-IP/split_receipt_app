@@ -20,7 +20,8 @@ interface LoginNavHostDestinations {
     object RegistrationScreenNav : LoginNavHostDestinations
 
     @Serializable
-    class EmailVerificationScreenNav(val email: String, val password: String) : LoginNavHostDestinations
+    class EmailVerificationScreenNav(val email: String, val password: String) :
+        LoginNavHostDestinations
 
     @Serializable
     object ResetPasswordScreenNav : LoginNavHostDestinations
@@ -31,16 +32,21 @@ enum class LoginUiMessages(val message: String) {
     BAD_EMAIL_FORMAT("The email address is badly formatted."),
     INCORRECT_CREDENTIAL("The supplied auth credential is incorrect, malformed or has expired."),
     RESET_PASSWORD_EMAIL_WAS_SENT("Reset password email was sent"),
-    PASSWORD_REQUIREMENTS("The given password is invalid. [ Password should be at least 6 characters ]"),
     VERIFICATION_EMAIL_WAS_SENT("Verification email was sent"),
     BLOCKED_ALL_REQUESTS("We have blocked all requests from this device due to unusual activity. Try again later."),
     EMAIL_IS_NOT_VERIFIED("Email is not verified"),
     EMAIL_ALREADY_IN_USE("The email address is already in use by another account."),
     INTERNAL_ERROR("An internal error has occurred."),
-    INVALID_PASSWORD("PASSWORD_DOES_NOT_MEET_REQUIREMENTS"),
-    INVALID_PASSWORD1("An internal error has occurred. [ PASSWORD_DOES_NOT_MEET_REQUIREMENTS:Missing password requirements: [Password may contain at most 50 characters] ]"),
-    INVALID_PASSWORD2("An internal error has occurred. [ PASSWORD_DOES_NOT_MEET_REQUIREMENTS:Missing password requirements: [Password must contain at least 8 characters, Password must contain a numeric character] ]"),
     NETWORK_ERROR("A network error (such as timeout, interrupted connection or unreachable host) has occurred."),
+    ABSENT_OF_GOOGLE_ACCOUNT("Google account is absent"),
+    NO_SAVED_ACCOUNTS("No saved accounts"),
+    /*
+    Full error:
+    An internal error has occurred. [ PASSWORD_DOES_NOT_MEET_REQUIREMENTS:Missing password requirements: [Password may contain at most 50 characters] ]
+    An internal error has occurred. [ PASSWORD_DOES_NOT_MEET_REQUIREMENTS:Missing password requirements: [Password must contain at least 8 characters, Password must contain a numeric character] ]
+    The given password is invalid. [ Password should be at least 6 characters ]
+    */
+    INVALID_PASSWORD("PASSWORD_DOES_NOT_MEET_REQUIREMENTS"),
 }
 
 interface LoginUiState : BasicUiState {
@@ -92,4 +98,6 @@ interface LoginUiMessageIntent : BasicUiMessageIntent {
     object InternalError : LoginUiMessageIntent
     object EmptyString : LoginUiMessageIntent
     object NoInternetConnection : LoginUiMessageIntent
+    object AbsentOfGoogleAccount : LoginUiMessageIntent
+    object NoSavedAccounts : LoginUiMessageIntent
 }
