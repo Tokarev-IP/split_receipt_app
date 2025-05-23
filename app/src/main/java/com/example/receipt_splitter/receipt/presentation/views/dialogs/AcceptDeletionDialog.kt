@@ -5,9 +5,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.receipt_splitter.receipt.presentation.views.CancelDeleteRowView
+import com.example.receipt_splitter.receipt.presentation.views.basic.CancelDeleteButtonView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +30,9 @@ internal fun AcceptDeletionDialog(
         modifier = modifier.fillMaxWidth(),
         onDismissRequest = { onDismissRequest() },
     ) {
-        ElevatedCard {
+        Surface(
+            shape = RoundedCornerShape(16.dp)
+        ) {
             Column(
                 modifier = modifier
                     .fillMaxWidth()
@@ -42,7 +45,7 @@ internal fun AcceptDeletionDialog(
                     fontSize = 20.sp,
                 )
                 Spacer(modifier = modifier.height(20.dp))
-                CancelDeleteRowView(
+                CancelDeleteButtonView(
                     onCancelClicked = { onDismissRequest() },
                     onAcceptClicked = {
                         onAcceptClicked()
