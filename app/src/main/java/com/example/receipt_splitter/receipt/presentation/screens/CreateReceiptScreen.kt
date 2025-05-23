@@ -3,6 +3,7 @@ package com.example.receipt_splitter.receipt.presentation.screens
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -22,24 +23,31 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.BasicCircularLoadingUi
-import com.example.receipt_splitter.receipt.data.DataConstantsReceipt
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt
 import com.example.receipt_splitter.receipt.presentation.ReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
 import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptEvent
 import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptIntent
+import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptUiMessage
+import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptUiMessageIntent
 import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptUiState
 import com.example.receipt_splitter.receipt.presentation.viewmodels.CreateReceiptViewModel
+import com.example.receipt_splitter.receipt.presentation.views.dialogs.ChooseLanguageDialog
 import com.example.receipt_splitter.receipt.presentation.views.screens.CreateReceiptScreenView
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_BASE
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,35 +57,48 @@ fun CreateReceiptScreen(
     createReceiptViewModel: CreateReceiptViewModel,
     currentActivity: Activity? = LocalActivity.current,
 ) {
+    val messageUiMap = mapOf<String, String>(
+        CreateReceiptUiMessage.NETWORK_ERROR.message to stringResource(R.string.no_internet_connection),
+        CreateReceiptUiMessage.INTERNAL_ERROR.message to stringResource(R.string.internal_error),
+        CreateReceiptUiMessage.IMAGE_IS_INAPPROPRIATE.message to stringResource(R.string.image_is_inappropriate),
+        CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message to stringResource(R.string.too_many_attempts),
+        CreateReceiptUiMessage.LOGIN_REQUIRED.message to stringResource(R.string.login_required),
+    )
     val listOfImages by createReceiptViewModel.getReceiptImages().collectAsStateWithLifecycle()
     val uiState by createReceiptViewModel.getUiStateFlow().collectAsStateWithLifecycle()
 
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedLanguage by rememberSaveable { mutableStateOf<String?>(null) }
+    var languageSwitchState by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(key1 = Unit) {
-        createReceiptViewModel.getIntentFlow().collect { createIntent ->
-            createIntent?.let { intent ->
-                createReceiptViewModel.clearIntentFlow()
-                when (intent) {
-                    is CreateReceiptIntent.GoToEditReceiptScreen -> {
-                        receiptViewModel.setEvent(
-                            ReceiptEvent.OpenEditReceiptsScreen(
-                                intent.receiptId
-                            )
+        createReceiptViewModel.getIntentFlow().collectLatest { createIntent ->
+            when (createIntent) {
+                is CreateReceiptIntent.GoToEditReceiptScreen -> {
+                    receiptViewModel.setEvent(
+                        ReceiptEvent.OpenEditReceiptsScreen(
+                            createIntent.receiptId
                         )
-                    }
+                    )
                 }
             }
         }
     }
+    LaunchedEffect(key1 = Unit) {
+        createReceiptViewModel.getUiMessageIntentFlow().collectLatest { messageIntent ->
+            handleCreateReceiptUiMessages(messageIntent, messageUiMap, currentActivity)
+        }
+    }
 
     val choosePhotoLaunch = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = DataConstantsReceipt.MAX_AMOUNT_OF_IMAGES),
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = DataConstantsReceipt.MAXIMUM_AMOUNT_OF_IMAGES),
     ) { newListOfImages: List<Uri> ->
         createReceiptViewModel.setEvent(CreateReceiptEvent.PutImages(listOfImages = newListOfImages))
     }
 
     val scanningOptions = GmsDocumentScannerOptions.Builder()
         .setGalleryImportAllowed(false)
-        .setPageLimit(DataConstantsReceipt.MAX_AMOUNT_OF_IMAGES)
+        .setPageLimit(DataConstantsReceipt.MAXIMUM_AMOUNT_OF_IMAGES)
         .setResultFormats(RESULT_FORMAT_JPEG)
         .setScannerMode(SCANNER_MODE_BASE)
         .build()
@@ -125,12 +146,12 @@ fun CreateReceiptScreen(
             is CreateReceiptUiState.Show -> {
                 CreateReceiptScreenView(
                     modifier = modifier.padding(innerPadding),
-                    listOfUri = { listOfImages ?: emptyList() },
+                    listOfUri = listOfImages ?: emptyList(),
                     onChoosePhotoClicked = {
                         choosePhotoLaunch.launch(
                             PickVisualMediaRequest(
                                 mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                maxItems = DataConstantsReceipt.MAX_AMOUNT_OF_IMAGES,
+                                maxItems = DataConstantsReceipt.MAXIMUM_AMOUNT_OF_IMAGES,
                             )
                         )
                     },
@@ -138,7 +159,9 @@ fun CreateReceiptScreen(
                         createReceiptViewModel.setEvent(CreateReceiptEvent.PutImages(listOfImages = emptyList()))
                     },
                     onGetReceiptFromImageClicked = {
-                        createReceiptViewModel.setEvent(CreateReceiptEvent.CreateReceipt)
+                        createReceiptViewModel.setEvent(
+                            CreateReceiptEvent.CreateReceipt(selectedLanguage)
+                        )
                     },
                     onMakePhotoClicked = {
                         currentActivity?.let { myActivity ->
@@ -150,24 +173,86 @@ fun CreateReceiptScreen(
                                 }
                                 .addOnFailureListener { }
                         }
-                    }
+                    },
+                    onSwitchCheckedChange = { value ->
+                        languageSwitchState = value
+                        if (value)
+                            showLanguageDialog = true
+                        else
+                            selectedLanguage = null
+                    },
+                    languageSwitchState = languageSwitchState,
+                    translatedLanguage = selectedLanguage,
+                    onShowLanguageDialog = { showLanguageDialog = true }
                 )
             }
         }
 
-//        when (uiErrorIntent) {
-//            is ReceiptUiMessageIntent.ImageIsInappropriate -> {
-//                Toast.makeText(
-//                    LocalContext.current,
-//                    stringResource(R.string.image_is_inappropriate),
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//            }
-//
-//            is ReceiptUiMessageIntent.ReceiptMessage -> {
-//                val msg = (uiErrorIntent as ReceiptUiMessageIntent.ReceiptMessage).msg
-//                Toast.makeText(LocalContext.current, msg, Toast.LENGTH_SHORT).show()
-//            }
-//        }
+        if (showLanguageDialog)
+            ChooseLanguageDialog(
+                onDismissRequest = {
+                    showLanguageDialog = false
+                    if (selectedLanguage == null)
+                        languageSwitchState = false
+                },
+                onLanguageSelected = { language ->
+                    selectedLanguage = language
+                    showLanguageDialog = false
+                },
+                selectedLanguage = selectedLanguage,
+            )
+    }
+}
+
+private fun handleCreateReceiptUiMessages(
+    messageIntent: CreateReceiptUiMessageIntent,
+    messageMap: Map<String, String>,
+    currentActivity: Activity?,
+) {
+    when (messageIntent) {
+        is CreateReceiptUiMessageIntent.SomeImagesAreInappropriate -> {
+            Toast.makeText(
+                currentActivity,
+                messageMap[CreateReceiptUiMessage.IMAGE_IS_INAPPROPRIATE.message]
+                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is CreateReceiptUiMessageIntent.InternalError -> {
+            Toast.makeText(
+                currentActivity,
+                messageMap[CreateReceiptUiMessage.INTERNAL_ERROR.message]
+                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is CreateReceiptUiMessageIntent.InternetConnectionError -> {
+            Toast.makeText(
+                currentActivity,
+                messageMap[CreateReceiptUiMessage.NETWORK_ERROR.message]
+                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is CreateReceiptUiMessageIntent.TooManyAttempts -> {
+            Toast.makeText(
+                currentActivity,
+                messageMap[CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message]
+                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is CreateReceiptUiMessageIntent.LoginRequired -> {
+            Toast.makeText(
+                currentActivity,
+                messageMap[CreateReceiptUiMessage.LOGIN_REQUIRED.message]
+                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 }
