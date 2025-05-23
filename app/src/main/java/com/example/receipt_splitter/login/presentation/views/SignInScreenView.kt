@@ -1,7 +1,6 @@
 package com.example.receipt_splitter.login.presentation.views
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,35 +52,37 @@ internal fun SignInScreenView(
     passwordText: () -> String = { "" },
     onEmailTextChanged: (String) -> Unit = {},
     onPasswordTextChanged: (String) -> Unit = {},
-    interactionSource: () -> MutableInteractionSource? = { null },
+    onGetSavedCredentialClick: () -> Unit = {},
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        SignInView(
-            onEmailAndPasswordSignInClick = { email, password ->
-                onEmailAndPasswordSignInClick(email, password)
-            },
-            onGoogleSignInClick = { onGoogleSignInClick() },
-            enabled = { enabled() },
-            onRegistrationClick = { onRegistrationClick() },
-            onForgotPasswordClick = { onForgotPasswordClick() },
-            textFieldErrors = { textFieldErrors() },
-            onTextFieldErrorStateChanged = { state: SignInTextFieldErrorState ->
-                onTextFieldErrorStateChanged(state)
-            },
-            emailText = { emailText() },
-            passwordText = { passwordText() },
-            onEmailTextChanged = { value: String ->
-                onEmailTextChanged(value)
-            },
-            onPasswordTextChanged = { value: String ->
-                onPasswordTextChanged(value)
-            },
-            interactionSource = { interactionSource() },
-        )
+        item {
+            SignInView(
+                onEmailAndPasswordSignInClick = { email, password ->
+                    onEmailAndPasswordSignInClick(email, password)
+                },
+                onGoogleSignInClick = { onGoogleSignInClick() },
+                enabled = { enabled() },
+                onRegistrationClick = { onRegistrationClick() },
+                onForgotPasswordClick = { onForgotPasswordClick() },
+                textFieldErrors = { textFieldErrors() },
+                onTextFieldErrorStateChanged = { state: SignInTextFieldErrorState ->
+                    onTextFieldErrorStateChanged(state)
+                },
+                emailText = { emailText() },
+                passwordText = { passwordText() },
+                onEmailTextChanged = { value: String ->
+                    onEmailTextChanged(value)
+                },
+                onPasswordTextChanged = { value: String ->
+                    onPasswordTextChanged(value)
+                },
+                onGetSavedCredentialClick = { onGetSavedCredentialClick() },
+            )
+        }
     }
 }
 
@@ -94,7 +100,7 @@ private fun SignInView(
     passwordText: () -> String,
     onEmailTextChanged: (String) -> Unit,
     onPasswordTextChanged: (String) -> Unit,
-    interactionSource: () -> MutableInteractionSource?,
+    onGetSavedCredentialClick: () -> Unit,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
 
@@ -127,7 +133,13 @@ private fun SignInView(
                 if (textFieldErrors().emailIsInvalid) stringResource(R.string.email_is_invalid)
                 else if (textFieldErrors().emailIsIncorrect) stringResource(R.string.email_is_incorrect)
                 else stringResource(R.string.email_is_incorrect),
-            interactionSource = interactionSource(),
+            leadingIcon = {
+                IconButton(
+                    onClick = { onGetSavedCredentialClick() },
+                ) {
+                    Icon(Icons.Filled.AccountCircle, stringResource(R.string.credential_button))
+                }
+            }
         )
 
         Spacer(modifier = modifier.height(20.dp))
