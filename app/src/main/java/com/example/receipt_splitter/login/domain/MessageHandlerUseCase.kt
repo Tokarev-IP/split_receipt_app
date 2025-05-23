@@ -46,6 +46,14 @@ class MessageHandlerUseCase : MessageHandlerUseCaseInterface {
                 return LoginUiMessageIntent.NoInternetConnection
             }
 
+            LoginUiMessages.ABSENT_OF_GOOGLE_ACCOUNT.message -> {
+                return LoginUiMessageIntent.AbsentOfGoogleAccount
+            }
+
+            LoginUiMessages.NO_SAVED_ACCOUNTS.message -> {
+                return LoginUiMessageIntent.NoSavedAccounts
+            }
+
             else -> {
                 return if (LoginUiMessages.INVALID_PASSWORD.message in message)
                     LoginUiMessageIntent.PasswordIsInvalid
