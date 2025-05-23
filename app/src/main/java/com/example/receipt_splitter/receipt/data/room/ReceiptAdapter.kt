@@ -14,14 +14,13 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return receiptEntityList.map { receiptEntity ->
             ReceiptData(
                 id = receiptEntity.id,
-                restaurant = receiptEntity.restaurant,
-                translatedRestaurant = receiptEntity.translatedRestaurant,
+                receiptName = receiptEntity.restaurant,
+                translatedReceiptName = receiptEntity.translatedRestaurant,
                 date = receiptEntity.date,
-                total = receiptEntity.total,
-                tax = receiptEntity.tax,
-                discount = receiptEntity.discount,
-                tip = receiptEntity.tip,
-                tipSum = receiptEntity.tipSum,
+                total = receiptEntity.total.roundToTwoDecimalPlaces(),
+                tax = receiptEntity.tax?.roundToTwoDecimalPlaces(),
+                discount = receiptEntity.discount?.roundToTwoDecimalPlaces(),
+                tip = receiptEntity.tip?.roundToTwoDecimalPlaces(),
             )
         }
     }
@@ -32,14 +31,13 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return receiptEntity.run {
             ReceiptData(
                 id = id,
-                restaurant = restaurant,
-                translatedRestaurant = translatedRestaurant,
+                receiptName = restaurant,
+                translatedReceiptName = translatedRestaurant,
                 date = date,
-                total = total,
-                tax = tax,
-                discount = discount,
-                tip = tip,
-                tipSum = tipSum,
+                total = total.roundToTwoDecimalPlaces(),
+                tax = tax?.roundToTwoDecimalPlaces(),
+                discount = discount?.roundToTwoDecimalPlaces(),
+                tip = tip?.roundToTwoDecimalPlaces(),
             )
         }
     }
@@ -48,7 +46,8 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         receiptDataJson: ReceiptDataJson
     ): ReceiptEntity {
         return ReceiptEntity(
-            restaurant = receiptDataJson.restaurant,
+            restaurant = receiptDataJson.receiptName,
+            translatedRestaurant = receiptDataJson.translatedReceiptName,
             date = receiptDataJson.date,
             total = receiptDataJson.total.roundToTwoDecimalPlaces(),
             tax = receiptDataJson.tax?.roundToTwoDecimalPlaces(),
@@ -65,6 +64,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return orderDataJsonList.map { orderDataJson ->
             OrderEntity(
                 name = orderDataJson.name,
+                translatedName = orderDataJson.translatedName,
                 quantity = orderDataJson.quantity,
                 price = orderDataJson.price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
@@ -81,7 +81,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 name = orderEntity.name,
                 translatedName = orderEntity.translatedName,
                 quantity = orderEntity.quantity,
-                price = orderEntity.price,
+                price = orderEntity.price.roundToTwoDecimalPlaces(),
                 receiptId = orderEntity.receiptId,
             )
         }
@@ -92,14 +92,13 @@ class ReceiptAdapter : ReceiptAdapterInterface {
     ): ReceiptEntity {
         return ReceiptEntity(
             id = receiptData.id,
-            restaurant = receiptData.restaurant,
-            translatedRestaurant = receiptData.translatedRestaurant,
+            restaurant = receiptData.receiptName,
+            translatedRestaurant = receiptData.translatedReceiptName,
             date = receiptData.date,
             total = receiptData.total.roundToTwoDecimalPlaces(),
             tax = receiptData.tax?.roundToTwoDecimalPlaces(),
             discount = receiptData.discount?.roundToTwoDecimalPlaces(),
             tip = receiptData.tip?.roundToTwoDecimalPlaces(),
-            tipSum = receiptData.tipSum?.roundToTwoDecimalPlaces(),
         )
     }
 
