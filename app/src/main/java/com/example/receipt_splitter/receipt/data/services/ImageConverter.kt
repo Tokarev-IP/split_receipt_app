@@ -1,4 +1,4 @@
-package com.example.receipt_splitter.receipt.data
+package com.example.receipt_splitter.receipt.data.services
 
 import android.content.Context
 import android.graphics.Bitmap
