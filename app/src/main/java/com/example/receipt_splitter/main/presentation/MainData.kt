@@ -2,7 +2,6 @@ package com.example.receipt_splitter.main.presentation
 
 import com.example.receipt_splitter.main.basic.BasicEvent
 import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicNavigationEvent
 import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import kotlinx.serialization.Serializable
