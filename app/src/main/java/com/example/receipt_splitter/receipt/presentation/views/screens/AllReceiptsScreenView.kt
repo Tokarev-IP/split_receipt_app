@@ -1,5 +1,6 @@
 package com.example.receipt_splitter.receipt.presentation.views.screens
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -38,12 +38,11 @@ import androidx.compose.ui.unit.sp
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.shimmerBrush
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
-import com.example.receipt_splitter.receipt.presentation.views.dialogs.AcceptDeletionDialog
 
 @Composable
 internal fun AllReceiptsScreenView(
     modifier: Modifier = Modifier,
-    allReceiptsList: () -> List<ReceiptData>? = { emptyList<ReceiptData>() },
+    allReceiptsList: List<ReceiptData>? = emptyList<ReceiptData>(),
     onReceiptClicked: (receiptId: Long) -> Unit = {},
     onDeleteReceiptClicked: (receiptId: Long) -> Unit = {},
     onEditReceiptClicked: (receiptId: Long) -> Unit = {},
@@ -51,7 +50,7 @@ internal fun AllReceiptsScreenView(
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
-        allReceiptsList()?.let { receipt ->
+        allReceiptsList?.let { receipt ->
             if (receipt.isEmpty())
                 Text(
                     modifier = modifier.align(Alignment.Center),
@@ -59,7 +58,7 @@ internal fun AllReceiptsScreenView(
                 )
 
             AllReceiptsView(
-                allReceiptsList = { receipt },
+                allReceiptsList = receipt,
                 onReceiptClicked = { receiptId ->
                     onReceiptClicked(receiptId)
                 },
@@ -77,14 +76,14 @@ internal fun AllReceiptsScreenView(
 @Composable
 private fun AllReceiptsView(
     modifier: Modifier = Modifier,
-    allReceiptsList: () -> List<ReceiptData>,
+    allReceiptsList: List<ReceiptData>,
     onReceiptClicked: (receiptId: Long) -> Unit,
     onDeleteReceiptClicked: (receiptId: Long) -> Unit,
     onEditReceiptClicked: (receiptId: Long) -> Unit,
 ) {
-    val allReceiptsList = allReceiptsList()
     LazyColumn(
         modifier = modifier
+            .animateContentSize()
             .fillMaxSize()
             .padding(horizontal = 12.dp),
     ) {
@@ -94,12 +93,15 @@ private fun AllReceiptsView(
         ) { index ->
             val receiptData = allReceiptsList[index]
             AllReceiptViewItem(
-                receiptData = { receiptData },
+                receiptData = receiptData,
                 onReceiptClicked = { onReceiptClicked(receiptData.id) },
                 onDeleteReceiptClicked = { onDeleteReceiptClicked(receiptData.id) },
                 onEditReceiptClicked = { onEditReceiptClicked(receiptData.id) }
             )
-            Spacer(modifier = modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        item {
+            Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }
@@ -107,19 +109,17 @@ private fun AllReceiptsView(
 @Composable
 private fun AllReceiptViewItem(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    receiptData: ReceiptData,
     onReceiptClicked: () -> Unit,
     onDeleteReceiptClicked: () -> Unit,
     onEditReceiptClicked: () -> Unit,
 ) {
-    val receiptData = receiptData()
-
     OutlinedCard(
         onClick = { onReceiptClicked() },
     ) {
-        Box(modifier = modifier.fillMaxWidth()) {
+        Box {
             Column(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         start = 12.dp,
@@ -134,11 +134,16 @@ private fun AllReceiptViewItem(
                     modifier = modifier
                         .align(Alignment.Start)
                         .padding(end = 40.dp),
-                    text = receiptData.restaurant,
+                    text = receiptData.receiptName,
                 )
-                Spacer(modifier = modifier.height(16.dp))
+                receiptData.translatedReceiptName?.let { translatedReceiptName ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = translatedReceiptName)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
-                    modifier = modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -153,7 +158,7 @@ private fun AllReceiptViewItem(
                 }
             }
             ReceiptViewSubmenuBox(
-                modifier = modifier.align(Alignment.TopEnd),
+                modifier = Modifier.align(Alignment.TopEnd),
                 onDeleteReceiptClicked = { onDeleteReceiptClicked() },
                 onEditReceiptClicked = { onEditReceiptClicked() }
             )
@@ -217,44 +222,6 @@ private fun ReceiptViewSubmenuBox(
 }
 
 @Composable
-internal fun ReceiptsSubmenuBox(
-    onSettingsClicked: () -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-
-    Box() {
-        IconButton(
-            onClick = { expanded = !expanded },
-        ) {
-            Icon(
-                Icons.Outlined.MoreVert,
-                contentDescription = stringResource(R.string.open_submenu_button)
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Text(text = stringResource(R.string.settings))
-                },
-                onClick = {
-                    expanded = false
-                    onSettingsClicked()
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.settings_button)
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
 private fun ShimmedAllReceiptsScreenView(
     modifier: Modifier = Modifier,
 ) {
@@ -267,7 +234,7 @@ private fun ShimmedAllReceiptsScreenView(
     ) {
         repeat(6) {
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .height(120.dp)
                     .background(brush = shimmerBrush(), shape = RoundedCornerShape(16.dp))
@@ -281,27 +248,27 @@ private fun ShimmedAllReceiptsScreenView(
 @Composable
 private fun AllReceiptScreenViewPreview() {
     AllReceiptsScreenView(
-        allReceiptsList = {
+        allReceiptsList =
             listOf<ReceiptData>(
                 ReceiptData(
                     id = 1L,
-                    restaurant = "restaurant fhfghgfnvbncvnghfghfghd",
+                    receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
                     date = "15/05/2023",
                     total = 1000000.0f,
                 ),
                 ReceiptData(
                     id = 2L,
-                    restaurant = "restaurant",
+                    receiptName = "restaurant",
                     date = "04/10/2022",
                     total = 10078.0f,
                 ),
                 ReceiptData(
                     id = 3L,
-                    restaurant = "restaurant",
+                    receiptName = "restaurant",
                     date = "01/01/2023",
                     total = 57465.0f,
                 ),
             )
-        }
+
     )
 }
