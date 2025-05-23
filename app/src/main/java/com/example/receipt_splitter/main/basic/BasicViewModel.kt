@@ -16,17 +16,15 @@ abstract class BasicViewModel<
     private val uiState = MutableStateFlow(initialUiState)
     private val uiStateFlow = uiState.asStateFlow()
 
-    private val intent = MutableSharedFlow<basicIntent?>(
-        replay = 1,
-        extraBufferCapacity = 3,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    private val intent = MutableSharedFlow<basicIntent>(
+        replay = 0,
+        extraBufferCapacity = 1,
     )
     private val intentFlow = intent.asSharedFlow()
 
-    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent?>(
-        replay = 1,
-        extraBufferCapacity = 3,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent>(
+        replay = 0,
+        extraBufferCapacity = 1,
     )
     private val uiMessageIntentFlow = uiMessageIntent.asSharedFlow()
 
@@ -45,14 +43,6 @@ abstract class BasicViewModel<
     fun getUiStateFlow() = uiStateFlow
     fun getIntentFlow() = intentFlow
     fun getUiMessageIntentFlow() = uiMessageIntentFlow
-
-    fun clearIntentFlow() {
-        intent.tryEmit(null)
-    }
-
-    fun clearUiMessageIntentFlow() {
-        uiMessageIntent.tryEmit(null)
-    }
 
     abstract fun setEvent(newEvent: basicEvent)
 }
@@ -67,17 +57,16 @@ abstract class BasicLoginViewModel<
     private val uiState = MutableStateFlow(initialUiState)
     private val uiStateFlow = uiState.asStateFlow()
 
-    private val intent = MutableSharedFlow<basicIntent?>(
-        replay = 1,
-        extraBufferCapacity = 3,
+    private val intent = MutableSharedFlow<basicIntent>(
+        replay = 0,
+        extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val intentFlow = intent.asSharedFlow()
 
-    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent?>(
-        replay = 1,
-        extraBufferCapacity = 3,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    private val uiMessageIntent = MutableSharedFlow<basicUiMessageIntent>(
+        replay = 0,
+        extraBufferCapacity = 1,
     )
     private val uiMessageIntentFlow = uiMessageIntent.asSharedFlow()
 
@@ -97,14 +86,10 @@ abstract class BasicLoginViewModel<
     fun getIntentFlow() = intentFlow
     fun getUiMessageIntentFlow() = uiMessageIntentFlow
 
-    fun clearIntentFlow() {
-        intent.tryEmit(null)
-    }
-
-    fun clearUiMessageIntentFlow() {
-        uiMessageIntent.tryEmit(null)
-    }
-
     abstract fun setEvent(newEvent: basicEvent)
     abstract fun setNavigationEvent(newNavigationEvent: basicNavigationEvent)
+}
+
+abstract class BasicSimpleViewModel<basicEvent : BasicEvent>() : ViewModel() {
+    abstract fun setEvent(newEvent: basicEvent)
 }
