@@ -1,6 +1,7 @@
 package com.example.receipt_splitter.receipt.presentation
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import com.example.receipt_splitter.receipt.presentation.viewmodels.SplitReceipt
 import com.example.receipt_splitter.receipt.presentation.viewmodels.SplitReceiptViewModel
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptCompose(
     modifier: Modifier = Modifier,
@@ -34,52 +36,11 @@ fun ReceiptCompose(
 ) {
     LaunchedEffect(key1 = Unit) {
         receiptViewModel.getIntentFlow().collect { receiptIntent ->
-            receiptIntent?.let { intent ->
-                receiptViewModel.clearIntentFlow()
-                when (intent) {
-                    is ReceiptIntent.GoToSplitReceiptScreen -> {
-                        navHostController.navigate(
-                            ReceiptNavHostDestinations.SplitReceiptScreenNav(receiptId = intent.receiptId)
-                        ) {
-                            popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is ReceiptIntent.GoToCreateReceiptScreen -> {
-                        navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav) {
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is ReceiptIntent.GoToEditReceiptsScreen -> {
-                        navHostController.navigate(
-                            ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
-                        ) {
-                            popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is ReceiptIntent.GoToAllReceiptsScreen -> {
-                        navHostController.navigate(ReceiptNavHostDestinations.AllReceiptsScreenNav) {
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is ReceiptIntent.GoBackNavigation -> {
-                        navHostController.popBackStack()
-                    }
-
-                    is ReceiptIntent.GoToSettings -> {
-                        mainViewModel.setEvent(MainEvent.OpenSettings)
-                    }
-                }
-            }
+            handleReceiptIntent(
+                intent = receiptIntent,
+                navHostController = navHostController,
+                mainViewModel = mainViewModel
+            )
         }
     }
 
@@ -130,6 +91,53 @@ fun ReceiptCompose(
                 receiptViewModel = receiptViewModel,
                 editReceiptViewModel = editReceiptViewModel,
             )
+        }
+    }
+}
+
+private fun handleReceiptIntent(
+    intent: ReceiptIntent,
+    navHostController: NavHostController,
+    mainViewModel: MainViewModel,
+) {
+    when (intent) {
+        is ReceiptIntent.GoToSplitReceiptScreen -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.SplitReceiptScreenNav(receiptId = intent.receiptId)
+            ) {
+                popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
+                    inclusive = true
+                    saveState
+                }
+                launchSingleTop = true
+            }
+        }
+
+        is ReceiptIntent.GoToCreateReceiptScreen -> {
+            navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav)
+        }
+
+        is ReceiptIntent.GoToEditReceiptsScreen -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
+            ) {
+                popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+
+        is ReceiptIntent.GoToAllReceiptsScreen -> {
+            navHostController.navigate(ReceiptNavHostDestinations.AllReceiptsScreenNav)
+        }
+
+        is ReceiptIntent.GoBackNavigation -> {
+            navHostController.popBackStack()
+        }
+
+        is ReceiptIntent.GoToSettings -> {
+            mainViewModel.setEvent(MainEvent.OpenSettings)
         }
     }
 }
