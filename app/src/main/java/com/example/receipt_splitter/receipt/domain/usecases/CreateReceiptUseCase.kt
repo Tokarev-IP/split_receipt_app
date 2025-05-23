@@ -2,65 +2,98 @@ package com.example.receipt_splitter.receipt.domain.usecases
 
 import android.graphics.Bitmap
 import android.net.Uri
-import com.example.receipt_splitter.receipt.data.DataConstantsReceipt
-import com.example.receipt_splitter.receipt.data.ImageConverterInterface
-import com.example.receipt_splitter.receipt.data.ImageLabelingKitInterface
-import com.example.receipt_splitter.receipt.data.ReceiptConverterInterface
-import com.example.receipt_splitter.receipt.data.ReceiptServiceInterface
+import com.example.receipt_splitter.main.basic.getLanguageString
 import com.example.receipt_splitter.receipt.data.room.ReceiptDbRepositoryInterface
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.ONE_ATTEMPT
+import com.example.receipt_splitter.receipt.data.services.ImageConverterInterface
+import com.example.receipt_splitter.receipt.data.services.ImageLabelingKitInterface
+import com.example.receipt_splitter.receipt.data.services.ReceiptServiceInterface
+import com.example.receipt_splitter.receipt.data.store.FireStoreRepositoryInterface
+import com.example.receipt_splitter.receipt.data.store.FirebaseUserIdInterface
 import com.example.receipt_splitter.receipt.presentation.ReceiptDataJson
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiMessage
+import com.example.receipt_splitter.receipt.presentation.ReceiptVertexData
+import com.example.receipt_splitter.receipt.presentation.UserAttemptsData
+import com.google.mlkit.vision.label.ImageLabel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class CreateReceiptUseCase(
     private val imageLabelingKit: ImageLabelingKitInterface,
     private val imageConverter: ImageConverterInterface,
-    private val receiptRepository: ReceiptServiceInterface,
+    private val receiptService: ReceiptServiceInterface,
     private val receiptDbRepository: ReceiptDbRepositoryInterface,
-    private val receiptConverter: ReceiptConverterInterface,
+    private val firestoreRepository: FireStoreRepositoryInterface,
+    private val firebaseUserId: FirebaseUserIdInterface,
 ) : CreateReceiptUseCaseInterface {
 
-    override suspend fun createReceiptFromUriImage(listOfImages: List<Uri>): ReceiptCreationResult {
-        return convertReceiptFromImageImpl(listOfImages = listOfImages)
+    private companion object {
+        private const val DELAY = 3000L
     }
 
-    override suspend fun areAllUriImagesAppropriate(images: List<Uri>): Boolean =
+    override suspend fun createReceiptFromUriImage(
+        listOfImages: List<Uri>,
+        translateTo: String?,
+    ): ReceiptCreationResult {
+        return convertReceiptFromImageImpl(
+            listOfImages = listOfImages,
+            translateTo = translateTo,
+        )
+    }
+
+    override suspend fun haveImagesGotNotAppropriateImages(images: List<Uri>): Boolean =
         withContext(Dispatchers.Default) {
             runCatching {
-                for (imageUri in images) {
-                    val imageBitmap = imageConverter.convertImageFromUriToBitmap(imageUri)
-                    hasAppropriateLabel(imageBitmap)
+                val bitmapImages = images.map {
+                    imageConverter.convertImageFromUriToBitmap(it)
                 }
-                return@withContext true
+                hasNotAppropriateLabel(bitmapImages)
             }.getOrElse {
-                return@withContext false
+                true
             }
         }
 
     private suspend fun convertReceiptFromImageImpl(
         listOfImages: List<Uri>,
-        requestText: String = REQUEST_TEXT_WITH_TEXT,
+        translateTo: String?,
     ): ReceiptCreationResult = withContext(Dispatchers.IO) {
         runCatching {
+            val receiptVertexConstants: ReceiptVertexData =
+                firestoreRepository.getReceiptVertexConstants()
             val listOfBitmaps = listOfImages.map { image ->
                 imageConverter.convertImageFromUriToBitmap(image)
             }
-            if (containsNoAppropriateImage(listOfBitmaps)) {
+            if (hasNotAppropriateLabel(listOfBitmaps)) {
+                delay(DELAY)
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
             }
-            val receiptText = receiptConverter.convertReceiptImagesToText(listOfImages)
-            val receiptJsonString = receiptRepository.getReceiptJsonStringFromText(
-                receiptText = receiptText,
-                requestText = requestText
+            val userId = getUserId() ?: return@withContext ReceiptCreationResult.LoginRequired
+            val userAttempts = manageAttemptsToCreateReceipt(
+                userId = userId,
+                maximumAttemptsForUser = receiptVertexConstants.maximumAttemptsForUser,
+                deltaTimeBetweenAttempts = receiptVertexConstants.deltaTimeBetweenAttempts,
             )
-            val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJsonString)
+            if (userAttempts > receiptVertexConstants.maximumAttemptsForUser) {
+                delay(DELAY)
+                return@withContext ReceiptCreationResult.TooManyAttempts
+            }
+            val receiptJson = receiptService.getReceiptJsonFromImages(
+                listOfBitmaps = listOfBitmaps,
+                requestText = receiptVertexConstants.requestText,
+                vertexModel = receiptVertexConstants.vertexModel,
+                translateTo = translateTo,
+            )
+            val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJson)
             if (receiptDataJson.orders.isNotEmpty()) {
                 val receiptId: Long = receiptDbRepository.insertReceiptDataJson(receiptDataJson)
                 return@withContext ReceiptCreationResult.Success(receiptId)
-            } else
+            } else {
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
+            }
         }.getOrElse { e: Throwable ->
             return@withContext ReceiptCreationResult.Error(
                 e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
@@ -68,54 +101,98 @@ class CreateReceiptUseCase(
         }
     }
 
-    private suspend fun containsNoAppropriateImage(imagesBitmap: List<Bitmap>): Boolean =
+    private suspend fun manageAttemptsToCreateReceipt(
+        userId: String,
+        oneAttempt: Int = ONE_ATTEMPT,
+        deltaTimeBetweenAttempts: Long,
+        maximumAttemptsForUser: Int,
+    ): Int {
+        val userAttemptsData: UserAttemptsData? =
+            firestoreRepository.getUserAttemptsData(documentId = userId)
+        userAttemptsData?.let { userAttempts ->
+            val currentTime = System.currentTimeMillis()
+            val userLastAttemptTime = userAttempts.lastAttemptTime.toLongOrNull()
+            userLastAttemptTime?.let { lastAttemptTime ->
+                if (currentTime - lastAttemptTime < deltaTimeBetweenAttempts) {
+                    if (userAttempts.attemptsCount >= maximumAttemptsForUser)
+                        return userAttempts.attemptsCount + oneAttempt
+                    else
+                        firestoreRepository.putUserAttemptsData(
+                            documentId = userId,
+                            data = UserAttemptsData(
+                                lastAttemptTime = currentTime.toString(),
+                                attemptsCount = userAttempts.attemptsCount + oneAttempt,
+                            )
+                        )
+                    return userAttempts.attemptsCount + oneAttempt
+                } else {
+                    firestoreRepository.putUserAttemptsData(
+                        documentId = userId,
+                        data = UserAttemptsData(
+                            lastAttemptTime = currentTime.toString(),
+                            attemptsCount = oneAttempt,
+                        )
+                    )
+                    return oneAttempt
+                }
+            } ?: throw IllegalStateException()
+        } ?: run {
+            firestoreRepository.putUserAttemptsData(
+                documentId = userId,
+                data = UserAttemptsData(
+                    lastAttemptTime = System.currentTimeMillis().toString(),
+                    attemptsCount = oneAttempt,
+                )
+            )
+            return oneAttempt
+        }
+    }
+
+    private suspend fun hasNotAppropriateLabel(
+        imagesBitmap: List<Bitmap>,
+        appropriateLabels: List<Int> = APPROPRIATE_LABELS,
+    ): Boolean =
         withContext(Dispatchers.Default) {
             runCatching {
                 for (imageBitmap in imagesBitmap) {
-                    if (hasAppropriateLabel(imageBitmap) == false)
-                        return@withContext true
+                    val listOfLabels = imageLabelingKit.getLabelsOfImage(imageBitmap)
+                    val isAppropriate = isInLabels(listOfLabels, appropriateLabels)
+                    if (isAppropriate == false)
+                        true
                 }
-                return@withContext false
+                false
             }.getOrElse {
-                return@withContext true
+                true
             }
         }
 
-    private suspend fun hasAppropriateLabel(
-        bitmapImage: Bitmap,
+    private fun isInLabels(
+        listOfLabels: List<ImageLabel>,
         appropriateLabels: List<Int> = APPROPRIATE_LABELS,
     ): Boolean {
-        val listOfLabels = imageLabelingKit.getLabelsOfImage(bitmapImage)
         for (label in listOfLabels) {
-            if (label.index in appropriateLabels) {
+            if (label.index in appropriateLabels)
                 return true
-                break
-            }
         }
         return false
     }
 
     override fun filterBySize(listOfImages: List<Uri>): List<Uri> {
-        return listOfImages.take(MAXIMUM_NUMBER_OF_IMAGES)
+        return listOfImages.take(DataConstantsReceipt.MAXIMUM_AMOUNT_OF_IMAGES)
     }
 
-    private companion object {
-        private const val MAXIMUM_NUMBER_OF_IMAGES = DataConstantsReceipt.MAX_AMOUNT_OF_IMAGES
-        private const val REQUEST_TEXT_WITH_IMAGES =
-            "Read this images of the one receipt without spaces and extract using English"
-        private const val REQUEST_TEXT_WITH_TEXT =
-            "There is a text of the receipt.Extract all information from it.Take the final price after all possible sales for every order."
-
-        // Labels for images are the following:
-        // https://developers.google.com/ml-kit/vision/image-labeling/label-map
-        // 135 Menu 240 Receipt 273 Paper 93 Poster
-        private val APPROPRIATE_LABELS: List<Int> = listOf(273, 135, 240, 93)
+    private fun getUserId(): String? {
+        return firebaseUserId.getUserId()
     }
 }
 
 interface CreateReceiptUseCaseInterface {
-    suspend fun createReceiptFromUriImage(listOfImages: List<Uri>): ReceiptCreationResult
-    suspend fun areAllUriImagesAppropriate(listOfImages: List<Uri>): Boolean
+    suspend fun createReceiptFromUriImage(
+        listOfImages: List<Uri>,
+        translateTo: String?,
+    ): ReceiptCreationResult
+
+    suspend fun haveImagesGotNotAppropriateImages(listOfImages: List<Uri>): Boolean
     fun filterBySize(listOfImages: List<Uri>): List<Uri>
 }
 
@@ -123,4 +200,6 @@ sealed interface ReceiptCreationResult {
     class Success(val receiptId: Long) : ReceiptCreationResult
     object ImageIsInappropriate : ReceiptCreationResult
     class Error(val msg: String) : ReceiptCreationResult
+    object TooManyAttempts : ReceiptCreationResult
+    object LoginRequired : ReceiptCreationResult
 }
