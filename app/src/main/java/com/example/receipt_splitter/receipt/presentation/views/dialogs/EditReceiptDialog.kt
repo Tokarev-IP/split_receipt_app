@@ -2,7 +2,7 @@ package com.example.receipt_splitter.receipt.presentation.views.dialogs
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -34,27 +36,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.main.basic.convertMillisToDate
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
-import com.example.receipt_splitter.receipt.presentation.views.CancelSaveRowView
+import com.example.receipt_splitter.receipt.presentation.views.basic.CancelSaveButtonView
 
 @Composable
 internal fun EditReceiptDialog(
-    modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    receiptData: ReceiptData,
     onCancelButtonClicked: () -> Unit,
     onSaveButtonClicked: (receiptData: ReceiptData) -> Unit,
 ) {
     Dialog(
         onDismissRequest = { onCancelButtonClicked() },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         EditReceiptDialogSurface(
-            receiptData = { receiptData() },
+            receiptData = receiptData,
             onCancelButtonClicked = {
                 onCancelButtonClicked()
             },
@@ -68,40 +73,38 @@ internal fun EditReceiptDialog(
 @Composable
 private fun EditReceiptDialogSurface(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData = { ReceiptData(id = 0) },
+    receiptData: ReceiptData = ReceiptData(id = 0),
     onCancelButtonClicked: () -> Unit = {},
     onSaveButtonClicked: (receiptData: ReceiptData) -> Unit = {}
 ) {
     var showCalendarDialog by rememberSaveable { mutableStateOf(false) }
-    var dateText: String by rememberSaveable { mutableStateOf(receiptData().date) }
+    var dateText: String by rememberSaveable { mutableStateOf(receiptData.date) }
 
     Surface(
         modifier = modifier.fillMaxSize(),
+        shape = RoundedCornerShape(16.dp),
     ) {
-        Box {
-            EditReceiptDialogView(
-                receiptData = receiptData(),
-                onCancelButtonClicked = {
-                    onCancelButtonClicked()
+        EditReceiptDialogView(
+            receiptData = receiptData,
+            onCancelButtonClicked = {
+                onCancelButtonClicked()
+            },
+            onSaveButtonClicked = { receiptData ->
+                onSaveButtonClicked(receiptData)
+            },
+            onShowCalendarDialog = {
+                showCalendarDialog = true
+            },
+            dateText = { dateText }
+        )
+        if (showCalendarDialog)
+            CalendarDialog(
+                onDismissRequest = { showCalendarDialog = false },
+                onSaveButtonClicked = { date ->
+                    dateText = date
+                    showCalendarDialog = false
                 },
-                onSaveButtonClicked = { receiptData ->
-                    onSaveButtonClicked(receiptData)
-                },
-                onShowCalendarDialog = {
-                    showCalendarDialog = true
-                },
-                dateText = { dateText }
             )
-            if (showCalendarDialog)
-                CalendarDialog(
-                    modifier = modifier.align(Alignment.Center),
-                    onDismissRequest = { showCalendarDialog = false },
-                    onSaveButtonClicked = { date ->
-                        dateText = date
-                        showCalendarDialog = false
-                    },
-                )
-        }
     }
 }
 
@@ -122,10 +125,10 @@ private fun EditReceiptDialogView(
             onShowCalendarDialog()
     }
 
-    var restaurantNameText: String by rememberSaveable { mutableStateOf(receiptData.restaurant) }
+    var restaurantNameText: String by rememberSaveable { mutableStateOf(receiptData.receiptName) }
     var translatedRestaurantNameText: String by rememberSaveable {
         mutableStateOf(
-            receiptData.translatedRestaurant ?: ""
+            receiptData.translatedReceiptName ?: ""
         )
     }
     var totalSumText: String by rememberSaveable { mutableStateOf(receiptData.total.toString()) }
@@ -136,11 +139,6 @@ private fun EditReceiptDialogView(
         )
     }
     var tipText: String by rememberSaveable { mutableStateOf(receiptData.tip?.toString() ?: "") }
-    var tipSumText: String by rememberSaveable {
-        mutableStateOf(
-            receiptData.tipSum?.toString() ?: ""
-        )
-    }
 
     var isRestaurantNameError by rememberSaveable { mutableStateOf(false) }
     var isTotalSumError by rememberSaveable { mutableStateOf(false) }
@@ -152,31 +150,40 @@ private fun EditReceiptDialogView(
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
-            Spacer(modifier = Modifier.height(60.dp))
-//            Row() {
-//                Text(text = stringResource(R.string.edit_receipt_info))
-//                IconButton(
-//                    modifier = modifier.align(Alignment.TopEnd),
-//                    onClick = { onCancelButtonClicked() },
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Filled.Clear,
-//                        contentDescription = stringResource(R.string.close_the_dialog),
-//                    )
-//                }
-//            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_receipt_info_title),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+                IconButton(
+                    onClick = { onCancelButtonClicked() },
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.close_the_dialog),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = restaurantNameText,
                 onValueChange = { value ->
+                    isRestaurantNameError = false
                     if (value.length <= MAXIMUM_LENGTH)
                         restaurantNameText = value
                 },
-                label = { Text(text = stringResource(R.string.restaurant_name)) },
+                label = { Text(text = stringResource(R.string.receipt_name)) },
                 trailingIcon = {
                     if (restaurantNameText.isNotEmpty())
                         IconButton(
@@ -208,10 +215,11 @@ private fun EditReceiptDialogView(
             OutlinedTextField(
                 value = translatedRestaurantNameText,
                 onValueChange = { value ->
+                    isRestaurantNameError = false
                     if (value.length <= MAXIMUM_LENGTH)
                         translatedRestaurantNameText = value
                 },
-                label = { Text(text = stringResource(R.string.translated_restaurant_name)) },
+                label = { Text(text = stringResource(R.string.translated_receipt_name)) },
                 trailingIcon = {
                     if (restaurantNameText.isNotEmpty())
                         IconButton(onClick = { translatedRestaurantNameText = EMPTY_STRING }) {
@@ -309,6 +317,7 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
+                    else Text(text = stringResource(R.string.keep_it_empty))
                 },
                 isError = isTaxError,
             )
@@ -344,6 +353,7 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
+                    else Text(text = stringResource(R.string.keep_it_empty))
                 },
                 isError = isDiscountError,
             )
@@ -379,47 +389,13 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
+                    else Text(text = stringResource(R.string.keep_it_empty))
                 },
                 isError = isTipError,
             )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = tipSumText,
-                onValueChange = { value ->
-                    isTipSumError = false
-                    if (value.length <= MAXIMUM_LENGTH)
-                        tipSumText = value.trim()
-                },
-                label = { Text(text = stringResource(R.string.tip_sum)) },
-                trailingIcon = {
-                    if (tipSumText.isNotEmpty())
-                        IconButton(
-                            onClick = {
-                                tipSumText = EMPTY_STRING
-                                isTipSumError = false
-                            }
-                        ) {
-                            Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
-                        }
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                supportingText = {
-                    if (tipSumText.isNotEmpty())
-                        Text(
-                            text = stringResource(
-                                R.string.must_be_from_to,
-                                MINIMUM_is_0,
-                                MAXIMUM_TOTAL_SUM
-                            )
-                        )
-                },
-                isError = isTipSumError,
-            )
             Spacer(modifier = Modifier.height(12.dp))
 
-            CancelSaveRowView(
+            CancelSaveButtonView(
                 onCancelClicked = {
                     onCancelButtonClicked()
                 },
@@ -441,26 +417,20 @@ private fun EditReceiptDialogView(
                         if (tip < MINIMUM_is_0 || tip > MAXIMUM_PERCENT)
                             isTipError = true
                     }
-                    tipSumText.toFloatOrNull()?.let { tipSum ->
-                        if (tipSum < MINIMUM_is_0 || tipSum > MAXIMUM_TOTAL_SUM)
-                            isTipSumError = true
-                    }
 
                     if (isRestaurantNameError || isTotalSumError || isTaxError || isDiscountError || isTipError || isTipSumError)
-                        return@CancelSaveRowView
+                        return@CancelSaveButtonView
 
                     val receiptData = ReceiptData(
                         id = receiptData.id,
-                        restaurant = restaurantNameText.trim(),
-                        translatedRestaurant =
+                        receiptName = restaurantNameText.trim(),
+                        translatedReceiptName =
                             if (translatedRestaurantNameText.isEmpty()) null else translatedRestaurantNameText.trim(),
                         date = dateText(),
                         total = totalSumText.trim().toFloat(),
-                        tax = if (taxText.isEmpty()) null else taxText.trim().toFloat(),
-                        discount = if (discountText.isEmpty()) null else discountText.trim()
-                            .toFloat(),
-                        tip = if (tipText.isEmpty()) null else tipText.trim().toFloat(),
-                        tipSum = if (tipSumText.isEmpty()) null else tipSumText.trim().toFloat(),
+                        tax = taxText.trim().toFloatOrNull(),
+                        discount = discountText.trim().toFloatOrNull(),
+                        tip = tipText.trim().toFloatOrNull(),
                     )
                     onSaveButtonClicked(receiptData)
                 }
@@ -518,15 +488,13 @@ private const val MAXIMUM_PERCENT = 100
 @Preview(showBackground = true)
 private fun EditReceiptDialogViewPreview() {
     EditReceiptDialogSurface(
-        receiptData = {
-            ReceiptData(
-                id = 5,
-                restaurant = "good food soup with tomato",
-                date = "september 2025",
-                total = 48393.5f,
-                discount = 10.4f,
-                tip = 20f,
-            )
-        }
+        receiptData = ReceiptData(
+            id = 5,
+            receiptName = "good food soup with tomato",
+            date = "september 2025",
+            total = 48393.5f,
+            discount = 10.4f,
+            tip = 20f,
+        )
     )
 }
