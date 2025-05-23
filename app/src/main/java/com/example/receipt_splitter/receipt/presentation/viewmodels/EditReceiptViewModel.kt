@@ -1,10 +1,8 @@
 package com.example.receipt_splitter.receipt.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.receipt_splitter.main.basic.BasicEvent
 import com.example.receipt_splitter.main.basic.BasicSimpleViewModel
-import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import com.example.receipt_splitter.receipt.domain.usecases.EditReceiptUseCaseInterface
 import com.example.receipt_splitter.receipt.presentation.OrderData
@@ -15,10 +13,7 @@ import kotlinx.coroutines.launch
 
 class EditReceiptViewModel(
     private val editReceiptUseCase: EditReceiptUseCaseInterface,
-) : BasicSimpleViewModel<
-        EditReceiptUiState,
-        EditReceiptEvent,
-        EditReceiptUiMessageIntent>(initialUiState = EditReceiptUiState.Show) {
+) : BasicSimpleViewModel<EditReceiptEvent>() {
 
     private val receiptData = MutableStateFlow<ReceiptData?>(null)
     private val receiptDataState = receiptData.asStateFlow()
@@ -72,7 +67,6 @@ class EditReceiptViewModel(
     private fun retrieveOrderDataList(receiptId: Long) {
         viewModelScope.launch {
             editReceiptUseCase.getOrderDataListFlow(receiptId = receiptId).collect { list ->
-                Log.d("TOKAR", "order list: $list")
                 setOrderDataList(newOrderDataList = list)
             }
         }
@@ -116,5 +110,3 @@ sealed interface EditReceiptEvent : BasicEvent {
     class EditReceipt(val receipt: ReceiptData) : EditReceiptEvent
     class AddNewOrder(val order: OrderData) : EditReceiptEvent
 }
-
-interface EditReceiptUiMessageIntent : BasicUiMessageIntent
