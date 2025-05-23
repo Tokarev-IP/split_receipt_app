@@ -3,16 +3,18 @@ package com.example.receipt_splitter.receipt.presentation.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,7 +31,6 @@ import com.example.receipt_splitter.receipt.presentation.viewmodels.AllReceiptsE
 import com.example.receipt_splitter.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.example.receipt_splitter.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.example.receipt_splitter.receipt.presentation.views.screens.AllReceiptsScreenView
-import com.example.receipt_splitter.receipt.presentation.views.screens.ReceiptsSubmenuBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +38,7 @@ fun AllReceiptsScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
     allReceiptViewModel: AllReceiptsViewModel,
+    topAppBarState: TopAppBarState = rememberTopAppBarState(),
 ) {
     var showAcceptDeletionReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var receiptIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -44,11 +46,7 @@ fun AllReceiptsScreen(
     val allReceiptsList by allReceiptViewModel.getAllReceiptsList().collectAsStateWithLifecycle()
 
     val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-
-    LaunchedEffect(key1 = Unit) {
-        allReceiptViewModel.setEvent(AllReceiptsEvent.RetrieveAllReceipts)
-    }
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -57,17 +55,22 @@ fun AllReceiptsScreen(
                 title = { Text(text = stringResource(R.string.receipts)) },
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    ReceiptsSubmenuBox(
-                        onSettingsClicked = {
+                    IconButton(
+                        onClick = {
                             receiptViewModel.setEvent(ReceiptEvent.OpenSettings)
                         }
-                    )
+                    ) {
+                        Icon(
+                            Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.settings_button)
+                        )
+                    }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                modifier = modifier.padding(12.dp),
+                modifier = Modifier.padding(12.dp),
                 onClick = {
                     receiptViewModel.setEvent(ReceiptEvent.OpenCreateReceiptScreen)
                 }
@@ -81,7 +84,7 @@ fun AllReceiptsScreen(
     ) { innerPadding ->
         AllReceiptsScreenView(
             modifier = modifier.padding(innerPadding),
-            allReceiptsList = { allReceiptsList },
+            allReceiptsList = allReceiptsList,
             onReceiptClicked = { receiptId ->
                 receiptViewModel.setEvent(
                     ReceiptEvent.OpenSplitReceiptScreen(receiptId = receiptId)
@@ -106,7 +109,11 @@ fun AllReceiptsScreen(
                     infoText = stringResource(R.string.do_you_want_to_delete_this_receipt),
                     onDismissRequest = { showAcceptDeletionReceiptDialog = false },
                     onAcceptClicked = {
-                        allReceiptViewModel.setEvent(AllReceiptsEvent.DeleteSpecificReceipt(receiptId))
+                        allReceiptViewModel.setEvent(
+                            AllReceiptsEvent.DeleteSpecificReceipt(
+                                receiptId
+                            )
+                        )
                         receiptIdToDelete = null
                         showAcceptDeletionReceiptDialog = false
                     }
