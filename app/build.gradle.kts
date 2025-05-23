@@ -67,12 +67,12 @@ dependencies {
     implementation(libs.mlkit.image.labeling)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-    implementation(libs.firebase.vertaxai)
+    implementation(libs.firebase.vertax)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
     implementation(libs.mlkit.document.scanner)
-    implementation(libs.mlkit.text.recognition)
+    implementation(libs.firebase.firestore)
 
     ksp(libs.androidx.room.compiler)
 
