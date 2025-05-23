@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,37 +26,15 @@ fun MainActivityCompose(
     startDestination: MainNavHostDestinations = MainNavHostDestinations.LoginNav,
     mainViewModel: MainViewModel = koinViewModel(),
 ) {
-    LaunchedEffect(key1 = Unit) {
-        mainViewModel.getIntentFlow().collect { mainIntent ->
-            mainIntent?.let { intent ->
-                mainViewModel.clearIntentFlow()
-                when (intent) {
-                    is MainIntent.GoToReceiptScreen -> {
-                        navHostController.navigate(MainNavHostDestinations.ReceiptNav){
-                            popUpTo(navHostController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-                    is MainIntent.GoToLoginScreen -> {
-                        navHostController.navigate(MainNavHostDestinations.LoginNav){
-                            popUpTo(navHostController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    is MainIntent.GoToSettingsScreen -> {
-                        navHostController.navigate(MainNavHostDestinations.SettingsNav)
-                    }
-
-                    is MainIntent.GoBackNavigation -> {
-                        navHostController.popBackStack()
-                    }
-                }
+    LaunchedEffect(Unit) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            mainViewModel.getIntentFlow().collect { mainIntent ->
+                handleMainIntent(
+                    intent = mainIntent,
+                    navHostController = navHostController
+                )
             }
         }
     }
@@ -85,6 +66,37 @@ fun MainActivityCompose(
                 settingsViewModel = settingsViewModel,
                 mainViewModel = mainViewModel,
             )
+        }
+    }
+}
+
+private fun handleMainIntent(
+    intent: MainIntent,
+    navHostController: NavHostController,
+) {
+    when (intent) {
+        is MainIntent.GoToReceiptScreen -> {
+            navHostController.navigate(MainNavHostDestinations.ReceiptNav) {
+                popUpTo<MainNavHostDestinations.LoginNav> {
+                    inclusive = true
+                }
+            }
+        }
+
+        is MainIntent.GoToLoginScreen -> {
+            navHostController.navigate(MainNavHostDestinations.LoginNav) {
+                popUpTo<MainNavHostDestinations.ReceiptNav> {
+                    inclusive = true
+                }
+            }
+        }
+
+        is MainIntent.GoToSettingsScreen -> {
+            navHostController.navigate(MainNavHostDestinations.SettingsNav)
+        }
+
+        is MainIntent.GoBackNavigation -> {
+            navHostController.popBackStack()
         }
     }
 }
