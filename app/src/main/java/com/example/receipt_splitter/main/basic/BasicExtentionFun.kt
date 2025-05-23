@@ -1,8 +1,10 @@
 package com.example.receipt_splitter.main.basic
 
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.round
 
 fun Int.isZero(): Boolean = this == 0
 
@@ -53,10 +55,20 @@ fun String.isCorrectPassword(): Boolean {
 }
 
 fun Float.roundToTwoDecimalPlaces(): Float {
-    return (this * 100).toInt() / 100f
+    return (round(this * 100) / 100f)
 }
 
 fun Long.convertMillisToDate(): String {
     val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return formatter.format(Date(this))
+}
+
+fun String.getLanguageString(
+    translateTo: String?,
+    languageText: String = DataConstantsReceipt.LANGUAGE_TEXT,
+): String {
+    return if (translateTo != null) {
+        "$this $languageText $translateTo"
+    } else
+        this
 }
