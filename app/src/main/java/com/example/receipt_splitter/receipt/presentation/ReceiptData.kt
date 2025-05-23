@@ -1,13 +1,17 @@
 package com.example.receipt_splitter.receipt.presentation
 
+import androidx.compose.runtime.Immutable
+import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 class ReceiptDataJson(
-    @SerialName("restaurant_name")
-    val restaurant: String = "no name",
-    @SerialName("date_dd/mm/yyyy")
+    @SerialName("receipt_name")
+    val receiptName: String = "no name",
+    @SerialName("translated_receipt_name")
+    val translatedReceiptName: String? = null,
+    @SerialName("date")
     val date: String = "no date",
     @SerialName("orders")
     val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
@@ -27,24 +31,28 @@ class ReceiptDataJson(
 class OrderDataJson(
     @SerialName("name")
     val name: String,
+    @SerialName("translated_name")
+    val translatedName: String? = null,
     @SerialName("quantity")
     val quantity: Int,
     @SerialName("price")
     val price: Float,
 )
 
+@Immutable
 data class ReceiptData(
     val id: Long,
-    val restaurant: String = "no name",
-    val translatedRestaurant: String? = null,
+    val receiptName: String = "no name",
+    val translatedReceiptName: String? = null,
     val date: String = "no date",
     val total: Float = 0.0F,
     val tax: Float? = null,
     val discount: Float? = null,
     val tip: Float? = null,
-    val tipSum: Float? = null,
+    val additionalSum: List<Pair<String, Float>> = emptyList(),
 )
 
+@Immutable
 data class OrderData(
     val id: Long,
     val name: String = "no name",
@@ -53,6 +61,26 @@ data class OrderData(
     val quantity: Int = 1,
     val price: Float = 0f,
     val receiptId: Long,
+)
+
+@Serializable
+class UserAttemptsData(
+    @PropertyName("lastAttemptTime")
+    val lastAttemptTime: String = "0",
+    @PropertyName("attemptsCount")
+    val attemptsCount: Int = 1,
+)
+
+@Serializable
+class ReceiptVertexData(
+    @PropertyName("deltaTimeBetweenAttempts")
+    val deltaTimeBetweenAttempts: Long = 0L,
+    @PropertyName("maximumAttemptsForUser")
+    val maximumAttemptsForUser: Int = 0,
+    @PropertyName("requestText")
+    val requestText: String = "",
+    @PropertyName("vertexModel")
+    val vertexModel: String = "",
 )
 
 sealed interface ReceiptNavHostDestinations {
@@ -67,4 +95,9 @@ sealed interface ReceiptNavHostDestinations {
 
     @Serializable
     class EditReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
+}
+
+object ReceiptUIConstants {
+    const val ONE_LINE = 1
+    const val ONE_ELEMENT = 1
 }
