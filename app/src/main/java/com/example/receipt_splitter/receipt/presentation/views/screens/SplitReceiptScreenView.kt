@@ -1,5 +1,6 @@
 package com.example.receipt_splitter.receipt.presentation.views.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,27 +39,27 @@ import com.example.receipt_splitter.main.basic.isNotZero
 import com.example.receipt_splitter.main.basic.shimmerBrush
 import com.example.receipt_splitter.receipt.presentation.OrderData
 import com.example.receipt_splitter.receipt.presentation.ReceiptData
-import com.example.receipt_splitter.receipt.presentation.views.OrderItemView
+import com.example.receipt_splitter.receipt.presentation.views.basic.OrderItemView
 
 @Composable
 internal fun SplitReceiptScreenView(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData? = { null },
-    orderDataList: () -> List<OrderData> = { emptyList<OrderData>() },
-    orderReportText: () -> String? = { null },
-    onSubtractOneQuantityClicked: (orderId: Long) -> Unit = {},
-    onAddOneQuantityClicked: (orderId: Long) -> Unit = {},
-    orderListState: LazyListState = LazyListState(),
+    receiptData: ReceiptData?,
+    orderDataList: List<OrderData>,
+    orderReportText: String?,
+    onSubtractOneQuantityClicked: (orderId: Long) -> Unit,
+    onAddOneQuantityClicked: (orderId: Long) -> Unit,
+    orderListState: LazyListState,
+    onEditReportClicked: () -> Unit,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
     ) {
-        receiptData()?.let { receipt ->
-            ImageReceiptView(
-                receiptData = { receipt },
-                orderDataList = { orderDataList() },
-                orderReportText = { orderReportText() },
+        receiptData?.let { receipt ->
+            SplitReceiptView(
+                receiptData = receipt,
+                orderDataList = orderDataList,
+                orderReportText = orderReportText,
                 onSubtractOneQuantityClicked = { orderId ->
                     onSubtractOneQuantityClicked(orderId)
                 },
@@ -64,23 +67,23 @@ internal fun SplitReceiptScreenView(
                     onAddOneQuantityClicked(orderId)
                 },
                 orderListState = orderListState,
+                onEditReportClicked = { onEditReportClicked() }
             )
         } ?: ShimmedSplitReceiptsScreenView()
     }
 }
 
 @Composable
-internal fun ImageReceiptView(
+private fun SplitReceiptView(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
-    orderDataList: () -> List<OrderData>,
-    orderReportText: () -> String?,
-    onSubtractOneQuantityClicked: (orderId: Long) -> Unit,
-    onAddOneQuantityClicked: (orderId: Long) -> Unit,
-    orderListState: LazyListState,
+    receiptData: ReceiptData,
+    orderDataList: List<OrderData> = emptyList(),
+    orderReportText: String? = null,
+    onSubtractOneQuantityClicked: (orderId: Long) -> Unit = {},
+    onAddOneQuantityClicked: (orderId: Long) -> Unit = {},
+    orderListState: LazyListState = rememberLazyListState(),
+    onEditReportClicked: () -> Unit = {},
 ) {
-    val orderDataList = orderDataList()
-
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -88,22 +91,22 @@ internal fun ImageReceiptView(
         state = orderListState,
     ) {
         item {
-            ReceiptInfoView(receiptData = { receiptData() })
+            ReceiptInfoView(receiptData = receiptData)
         }
         items(orderDataList.size) { index ->
             val orderData = orderDataList[index]
             SplitItemView(
-                orderData = { orderData },
+                orderData = orderData,
                 onSubtractQuantityClicked = { onSubtractOneQuantityClicked(orderData.id) },
                 onAddOneQuantityClicked = { onAddOneQuantityClicked(orderData.id) }
             )
-            Spacer(modifier = modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         item {
             ReportBottomSheetView(
-                orderReportText = { orderReportText() }
+                orderReportText = orderReportText,
+                onEditReportClicked = { onEditReportClicked() }
             )
-            Spacer(modifier = modifier.height(12.dp))
         }
     }
 }
@@ -111,10 +114,8 @@ internal fun ImageReceiptView(
 @Composable
 private fun ReceiptInfoView(
     modifier: Modifier = Modifier,
-    receiptData: () -> ReceiptData,
+    receiptData: ReceiptData,
 ) {
-    val receiptData = receiptData()
-
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -123,12 +124,12 @@ private fun ReceiptInfoView(
         Text(
             fontWeight = FontWeight.Medium,
             fontSize = 24.sp,
-            text = receiptData.restaurant,
+            text = receiptData.receiptName,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        receiptData.translatedRestaurant?.let { translatedRestaurant ->
+        receiptData.translatedReceiptName?.let { translatedRestaurant ->
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 fontSize = 20.sp,
@@ -155,6 +156,15 @@ private fun ReceiptInfoView(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        receiptData.tip?.let { tip ->
+            Text(
+                fontSize = 20.sp,
+                text = stringResource(R.string.tip_number, tip),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         receiptData.tax?.let { tax ->
             Text(
                 fontSize = 20.sp,
@@ -176,12 +186,10 @@ private fun ReceiptInfoView(
 @Composable
 private fun SplitItemView(
     modifier: Modifier = Modifier,
-    orderData: () -> OrderData,
+    orderData: OrderData,
     onSubtractQuantityClicked: () -> Unit,
     onAddOneQuantityClicked: () -> Unit,
 ) {
-    val orderData = orderData()
-
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -193,15 +201,15 @@ private fun SplitItemView(
             verticalArrangement = Arrangement.Center,
         ) {
             OrderItemView(orderData = { orderData })
-            Spacer(modifier = modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             HorizontalDivider()
-            Spacer(modifier = modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             SplitOrderItemView(
                 onSubtractOrderClicked = { onSubtractQuantityClicked() },
                 onAddOneQuantityClicked = { onAddOneQuantityClicked() },
-                quantity = { orderData.selectedQuantity },
-                isAddButtonEnabled = { orderData.selectedQuantity < orderData.quantity },
-                isSubtractButtonEnabled = { orderData.selectedQuantity.isNotZero() },
+                quantity = orderData.selectedQuantity,
+                isAddButtonEnabled = orderData.selectedQuantity < orderData.quantity,
+                isSubtractButtonEnabled = orderData.selectedQuantity.isNotZero(),
             )
         }
     }
@@ -212,18 +220,16 @@ private fun SplitOrderItemView(
     modifier: Modifier = Modifier,
     onSubtractOrderClicked: () -> Unit,
     onAddOneQuantityClicked: () -> Unit,
-    quantity: () -> Int,
-    isAddButtonEnabled: () -> Boolean,
-    isSubtractButtonEnabled: () -> Boolean,
+    quantity: Int,
+    isAddButtonEnabled: Boolean,
+    isSubtractButtonEnabled: Boolean,
 ) {
-    val quantity = quantity()
-
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(
-            enabled = isSubtractButtonEnabled(),
+            enabled = isSubtractButtonEnabled,
             onClick = {
                 onSubtractOrderClicked()
             }
@@ -235,15 +241,21 @@ private fun SplitOrderItemView(
         }
 
         Spacer(modifier = modifier.width(8.dp))
-        Text(
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            text = quantity.toString()
-        )
+
+        AnimatedContent(
+            targetState = quantity.toString(),
+        ) { quantity ->
+            Text(
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Medium,
+                text = quantity,
+            )
+        }
+
         Spacer(modifier = modifier.width(8.dp))
 
         IconButton(
-            enabled = isAddButtonEnabled(),
+            enabled = isAddButtonEnabled,
             onClick = { onAddOneQuantityClicked() }
         ) {
             Icon(
@@ -257,36 +269,42 @@ private fun SplitOrderItemView(
 @Composable
 private fun ReportBottomSheetView(
     modifier: Modifier = Modifier,
-    orderReportText: () -> String?,
+    orderReportText: String?,
+    onEditReportClicked: () -> Unit,
 ) {
-    val orderReportText = orderReportText()
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 20.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        HorizontalDivider(modifier = modifier.fillMaxWidth())
-        Spacer(modifier = modifier.height(12.dp))
         orderReportText?.let { orderText ->
-            Text(
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
                 modifier = modifier.fillMaxWidth(),
-                textAlign = TextAlign.Right,
-                text = orderText,
-            )
-            Spacer(modifier = modifier.height(12.dp))
-            HorizontalDivider(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            )
-            Spacer(modifier = modifier.height(12.dp))
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = { onEditReportClicked() }
+                ) {
+                    Icon(Icons.Outlined.Edit, stringResource(R.string.edit_order_report_button))
+                }
+                Text(
+                    textAlign = TextAlign.Left,
+                    text = orderText,
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
         } ?: run {
-            Spacer(modifier = modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 fontSize = 24.sp,
                 text = stringResource(R.string.no_order_report),
             )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -325,20 +343,18 @@ private fun ShimmedSplitReceiptsScreenView(
 @Composable
 @Preview(showBackground = true)
 private fun SplitReceiptScreenViewPreview() {
-    SplitReceiptScreenView(
-        receiptData = {
+    SplitReceiptView(
+        receiptData =
             ReceiptData(
                 id = 1,
-                restaurant = "restaurant abdi paluma kulupa group",
+                receiptName = "restaurant abdi paluma kulupa group",
                 date = "18/03/2024",
                 total = 60.0f,
                 tax = null,
                 discount = null,
                 tip = null,
-                tipSum = null,
-            )
-        },
-        orderDataList = {
+            ),
+        orderDataList =
             listOf(
                 OrderData(
                     id = 1,
@@ -362,8 +378,7 @@ private fun SplitReceiptScreenViewPreview() {
                     price = 30.0f,
                     receiptId = 1,
                 ),
-            )
-        },
-        orderReportText = { "report 213123ksfdfjksdjg" },
+            ),
+        orderReportText = "report 213123ksfdfjksdjg",
     )
 }
