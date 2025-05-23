@@ -1,7 +1,10 @@
-package com.example.receipt_splitter.receipt.data
+package com.example.receipt_splitter.receipt.data.services
 
 import android.graphics.Bitmap
-import android.util.Log
+import com.example.receipt_splitter.main.basic.getLanguageString
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.RESPONSE_MIME_TYPE
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.receiptSchemaObjectNotTranslated
+import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.receiptSchemaObjectTranslated
 import com.example.receipt_splitter.receipt.presentation.ReceiptUiMessage
 import com.google.firebase.Firebase
 import com.google.firebase.vertexai.type.Content
@@ -13,35 +16,6 @@ import com.google.firebase.vertexai.vertexAI
 class ReceiptService() : ReceiptServiceInterface {
 
     private companion object {
-        private val vertexReceiptJson = Schema.obj(
-            mapOf(
-                "restaurant_name" to Schema.string(),
-                "date_dd/mm/yyyy" to Schema.string(),
-                "final_total_sum" to Schema.float(),
-                "final_tax_in_percent" to Schema.float(),
-                "final_discount_in_percent" to Schema.float(),
-                "orders" to Schema.array(
-                    Schema.obj(
-                        mapOf(
-                            "name" to Schema.string(),
-                            "quantity" to Schema.integer(),
-                            "price" to Schema.float(),
-                        ),
-                    )
-                )
-            ),
-            optionalProperties = listOf(
-                "restaurant_name",
-                "date_dd/mm/yyyy",
-                "final_total_sum",
-                "final_tax_in_percent",
-                "final_discount_in_percent",
-                "orders",
-            )
-        )
-
-        private const val RESPONSE_MIME_TYPE = "application/json"
-
         private const val ONE_IMAGE = 1
         private const val TWO_IMAGES = 2
         private const val THREE_IMAGES = 3
@@ -81,81 +55,96 @@ class ReceiptService() : ReceiptServiceInterface {
         }
     }
 
-    override suspend fun getReceiptJsonStringFromImages(
+    override suspend fun getReceiptJsonFromImages(
         listOfBitmaps: List<Bitmap>,
-        requestText: String
+        requestText: String,
+        vertexModel: String,
+        translateTo: String?,
     ): String {
-        return getReceiptJsonStringImpl(
+        return getReceiptJsonFromImagesImpl(
             listOfBitmaps = listOfBitmaps,
-            requestText = requestText
+            requestText = requestText,
+            vertexModel = vertexModel,
+            translateTo = translateTo,
         )
     }
 
-    private suspend fun getReceiptJsonStringImpl(
+    private suspend fun getReceiptJsonFromImagesImpl(
         listOfBitmaps: List<Bitmap>,
         requestText: String,
-        vertexJson: Schema = vertexReceiptJson,
-        vertexAiModel: String = DataConstantsReceipt.VERTEX_AI_MODEL,
+        vertexModel: String,
         mimeType: String = RESPONSE_MIME_TYPE,
+        translateTo: String?,
     ): String {
+        val requestTranslateText = requestText.getLanguageString(translateTo = translateTo)
         val generativeModel = getGenerativeModel(
-            vertexJson = vertexJson,
-            vertexAiModel = vertexAiModel,
-            mimeType = mimeType
+            vertexJson = if (translateTo == null) receiptSchemaObjectNotTranslated else receiptSchemaObjectTranslated,
+            vertexModel = vertexModel,
+            mimeType = mimeType,
         )
-        val prompt = getPrompt(listOfBitmaps, requestText)
+        val prompt = getPrompt(listOfBitmaps, requestTranslateText)
         val result = generativeModel.generateContent(prompt)
         return result.text ?: throw Exception(ReceiptUiMessage.INTERNAL_ERROR.msg)
     }
 
     private fun getGenerativeModel(
-        vertexJson: Schema = vertexReceiptJson,
-        vertexAiModel: String = DataConstantsReceipt.VERTEX_AI_MODEL,
+        vertexJson: Schema,
+        vertexModel: String,
         mimeType: String = RESPONSE_MIME_TYPE,
     ) = Firebase.vertexAI.generativeModel(
-        modelName = vertexAiModel,
+        modelName = vertexModel,
         generationConfig = generationConfig {
             responseMimeType = mimeType
             responseSchema = vertexJson
         }
     )
 
-    override suspend fun getReceiptJsonStringFromText(
+    override suspend fun getReceiptJsonFromText(
         receiptText: String,
-        requestText: String
+        requestText: String,
+        vertexModel: String,
+        translateTo: String?,
     ): String {
-        val overallRequestText = "$requestText $receiptText"
-        Log.d("ReceiptService", "overallRequestText: $overallRequestText")
-        return getReceiptJsonStringFromTextImpl(
-            requestText = overallRequestText
+        return getReceiptJsonFromTextImpl(
+            requestText = requestText,
+            vertexModel = vertexModel,
+            translateTo = translateTo,
+            receiptText = receiptText,
         )
     }
 
-    private suspend fun getReceiptJsonStringFromTextImpl(
+    private suspend fun getReceiptJsonFromTextImpl(
         requestText: String,
-        vertexJson: Schema = vertexReceiptJson,
-        vertexAiModel: String = DataConstantsReceipt.VERTEX_AI_MODEL,
+        vertexModel: String,
         mimeType: String = RESPONSE_MIME_TYPE,
+        translateTo: String?,
+        receiptText: String,
     ): String {
+        val requestTranslateText = requestText.getLanguageString(translateTo = translateTo)
+        val overallRequestText = "$requestTranslateText $receiptText"
         val generativeModel = getGenerativeModel(
-            vertexJson = vertexJson,
-            vertexAiModel = vertexAiModel,
+            vertexJson = if (translateTo == null) receiptSchemaObjectNotTranslated else receiptSchemaObjectTranslated,
+            vertexModel = vertexModel,
             mimeType = mimeType
         )
-        val prompt = content { text(requestText) }
+        val prompt = content { text(overallRequestText) }
         val result = generativeModel.generateContent(prompt)
         return result.text ?: throw Exception(ReceiptUiMessage.INTERNAL_ERROR.msg)
     }
 }
 
 interface ReceiptServiceInterface {
-    suspend fun getReceiptJsonStringFromImages(
+    suspend fun getReceiptJsonFromImages(
         listOfBitmaps: List<Bitmap>,
-        requestText: String
+        requestText: String,
+        vertexModel: String,
+        translateTo: String?,
     ): String
 
-    suspend fun getReceiptJsonStringFromText(
+    suspend fun getReceiptJsonFromText(
         receiptText: String,
-        requestText: String
+        requestText: String,
+        vertexModel: String,
+        translateTo: String?,
     ): String
 }
