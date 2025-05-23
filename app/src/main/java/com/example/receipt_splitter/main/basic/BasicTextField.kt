@@ -1,5 +1,6 @@
 package com.example.receipt_splitter.main.basic
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -34,7 +35,8 @@ fun BasicEmailTextField(
     labelText: String,
     errorText: String,
     supportingText: String? = null,
-    interactionSource: MutableInteractionSource? = null
+    interactionSource: MutableInteractionSource? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -63,6 +65,7 @@ fun BasicEmailTextField(
         },
         isError = emailTextFieldErrorState(),
         interactionSource = interactionSource,
+        leadingIcon = leadingIcon
     )
 }
 
@@ -79,6 +82,7 @@ fun BasicPasswordTextField(
     labelText: String,
     errorText: String,
     supportingText: String? = null,
+    interactionSource: MutableInteractionSource? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -99,10 +103,14 @@ fun BasicPasswordTextField(
             IconButton(
                 onClick = { onShowPasswordChanged(!showPassword()) }
             ) {
-                if (showPassword())
-                    Icon(Icons.Filled.VisibilityOff, stringResource(R.string.hide_password))
-                else
-                    Icon(Icons.Filled.Visibility, stringResource(R.string.show_password))
+                AnimatedContent(
+                    targetState = showPassword()
+                ) { show ->
+                    if (show)
+                        Icon(Icons.Filled.VisibilityOff, stringResource(R.string.hide_password))
+                    else
+                        Icon(Icons.Filled.Visibility, stringResource(R.string.show_password))
+                }
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -117,5 +125,6 @@ fun BasicPasswordTextField(
             }
         },
         isError = passwordTextFieldErrorState(),
+        interactionSource = interactionSource,
     )
 }
