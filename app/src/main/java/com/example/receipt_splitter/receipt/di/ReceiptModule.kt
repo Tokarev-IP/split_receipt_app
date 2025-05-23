@@ -1,13 +1,15 @@
 package com.example.receipt_splitter.receipt.di
 
-import com.example.receipt_splitter.receipt.data.ImageConverter
-import com.example.receipt_splitter.receipt.data.ImageConverterInterface
-import com.example.receipt_splitter.receipt.data.ImageLabelingKit
-import com.example.receipt_splitter.receipt.data.ImageLabelingKitInterface
-import com.example.receipt_splitter.receipt.data.ReceiptConverter
-import com.example.receipt_splitter.receipt.data.ReceiptConverterInterface
-import com.example.receipt_splitter.receipt.data.ReceiptService
-import com.example.receipt_splitter.receipt.data.ReceiptServiceInterface
+import com.example.receipt_splitter.receipt.data.services.ImageConverter
+import com.example.receipt_splitter.receipt.data.services.ImageConverterInterface
+import com.example.receipt_splitter.receipt.data.services.ImageLabelingKit
+import com.example.receipt_splitter.receipt.data.services.ImageLabelingKitInterface
+import com.example.receipt_splitter.receipt.data.services.ReceiptService
+import com.example.receipt_splitter.receipt.data.services.ReceiptServiceInterface
+import com.example.receipt_splitter.receipt.data.store.FireStoreRepository
+import com.example.receipt_splitter.receipt.data.store.FireStoreRepositoryInterface
+import com.example.receipt_splitter.receipt.data.store.FirebaseUserId
+import com.example.receipt_splitter.receipt.data.store.FirebaseUserIdInterface
 import com.example.receipt_splitter.receipt.domain.OrderDataSplitter
 import com.example.receipt_splitter.receipt.domain.OrderDataSplitterInterface
 import com.example.receipt_splitter.receipt.domain.OrderReportCreator
@@ -42,7 +44,8 @@ val receiptModule = module {
     factoryOf(::ImageConverter) { bind<ImageConverterInterface>() }
     factoryOf(::ImageLabelingKit) { bind<ImageLabelingKitInterface>() }
     factoryOf(::ReceiptService) { bind<ReceiptServiceInterface>() }
-    factoryOf(::ReceiptConverter) { bind<ReceiptConverterInterface>() }
+    factoryOf(::FireStoreRepository) { bind<FireStoreRepositoryInterface>() }
+    factoryOf(::FirebaseUserId) { bind<FirebaseUserIdInterface>() }
 
     // Use Cases
     factoryOf(::SplitReceiptUseCase) { bind<SplitReceiptUseCaseInterface>() }
