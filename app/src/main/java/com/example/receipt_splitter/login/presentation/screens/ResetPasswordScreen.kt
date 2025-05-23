@@ -43,14 +43,12 @@ fun ResetPasswordScreen(
 
     LaunchedEffect(key1 = Unit) {
         loginViewModel.getUiMessageIntentFlow().collect { uiMessageIntent ->
-            uiMessageIntent?.let { intent ->
-                handleUiMessages(
-                    intent,
-                    onResetPasswordTextFieldErrorState = { state ->
-                        resetPasswordTextFieldErrorState = state
-                    }
-                )
-            }
+            handleUiMessages(
+                uiMessageIntent = uiMessageIntent,
+                onResetPasswordTextFieldErrorState = { state ->
+                    resetPasswordTextFieldErrorState = state
+                }
+            )
         }
     }
 
