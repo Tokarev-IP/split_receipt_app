@@ -2,7 +2,6 @@ package com.example.receipt_splitter.receipt.domain.usecases
 
 import android.graphics.Bitmap
 import android.net.Uri
-import com.example.receipt_splitter.main.basic.getLanguageString
 import com.example.receipt_splitter.receipt.data.room.ReceiptDbRepositoryInterface
 import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt
 import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
