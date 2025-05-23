@@ -4,13 +4,11 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.example.receipt_splitter.main.basic.BasicEvent
 import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicNavigationEvent
 import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
 import com.example.receipt_splitter.main.basic.BasicUiState
 import com.example.receipt_splitter.main.basic.BasicViewModel
 import com.example.receipt_splitter.receipt.domain.usecases.CreateReceiptUseCaseInterface
 import com.example.receipt_splitter.receipt.domain.usecases.ReceiptCreationResult
-import com.example.receipt_splitter.receipt.presentation.ReceiptUiMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -36,7 +34,10 @@ class CreateReceiptViewModel(
         when (newEvent) {
             is CreateReceiptEvent.CreateReceipt -> {
                 receiptImagesState.value?.let {
-                    createReceipt(listOfImages = it)
+                    createReceipt(
+                        listOfImages = it,
+                        translateTo = newEvent.translateTo,
+                    )
                 } ?: setUiMessageIntent(CreateReceiptUiMessageIntent.SomeImagesAreInappropriate)
             }
 
@@ -46,11 +47,17 @@ class CreateReceiptViewModel(
         }
     }
 
-    private fun createReceipt(listOfImages: List<Uri>) {
+    private fun createReceipt(
+        listOfImages: List<Uri>,
+        translateTo: String?,
+    ) {
         viewModelScope.launch {
             setUiState(CreateReceiptUiState.Loading)
             val response =
-                createReceiptUseCase.createReceiptFromUriImage(listOfImages = listOfImages)
+                createReceiptUseCase.createReceiptFromUriImage(
+                    listOfImages = listOfImages,
+                    translateTo = translateTo,
+                )
             when (response) {
                 is ReceiptCreationResult.Success -> {
                     setIntent(CreateReceiptIntent.GoToEditReceiptScreen(response.receiptId))
@@ -58,13 +65,24 @@ class CreateReceiptViewModel(
 
                 is ReceiptCreationResult.ImageIsInappropriate -> {
                     setUiMessageIntent(CreateReceiptUiMessageIntent.SomeImagesAreInappropriate)
+                    setUiState(CreateReceiptUiState.Show)
                 }
 
                 is ReceiptCreationResult.Error -> {
                     setUiMessageIntent(handleReceiptCreationError(response.msg))
+                    setUiState(CreateReceiptUiState.Show)
+                }
+
+                is ReceiptCreationResult.TooManyAttempts -> {
+                    setUiMessageIntent(CreateReceiptUiMessageIntent.TooManyAttempts)
+                    setUiState(CreateReceiptUiState.Show)
+                }
+
+                is ReceiptCreationResult.LoginRequired -> {
+                    setUiMessageIntent(CreateReceiptUiMessageIntent.LoginRequired)
+                    setUiState(CreateReceiptUiState.Show)
                 }
             }
-            setUiState(CreateReceiptUiState.Show)
         }
     }
 
@@ -73,20 +91,22 @@ class CreateReceiptViewModel(
             val filteredListOfImages =
                 createReceiptUseCase.filterBySize(listOfImages = listOfImages)
             val result: Boolean =
-                createReceiptUseCase.areAllUriImagesAppropriate(listOfImages = listOfImages)
-            if (result == false)
+                createReceiptUseCase.haveImagesGotNotAppropriateImages(listOfImages = listOfImages)
+            if (result == true) {
                 setUiMessageIntent(CreateReceiptUiMessageIntent.SomeImagesAreInappropriate)
+            }
             setReceiptImages(filteredListOfImages)
         }
     }
 }
 
 private fun handleReceiptCreationError(errorMsg: String): CreateReceiptUiMessageIntent {
-    when (errorMsg) {
-        ReceiptUiMessage.INTERNAL_ERROR.msg -> CreateReceiptUiMessageIntent.InternalError
-        ReceiptUiMessage.NETWORK_ERROR.msg -> CreateReceiptUiMessageIntent.InternetConnectionError
+    return when (errorMsg) {
+        CreateReceiptUiMessage.INTERNAL_ERROR.message -> CreateReceiptUiMessageIntent.InternalError
+        CreateReceiptUiMessage.NETWORK_ERROR.message -> CreateReceiptUiMessageIntent.InternetConnectionError
+        CreateReceiptUiMessage.IMAGE_IS_INAPPROPRIATE.message -> CreateReceiptUiMessageIntent.SomeImagesAreInappropriate
+        else -> CreateReceiptUiMessageIntent.InternalError
     }
-    return CreateReceiptUiMessageIntent.InternalError
 }
 
 interface CreateReceiptUiState : BasicUiState {
@@ -95,7 +115,7 @@ interface CreateReceiptUiState : BasicUiState {
 }
 
 sealed interface CreateReceiptEvent : BasicEvent {
-    object CreateReceipt : CreateReceiptEvent
+    class CreateReceipt(val translateTo: String?) : CreateReceiptEvent
     class PutImages(val listOfImages: List<Uri>) : CreateReceiptEvent
 }
 
@@ -103,8 +123,18 @@ interface CreateReceiptUiMessageIntent : BasicUiMessageIntent {
     object SomeImagesAreInappropriate : CreateReceiptUiMessageIntent
     object InternalError : CreateReceiptUiMessageIntent
     object InternetConnectionError : CreateReceiptUiMessageIntent
+    object TooManyAttempts : CreateReceiptUiMessageIntent
+    object LoginRequired : CreateReceiptUiMessageIntent
 }
 
 interface CreateReceiptIntent : BasicIntent {
     class GoToEditReceiptScreen(val receiptId: Long) : CreateReceiptIntent
+}
+
+enum class CreateReceiptUiMessage(val message: String) {
+    INTERNAL_ERROR("An internal error has occurred."),
+    NETWORK_ERROR("A network error (such as timeout, interrupted connection or unreachable host) has occurred."),
+    IMAGE_IS_INAPPROPRIATE("Image is inappropriate. Choose another one."),
+    TOO_MANY_ATTEMPTS("Too many attempts. Try again later."),
+    LOGIN_REQUIRED("Login required."),
 }
