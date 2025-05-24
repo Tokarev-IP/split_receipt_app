@@ -68,7 +68,7 @@ fun SplitReceiptScreen(
     ) {}
 
     val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+        TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
 
     val isOrderListAtBottom = remember {
         derivedStateOf {
