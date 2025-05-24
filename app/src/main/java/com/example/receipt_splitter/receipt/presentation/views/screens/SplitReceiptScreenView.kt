@@ -301,7 +301,8 @@ private fun ReportBottomSheetView(
         } ?: run {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                fontSize = 24.sp,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal,
                 text = stringResource(R.string.no_order_report),
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -374,11 +375,12 @@ private fun SplitReceiptScreenViewPreview() {
                 OrderData(
                     id = 3,
                     name = "order3 fdgdf dfgfdg dfgdfg erter xcxv sdfdsf sdfsdf asd jyhn vcvf erret fgdfg",
+                    translatedName = "перевод 1223 паошпов вошвоп вопшавоп ушегуре впргвр",
                     quantity = 3,
                     price = 30.0f,
                     receiptId = 1,
                 ),
             ),
-        orderReportText = "report 213123ksfdfjksdjg",
+        orderReportText = null,
     )
 }
