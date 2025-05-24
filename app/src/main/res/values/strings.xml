@@ -113,7 +113,8 @@
     <string name="do_you_want_to_delete_this_receipt">Do you really want to delete this receipt?</string>
     <string name="edit_receipt_info_button">Edit the receipt info button</string>
     <string name="login_required">Please, log in to continue</string>
-    <string name="too_many_attempts">Too many attempts. Try again later</string>
+    <string name="too_many_attempts">Too many attempts. Try again later in minutes:</string>
+    <string name="remaining_attempts">Remaining attempts:</string>
     <string name="add_new_order_dialog_title">Add new order</string>
     <string name="edit_order_dialog_title">Edit order</string>
     <string name="edit_receipt_info_title">Edit receipt info</string>
@@ -125,6 +126,7 @@
     <string name="minus_button">Minus button</string>
     <string name="no_additional_sum">Empty. Add the first one</string>
     <string name="expand_receipt_info_button">Expand receipt info button</string>
+    <string name="there_is_limited_attempts">Mind that the attempts are limited</string>
 
     //Languages
     <string name="do_not_translate">Do not translate</string>
