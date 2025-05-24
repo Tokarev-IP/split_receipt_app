@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.example.receipt_splitter.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,10 +87,16 @@ private fun SettingsView(
             Text(text = "Sign Out")
         }
 
+        AsyncImage(
+            model = R.mipmap.ic_receipt_splitter_logo,
+            contentDescription = "Receipt Splitter Logo",
+            modifier = modifier.align(Alignment.TopCenter)
+        )
+
         Text(
             modifier = modifier.align(Alignment.BottomCenter),
             fontSize = 12.sp,
-            text = "version 1.0.0 made by Ilia T.",
+            text = "version 1.0.0",
         )
     }
 }
