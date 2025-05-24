@@ -105,11 +105,9 @@ private fun handleReceiptIntent(
             navHostController.navigate(
                 ReceiptNavHostDestinations.SplitReceiptScreenNav(receiptId = intent.receiptId)
             ) {
-                popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
+                popUpTo<ReceiptNavHostDestinations.EditReceiptScreenNav>{
                     inclusive = true
-                    saveState
                 }
-                launchSingleTop = true
             }
         }
 
@@ -121,10 +119,19 @@ private fun handleReceiptIntent(
             navHostController.navigate(
                 ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
             ) {
+                popUpTo<ReceiptNavHostDestinations.SplitReceiptScreenNav>{
+                    inclusive = true
+                }
+            }
+        }
+
+        is ReceiptIntent.NewReceiptIsCreated -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
+            ) {
                 popUpTo<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
                     inclusive = true
                 }
-                launchSingleTop = true
             }
         }
 

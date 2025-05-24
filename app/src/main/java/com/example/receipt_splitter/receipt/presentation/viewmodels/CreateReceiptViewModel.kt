@@ -60,7 +60,7 @@ class CreateReceiptViewModel(
                 )
             when (response) {
                 is ReceiptCreationResult.Success -> {
-                    setIntent(CreateReceiptIntent.GoToEditReceiptScreen(response.receiptId))
+                    setIntent(CreateReceiptIntent.NewReceiptIsCreated(response.receiptId))
                 }
 
                 is ReceiptCreationResult.ImageIsInappropriate -> {
@@ -128,7 +128,7 @@ interface CreateReceiptUiMessageIntent : BasicUiMessageIntent {
 }
 
 interface CreateReceiptIntent : BasicIntent {
-    class GoToEditReceiptScreen(val receiptId: Long) : CreateReceiptIntent
+    class NewReceiptIsCreated(val receiptId: Long) : CreateReceiptIntent
 }
 
 enum class CreateReceiptUiMessage(val message: String) {

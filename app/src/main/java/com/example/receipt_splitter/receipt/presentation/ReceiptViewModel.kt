@@ -38,6 +38,10 @@ class ReceiptViewModel() : BasicViewModel<
             is ReceiptEvent.OpenSettings -> {
                 setIntent(ReceiptIntent.GoToSettings)
             }
+
+            is ReceiptEvent.NewReceiptIsCreated -> {
+                setIntent(ReceiptIntent.NewReceiptIsCreated(newEvent.receiptId))
+            }
         }
     }
 }
@@ -51,6 +55,7 @@ sealed interface ReceiptEvent : BasicEvent {
     class OpenSplitReceiptScreen(val receiptId: Long) : ReceiptEvent
     object OpenCreateReceiptScreen : ReceiptEvent
     class OpenEditReceiptsScreen(val receiptId: Long) : ReceiptEvent
+    class NewReceiptIsCreated(val receiptId: Long) : ReceiptEvent
     object OpenAllReceiptsScreen : ReceiptEvent
     object GoBack : ReceiptEvent
     object OpenSettings : ReceiptEvent
@@ -60,6 +65,7 @@ interface ReceiptIntent : BasicIntent {
     class GoToSplitReceiptScreen(val receiptId: Long) : ReceiptIntent
     object GoToCreateReceiptScreen : ReceiptIntent
     class GoToEditReceiptsScreen(val receiptId: Long) : ReceiptIntent
+    class NewReceiptIsCreated(val receiptId: Long) : ReceiptIntent
     object GoToAllReceiptsScreen : ReceiptIntent
     object GoBackNavigation : ReceiptIntent
     object GoToSettings : ReceiptIntent

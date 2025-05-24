@@ -74,12 +74,8 @@ fun CreateReceiptScreen(
     LaunchedEffect(key1 = Unit) {
         createReceiptViewModel.getIntentFlow().collectLatest { createIntent ->
             when (createIntent) {
-                is CreateReceiptIntent.GoToEditReceiptScreen -> {
-                    receiptViewModel.setEvent(
-                        ReceiptEvent.OpenEditReceiptsScreen(
-                            createIntent.receiptId
-                        )
-                    )
+                is CreateReceiptIntent.NewReceiptIsCreated -> {
+                    receiptViewModel.setEvent(ReceiptEvent.NewReceiptIsCreated(createIntent.receiptId))
                 }
             }
         }
