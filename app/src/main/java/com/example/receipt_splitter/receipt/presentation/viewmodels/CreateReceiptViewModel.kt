@@ -60,6 +60,7 @@ class CreateReceiptViewModel(
                 )
             when (response) {
                 is ReceiptCreationResult.Success -> {
+                    setUiMessageIntent(CreateReceiptUiMessageIntent.AttemptsLeft(response.remainingAttempts))
                     setIntent(CreateReceiptIntent.NewReceiptIsCreated(response.receiptId))
                 }
 
@@ -74,7 +75,7 @@ class CreateReceiptViewModel(
                 }
 
                 is ReceiptCreationResult.TooManyAttempts -> {
-                    setUiMessageIntent(CreateReceiptUiMessageIntent.TooManyAttempts)
+                    setUiMessageIntent(CreateReceiptUiMessageIntent.TooManyAttempts(response.remainingTime))
                     setUiState(CreateReceiptUiState.Show)
                 }
 
@@ -123,8 +124,9 @@ interface CreateReceiptUiMessageIntent : BasicUiMessageIntent {
     object SomeImagesAreInappropriate : CreateReceiptUiMessageIntent
     object InternalError : CreateReceiptUiMessageIntent
     object InternetConnectionError : CreateReceiptUiMessageIntent
-    object TooManyAttempts : CreateReceiptUiMessageIntent
+    class TooManyAttempts(val resetTimeMin: Int) : CreateReceiptUiMessageIntent
     object LoginRequired : CreateReceiptUiMessageIntent
+    class AttemptsLeft(val attemptsLeft: Int) : CreateReceiptUiMessageIntent
 }
 
 interface CreateReceiptIntent : BasicIntent {
@@ -137,4 +139,5 @@ enum class CreateReceiptUiMessage(val message: String) {
     IMAGE_IS_INAPPROPRIATE("Image is inappropriate. Choose another one."),
     TOO_MANY_ATTEMPTS("Too many attempts. Try again later."),
     LOGIN_REQUIRED("Login required."),
+    ATTEMPTS_LEFT("You have attempts left."),
 }

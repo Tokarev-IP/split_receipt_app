@@ -63,6 +63,8 @@ fun CreateReceiptScreen(
         CreateReceiptUiMessage.IMAGE_IS_INAPPROPRIATE.message to stringResource(R.string.image_is_inappropriate),
         CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message to stringResource(R.string.too_many_attempts),
         CreateReceiptUiMessage.LOGIN_REQUIRED.message to stringResource(R.string.login_required),
+        CreateReceiptUiMessage.ATTEMPTS_LEFT.message to stringResource(R.string.remaining_attempts),
+
     )
     val listOfImages by createReceiptViewModel.getReceiptImages().collectAsStateWithLifecycle()
     val uiState by createReceiptViewModel.getUiStateFlow().collectAsStateWithLifecycle()
@@ -236,9 +238,8 @@ private fun handleCreateReceiptUiMessages(
         is CreateReceiptUiMessageIntent.TooManyAttempts -> {
             Toast.makeText(
                 currentActivity,
-                messageMap[CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message]
-                    ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
-                Toast.LENGTH_SHORT
+                ("${messageMap[CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message]} ${messageIntent.resetTimeMin}"),
+                Toast.LENGTH_LONG
             ).show()
         }
 
@@ -248,6 +249,14 @@ private fun handleCreateReceiptUiMessages(
                 messageMap[CreateReceiptUiMessage.LOGIN_REQUIRED.message]
                     ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
                 Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is CreateReceiptUiMessageIntent.AttemptsLeft -> {
+            Toast.makeText(
+                currentActivity,
+                ("${messageMap[CreateReceiptUiMessage.ATTEMPTS_LEFT.message]} ${messageIntent.attemptsLeft}"),
+                Toast.LENGTH_LONG
             ).show()
         }
     }

@@ -1,6 +1,7 @@
 package com.example.receipt_splitter.receipt.presentation.views.screens
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
@@ -30,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.example.receipt_splitter.R
@@ -91,41 +95,81 @@ private fun CreateReceiptView(
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            if (listOfUri.isNotEmpty()) {
-                if (listOfUri.size == ReceiptUIConstants.ONE_ELEMENT) {
-                    PhotoBoxView(
-                        uri = listOfUri.first(),
-                        onClearPhotoClicked = { onClearPhotoClicked() }
-                    )
-                } else
-                    ImageCarouselBox(
+            AnimatedContent(
+                targetState = listOfUri.isNotEmpty()
+            ) { isNotEmpty ->
+                if (isNotEmpty) {
+                    ImagesAreSelectedView(
                         listOfUri = listOfUri,
                         onClearPhotoClicked = { onClearPhotoClicked() },
+                        onGetReceiptFromImageClicked = { onGetReceiptFromImageClicked() },
+                        onSwitchCheckedChange = { value ->
+                            onSwitchCheckedChange(value)
+                        },
+                        languageSwitchState = languageSwitchState,
+                        translatedLanguage = translatedLanguage,
+                        onShowLanguageDialog = { onShowLanguageDialog() },
                     )
-
-                Spacer(modifier = modifier.height(36.dp))
-
-                ChooseTranslatedLanguageView(
-                    translatedLanguage = translatedLanguage,
-                    switchState = languageSwitchState,
-                    onSwitchCheckedChange = { value ->
-                        onSwitchCheckedChange(value)
-                    },
-                    onShowLanguageDialog = { onShowLanguageDialog() },
-                )
-
-                Spacer(modifier = modifier.height(36.dp))
-                OutlinedButton(
-                    onClick = { onGetReceiptFromImageClicked() }
-                ) {
-                    Text(text = stringResource(id = R.string.split_the_receipt))
+                } else {
+                    ChoosePhotoBoxView(
+                        onChoosePhotoClicked = { onChoosePhotoClicked() },
+                        onMakePhotoClicked = { onMakePhotoClicked() },
+                    )
                 }
-            } else {
-                ChoosePhotoBoxView(
-                    onChoosePhotoClicked = { onChoosePhotoClicked() },
-                    onMakePhotoClicked = { onMakePhotoClicked() },
-                )
             }
+        }
+    }
+}
+
+@Composable
+private fun ImagesAreSelectedView(
+    modifier: Modifier = Modifier,
+    listOfUri: List<Uri>,
+    onClearPhotoClicked: () -> Unit,
+    onGetReceiptFromImageClicked: () -> Unit,
+    onSwitchCheckedChange: (Boolean) -> Unit,
+    languageSwitchState: Boolean,
+    translatedLanguage: String?,
+    onShowLanguageDialog: () -> Unit,
+){
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (listOfUri.size == ReceiptUIConstants.ONE_ELEMENT) {
+            PhotoBoxView(
+                uri = listOfUri.first(),
+                onClearPhotoClicked = { onClearPhotoClicked() }
+            )
+        } else
+            ImageCarouselBox(
+                listOfUri = listOfUri,
+                onClearPhotoClicked = { onClearPhotoClicked() },
+            )
+
+        Spacer(modifier = Modifier.height(36.dp))
+
+        ChooseTranslatedLanguageView(
+            translatedLanguage = translatedLanguage,
+            switchState = languageSwitchState,
+            onSwitchCheckedChange = { value ->
+                onSwitchCheckedChange(value)
+            },
+            onShowLanguageDialog = { onShowLanguageDialog() },
+        )
+        Spacer(modifier = Modifier.height(36.dp))
+        Text(
+            fontWeight = FontWeight.Light,
+            fontSize = 12.sp,
+            text = stringResource(id = R.string.there_is_limited_attempts)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = { onGetReceiptFromImageClicked() }
+        ) {
+            Text(text = stringResource(id = R.string.split_the_receipt))
         }
     }
 }
@@ -240,9 +284,9 @@ private fun ChooseTranslatedLanguageView(
     onSwitchCheckedChange: (Boolean) -> Unit,
     onShowLanguageDialog: () -> Unit,
 ) {
-    ElevatedCard(
+    OutlinedCard(
         modifier = modifier
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 36.dp),
         onClick = {
             if (switchState)
                 onShowLanguageDialog()
@@ -252,7 +296,7 @@ private fun ChooseTranslatedLanguageView(
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {

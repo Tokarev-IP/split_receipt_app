@@ -2,6 +2,7 @@ package com.example.receipt_splitter.receipt.domain.usecases
 
 import android.graphics.Bitmap
 import android.net.Uri
+import com.example.receipt_splitter.main.basic.convertMillisToMinutes
 import com.example.receipt_splitter.receipt.data.room.ReceiptDbRepositoryInterface
 import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt
 import com.example.receipt_splitter.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
@@ -31,7 +32,7 @@ class CreateReceiptUseCase(
 ) : CreateReceiptUseCaseInterface {
 
     private companion object {
-        private const val DELAY = 3000L
+        private const val DELAY_TIME = 3000L
     }
 
     override suspend fun createReceiptFromUriImage(
@@ -67,7 +68,7 @@ class CreateReceiptUseCase(
                 imageConverter.convertImageFromUriToBitmap(image)
             }
             if (hasNotAppropriateLabel(listOfBitmaps)) {
-                delay(DELAY)
+                delay(DELAY_TIME)
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
             }
             val userId = getUserId() ?: return@withContext ReceiptCreationResult.LoginRequired
@@ -77,8 +78,10 @@ class CreateReceiptUseCase(
                 deltaTimeBetweenAttempts = receiptVertexConstants.deltaTimeBetweenAttempts,
             )
             if (userAttempts > receiptVertexConstants.maximumAttemptsForUser) {
-                delay(DELAY)
-                return@withContext ReceiptCreationResult.TooManyAttempts
+                delay(DELAY_TIME)
+                return@withContext ReceiptCreationResult.TooManyAttempts(
+                    remainingTime = receiptVertexConstants.deltaTimeBetweenAttempts.convertMillisToMinutes()
+                )
             }
             val receiptJson = receiptService.getReceiptJsonFromImages(
                 listOfBitmaps = listOfBitmaps,
@@ -89,11 +92,15 @@ class CreateReceiptUseCase(
             val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJson)
             if (receiptDataJson.orders.isNotEmpty()) {
                 val receiptId: Long = receiptDbRepository.insertReceiptDataJson(receiptDataJson)
-                return@withContext ReceiptCreationResult.Success(receiptId)
+                return@withContext ReceiptCreationResult.Success(
+                    receiptId = receiptId,
+                    remainingAttempts = receiptVertexConstants.maximumAttemptsForUser - userAttempts,
+                )
             } else {
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
             }
         }.getOrElse { e: Throwable ->
+            delay(DELAY_TIME)
             return@withContext ReceiptCreationResult.Error(
                 e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
             )
@@ -110,37 +117,35 @@ class CreateReceiptUseCase(
             firestoreRepository.getUserAttemptsData(documentId = userId)
         userAttemptsData?.let { userAttempts ->
             val currentTime = System.currentTimeMillis()
-            val userLastAttemptTime = userAttempts.lastAttemptTime.toLongOrNull()
-            userLastAttemptTime?.let { lastAttemptTime ->
-                if (currentTime - lastAttemptTime < deltaTimeBetweenAttempts) {
-                    if (userAttempts.attemptsCount >= maximumAttemptsForUser)
-                        return userAttempts.attemptsCount + oneAttempt
-                    else
-                        firestoreRepository.putUserAttemptsData(
-                            documentId = userId,
-                            data = UserAttemptsData(
-                                lastAttemptTime = currentTime.toString(),
-                                attemptsCount = userAttempts.attemptsCount + oneAttempt,
-                            )
-                        )
-                    return userAttempts.attemptsCount + oneAttempt
-                } else {
+            val userLastAttemptTime = userAttempts.lastAttemptTime
+            if (currentTime - userLastAttemptTime < deltaTimeBetweenAttempts) {
+                if (userAttempts.attempts >= maximumAttemptsForUser)
+                    return userAttempts.attempts + oneAttempt
+                else
                     firestoreRepository.putUserAttemptsData(
                         documentId = userId,
                         data = UserAttemptsData(
-                            lastAttemptTime = currentTime.toString(),
-                            attemptsCount = oneAttempt,
+                            lastAttemptTime = currentTime,
+                            attempts = userAttempts.attempts + oneAttempt,
                         )
                     )
-                    return oneAttempt
-                }
-            } ?: throw IllegalStateException()
+                return userAttempts.attempts + oneAttempt
+            } else {
+                firestoreRepository.putUserAttemptsData(
+                    documentId = userId,
+                    data = UserAttemptsData(
+                        lastAttemptTime = currentTime,
+                        attempts = oneAttempt,
+                    )
+                )
+                return oneAttempt
+            }
         } ?: run {
             firestoreRepository.putUserAttemptsData(
                 documentId = userId,
                 data = UserAttemptsData(
-                    lastAttemptTime = System.currentTimeMillis().toString(),
-                    attemptsCount = oneAttempt,
+                    lastAttemptTime = System.currentTimeMillis(),
+                    attempts = oneAttempt,
                 )
             )
             return oneAttempt
@@ -196,9 +201,9 @@ interface CreateReceiptUseCaseInterface {
 }
 
 sealed interface ReceiptCreationResult {
-    class Success(val receiptId: Long) : ReceiptCreationResult
+    class Success(val receiptId: Long, val remainingAttempts: Int) : ReceiptCreationResult
     object ImageIsInappropriate : ReceiptCreationResult
     class Error(val msg: String) : ReceiptCreationResult
-    object TooManyAttempts : ReceiptCreationResult
+    class TooManyAttempts(val remainingTime: Int) : ReceiptCreationResult
     object LoginRequired : ReceiptCreationResult
 }
