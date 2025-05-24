@@ -16,10 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -29,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,8 +55,8 @@ internal fun EditReceiptScreenView(
     orderDataList: List<OrderData>,
     onEditOrderClicked: (id: Long) -> Unit,
     onDeleteOrderClicked: (id: Long) -> Unit,
-    orderListState: LazyListState,
     onEditReceiptClicked: () -> Unit,
+    onAddNewOrderClicked: () -> Unit,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -69,8 +69,8 @@ internal fun EditReceiptScreenView(
                 onDeleteOrderClicked = { id ->
                     onDeleteOrderClicked(id)
                 },
-                orderListState = orderListState,
                 onEditReceiptClicked = { onEditReceiptClicked() },
+                onAddNewOrderClicked = { onAddNewOrderClicked() },
             )
         } ?: ShimmedEditReceiptsScreenView()
     }
@@ -84,14 +84,13 @@ private fun EditReceiptView(
     orderDataList: List<OrderData> = emptyList<OrderData>(),
     onEditOrderClicked: (id: Long) -> Unit = {},
     onDeleteOrderClicked: (id: Long) -> Unit = {},
-    orderListState: LazyListState,
     onEditReceiptClicked: () -> Unit = {},
+    onAddNewOrderClicked: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp),
-        state = orderListState,
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -113,7 +112,11 @@ private fun EditReceiptView(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            AddOrderView(
+                onAddNewOrderClicked = { onAddNewOrderClicked() }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -136,7 +139,9 @@ private fun EditReceiptInfo(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = modifier.weight(8f).animateContentSize(),
+                modifier = modifier
+                    .weight(8f)
+                    .animateContentSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 OutlinedTextField(
@@ -277,6 +282,23 @@ private fun OrderCardView(
 }
 
 @Composable
+private fun AddOrderView(
+    modifier: Modifier = Modifier,
+    onAddNewOrderClicked: () -> Unit,
+) {
+    Box(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        OutlinedButton(
+            onClick = { onAddNewOrderClicked() },
+            modifier = modifier.align(Alignment.Center)
+        ) {
+            Icon(Icons.Outlined.Add, stringResource(R.string.add_new_order_button))
+        }
+    }
+}
+
+@Composable
 private fun ShimmedEditReceiptsScreenView(
     modifier: Modifier = Modifier,
 ) {
@@ -349,7 +371,6 @@ private fun EditReceiptViewPreview() {
                     receiptId = 1,
                 ),
             ),
-        orderListState = rememberLazyListState(),
     )
 }
 

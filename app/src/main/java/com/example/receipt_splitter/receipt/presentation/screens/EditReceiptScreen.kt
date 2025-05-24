@@ -1,17 +1,10 @@
 package com.example.receipt_splitter.receipt.presentation.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -21,18 +14,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.receipt_splitter.R
 import com.example.receipt_splitter.receipt.presentation.OrderData
@@ -54,7 +44,6 @@ fun EditReceiptScreen(
     editReceiptViewModel: EditReceiptViewModel,
     receiptViewModel: ReceiptViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
-    orderListState: LazyListState = rememberLazyListState(),
 ) {
     var showDeleteOrderDialog by rememberSaveable { mutableStateOf(false) }
     var orderIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -68,15 +57,7 @@ fun EditReceiptScreen(
     var orderId by rememberSaveable { mutableLongStateOf(0L) }
 
     val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
-
-    val isOrderListAtTheBottom = remember {
-        derivedStateOf {
-            val lastVisibleItem = orderListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null &&
-                    lastVisibleItem.index >= orderListState.layoutInfo.totalItemsCount - AMOUNT_OF_ELEMENTS
-        }
-    }
+        TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -121,23 +102,6 @@ fun EditReceiptScreen(
                 }
             )
         },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = isOrderListAtTheBottom.value,
-                enter = scaleIn(),
-                exit = scaleOut(),
-            ) {
-                FloatingActionButton(
-                    modifier = Modifier.padding(12.dp),
-                    onClick = { showAddNewOrderDialog = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.add_new_order_button),
-                    )
-                }
-            }
-        }
     ) { innerPadding ->
         EditReceiptScreenView(
             modifier = modifier.padding(innerPadding),
@@ -151,9 +115,11 @@ fun EditReceiptScreen(
                 orderIdToDelete = id
                 showDeleteOrderDialog = true
             },
-            orderListState = orderListState,
             onEditReceiptClicked = {
                 showEditReceiptDialog = true
+            },
+            onAddNewOrderClicked = {
+                showAddNewOrderDialog = true
             },
         )
 
@@ -217,5 +183,3 @@ fun EditReceiptScreen(
             )
     }
 }
-
-private const val AMOUNT_OF_ELEMENTS = 1
