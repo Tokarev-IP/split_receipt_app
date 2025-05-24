@@ -33,7 +33,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                         )
                     }
                 }
-                orderReport.append(" = + ${finalPrice.roundToTwoDecimalPlaces()}\n")
+                orderReport.append(" = ${finalPrice.roundToTwoDecimalPlaces()}\n")
 
                 if (receiptData.discount != null
                     || receiptData.tip != null
