@@ -72,3 +72,8 @@ fun String.getLanguageString(
     } else
         this
 }
+
+fun Long.convertMillisToMinutes(): Int {
+    val min = this / 1000 / 60
+    return min.toInt()
+}
