@@ -66,9 +66,9 @@ data class OrderData(
 @Serializable
 class UserAttemptsData(
     @PropertyName("lastAttemptTime")
-    val lastAttemptTime: String = "0",
-    @PropertyName("attemptsCount")
-    val attemptsCount: Int = 1,
+    val lastAttemptTime: Long = 0L,
+    @PropertyName("attempts")
+    val attempts: Int = 1,
 )
 
 @Serializable
