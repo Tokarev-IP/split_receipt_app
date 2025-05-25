@@ -1,7 +1,6 @@
 package com.example.receipt_splitter.receipt.presentation.views.screens
 
 import android.net.Uri
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -94,27 +93,23 @@ private fun CreateReceiptView(
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            AnimatedContent(
-                targetState = listOfUri.isNotEmpty()
-            ) { isNotEmpty ->
-                if (isNotEmpty) {
-                    ImagesAreSelectedView(
-                        listOfUri = listOfUri,
-                        onClearPhotoClicked = { onClearPhotoClicked() },
-                        onGetReceiptFromImageClicked = { onGetReceiptFromImageClicked() },
-                        onSwitchCheckedChange = { value ->
-                            onSwitchCheckedChange(value)
-                        },
-                        languageSwitchState = languageSwitchState,
-                        translatedLanguage = translatedLanguage,
-                        onShowLanguageDialog = { onShowLanguageDialog() },
-                    )
-                } else {
-                    ChoosePhotoBoxView(
-                        onChoosePhotoClicked = { onChoosePhotoClicked() },
-                        onMakePhotoClicked = { onMakePhotoClicked() },
-                    )
-                }
+            if (listOfUri.isEmpty()) {
+                ChoosePhotoBoxView(
+                    onChoosePhotoClicked = { onChoosePhotoClicked() },
+                    onMakePhotoClicked = { onMakePhotoClicked() },
+                )
+            } else {
+                ImagesAreSelectedView(
+                    listOfUri = listOfUri,
+                    onClearPhotoClicked = { onClearPhotoClicked() },
+                    onGetReceiptFromImageClicked = { onGetReceiptFromImageClicked() },
+                    onSwitchCheckedChange = { value ->
+                        onSwitchCheckedChange(value)
+                    },
+                    languageSwitchState = languageSwitchState,
+                    translatedLanguage = translatedLanguage,
+                    onShowLanguageDialog = { onShowLanguageDialog() },
+                )
             }
         }
     }
@@ -130,7 +125,7 @@ private fun ImagesAreSelectedView(
     languageSwitchState: Boolean,
     translatedLanguage: String?,
     onShowLanguageDialog: () -> Unit,
-){
+) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -138,7 +133,7 @@ private fun ImagesAreSelectedView(
     ) {
         if (listOfUri.size == ReceiptUIConstants.ONE_ELEMENT) {
             PhotoBoxView(
-                uri = listOfUri.first(),
+                uri = listOfUri.firstOrNull(),
                 onClearPhotoClicked = { onClearPhotoClicked() }
             )
         } else
@@ -213,7 +208,7 @@ private fun ImageCarouselBox(
 @Composable
 private fun PhotoBoxView(
     modifier: Modifier = Modifier,
-    uri: Uri,
+    uri: Uri?,
     onClearPhotoClicked: () -> Unit,
 ) {
     Box(
