@@ -62,7 +62,7 @@ fun CreateReceiptScreen(
         CreateReceiptUiMessage.INTERNAL_ERROR.message to stringResource(R.string.internal_error),
         CreateReceiptUiMessage.IMAGE_IS_INAPPROPRIATE.message to stringResource(R.string.image_is_inappropriate),
         CreateReceiptUiMessage.TOO_MANY_ATTEMPTS.message to stringResource(R.string.too_many_attempts),
-        CreateReceiptUiMessage.LOGIN_REQUIRED.message to stringResource(R.string.login_required),
+        CreateReceiptUiMessage.LOGIN_REQUIRED.message to stringResource(R.string.sign_in_required),
         CreateReceiptUiMessage.ATTEMPTS_LEFT.message to stringResource(R.string.remaining_attempts),
 
     )
@@ -78,6 +78,10 @@ fun CreateReceiptScreen(
             when (createIntent) {
                 is CreateReceiptIntent.NewReceiptIsCreated -> {
                     receiptViewModel.setEvent(ReceiptEvent.NewReceiptIsCreated(createIntent.receiptId))
+                }
+
+                is CreateReceiptIntent.UserIsEmpty -> {
+                    receiptViewModel.setEvent(ReceiptEvent.SignOut)
                 }
             }
         }
@@ -248,7 +252,7 @@ private fun handleCreateReceiptUiMessages(
                 currentActivity,
                 messageMap[CreateReceiptUiMessage.LOGIN_REQUIRED.message]
                     ?: CreateReceiptUiMessage.INTERNAL_ERROR.message,
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             ).show()
         }
 
