@@ -14,8 +14,8 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return receiptEntityList.map { receiptEntity ->
             ReceiptData(
                 id = receiptEntity.id,
-                receiptName = receiptEntity.restaurant,
-                translatedReceiptName = receiptEntity.translatedRestaurant,
+                receiptName = receiptEntity.receiptName,
+                translatedReceiptName = receiptEntity.translatedReceiptName,
                 date = receiptEntity.date,
                 total = receiptEntity.total.roundToTwoDecimalPlaces(),
                 tax = receiptEntity.tax?.roundToTwoDecimalPlaces(),
@@ -31,8 +31,8 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return receiptEntity.run {
             ReceiptData(
                 id = id,
-                receiptName = restaurant,
-                translatedReceiptName = translatedRestaurant,
+                receiptName = receiptName,
+                translatedReceiptName = translatedReceiptName,
                 date = date,
                 total = total.roundToTwoDecimalPlaces(),
                 tax = tax?.roundToTwoDecimalPlaces(),
@@ -46,14 +46,13 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         receiptDataJson: ReceiptDataJson
     ): ReceiptEntity {
         return ReceiptEntity(
-            restaurant = receiptDataJson.receiptName,
-            translatedRestaurant = receiptDataJson.translatedReceiptName,
+            receiptName = receiptDataJson.receiptName,
+            translatedReceiptName = receiptDataJson.translatedReceiptName,
             date = receiptDataJson.date,
             total = receiptDataJson.total.roundToTwoDecimalPlaces(),
             tax = receiptDataJson.tax?.roundToTwoDecimalPlaces(),
             discount = receiptDataJson.discount?.roundToTwoDecimalPlaces(),
             tip = receiptDataJson.tip?.roundToTwoDecimalPlaces(),
-            tipSum = receiptDataJson.tipSum?.roundToTwoDecimalPlaces(),
         )
     }
 
@@ -92,8 +91,8 @@ class ReceiptAdapter : ReceiptAdapterInterface {
     ): ReceiptEntity {
         return ReceiptEntity(
             id = receiptData.id,
-            restaurant = receiptData.receiptName,
-            translatedRestaurant = receiptData.translatedReceiptName,
+            receiptName = receiptData.receiptName,
+            translatedReceiptName = receiptData.translatedReceiptName,
             date = receiptData.date,
             total = receiptData.total.roundToTwoDecimalPlaces(),
             tax = receiptData.tax?.roundToTwoDecimalPlaces(),
