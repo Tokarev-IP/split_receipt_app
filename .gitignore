@@ -15,4 +15,5 @@
 local.properties
 /app/google-services.json
 /app/src/main/java/com/example/receipt_splitter/login/data/DataConstantsLogin.kt
-/app/src/main/java/com/example/receipt_splitter/receipt/data/DataConstantsReceipt.kt
+/app/src/main/java/com/example/receipt_splitter/receipt/data/store/DataConstantsStore.kt
+/app/src/main/java/com/example/receipt_splitter/receipt/data/services/DataConstantsReceipt.kt

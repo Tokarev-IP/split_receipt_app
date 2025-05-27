@@ -1,185 +1,84 @@
 package com.example.receipt_splitter.receipt.presentation
 
-import android.net.Uri
-import androidx.lifecycle.viewModelScope
-import com.example.receipt_splitter.main.basic.BasicFunResponse
+import com.example.receipt_splitter.main.basic.BasicEvent
+import com.example.receipt_splitter.main.basic.BasicIntent
+import com.example.receipt_splitter.main.basic.BasicUiMessageIntent
+import com.example.receipt_splitter.main.basic.BasicUiState
 import com.example.receipt_splitter.main.basic.BasicViewModel
-import com.example.receipt_splitter.receipt.domain.ImageReceiptConverterUseCaseInterface
-import com.example.receipt_splitter.receipt.domain.ImageReceiptConverterUseCaseResponse
-import com.example.receipt_splitter.receipt.domain.OrderReportCreatorUseCaseInterface
-import com.example.receipt_splitter.receipt.domain.ReceiptDataConverterUseCaseInterface
-import com.example.receipt_splitter.receipt.domain.RoomReceiptUseCaseInterface
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
-class ReceiptViewModel(
-    private val imageReceiptConverterUseCase: ImageReceiptConverterUseCaseInterface,
-    private val receiptDataConverterUseCase: ReceiptDataConverterUseCaseInterface,
-    private val orderReportCreatorUseCase: OrderReportCreatorUseCaseInterface,
-    private val roomReceiptUseCase: RoomReceiptUseCaseInterface,
-) : BasicViewModel<
+class ReceiptViewModel() : BasicViewModel<
         ReceiptUiState,
         ReceiptIntent,
-        ReceiptUiEvent,
-        ReceiptUiErrorIntent>(
+        ReceiptEvent,
+        ReceiptUiMessageIntent>(
     initialUiState = ReceiptUiState.Show,
 ) {
-    private val splitOrderDataFlow = MutableStateFlow<List<SplitOrderData>>(emptyList())
-    private val splitOrderDataState = splitOrderDataFlow.asStateFlow()
-
-    private val orderReportTextFlow = MutableStateFlow<String?>(null)
-    private val orderReportTextState = orderReportTextFlow.asStateFlow()
-
-    private val allReceiptsList = MutableStateFlow<List<SplitReceiptData>>(emptyList())
-    private val allReceiptsListState = allReceiptsList.asStateFlow()
-
-    private val splitReceiptDataFlow = MutableStateFlow<SplitReceiptData?>(null)
-    private val splitReceiptDataState = splitReceiptDataFlow.asStateFlow()
-
-    private fun setSplitOrderDataList(newSplitReceiptItems: List<SplitOrderData>) {
-        splitOrderDataFlow.value = newSplitReceiptItems
-    }
-
-    private fun setOrderReportText(newOrderReportText: String?) {
-        orderReportTextFlow.value = newOrderReportText
-    }
-
-    private fun setAllReceiptsList(newList: List<SplitReceiptData>) {
-        allReceiptsList.value = newList
-    }
-
-    private fun setSplitReceiptData(newSplitReceiptData: SplitReceiptData) {
-        splitReceiptDataFlow.value = newSplitReceiptData
-    }
-
-    fun getSplitReceiptItems() = splitOrderDataState
-    fun getOrderReportText() = orderReportTextState
-    fun getAllReceiptsList() = allReceiptsListState
-    fun getReceiptData() = splitReceiptDataState
-
-    override fun setUiEvent(newUiEvent: ReceiptUiEvent) {
-        when (newUiEvent) {
-            is ReceiptUiEvent.ConvertReceiptFromImage -> {
-                setUiState(ReceiptUiState.Loading)
-                convertReceiptFromImage(newUiEvent.imageUri)
+    override fun setEvent(newEvent: ReceiptEvent)  {
+        when (newEvent) {
+            is ReceiptEvent.OpenSplitReceiptScreen -> {
+                setIntent(ReceiptIntent.GoToSplitReceiptScreen(newEvent.receiptId))
             }
 
-            is ReceiptUiEvent.AddQuantityToSplitOrderData -> {
-                addQuantityToSplitOrderData(newUiEvent.orderId, splitOrderDataFlow.value)
+            is ReceiptEvent.OpenCreateReceiptScreen -> {
+                setIntent(ReceiptIntent.GoToCreateReceiptScreen)
             }
 
-            is ReceiptUiEvent.SubtractQuantityToSplitOrderData -> {
-                subtractQuantityToSplitOrderData(newUiEvent.orderId, splitOrderDataFlow.value)
+            is ReceiptEvent.OpenEditReceiptsScreen -> {
+                setIntent(ReceiptIntent.GoToEditReceiptsScreen(newEvent.receiptId))
             }
 
-            is ReceiptUiEvent.AddNewReceipt -> {
-                setIntent(ReceiptIntent.GoToChoosePhotoScreen)
+            is ReceiptEvent.OpenAllReceiptsScreen -> {
+                setIntent(ReceiptIntent.GoToAllReceiptsScreen)
             }
 
-            is ReceiptUiEvent.ReceiptDeletion -> {
-                removeReceipt(newUiEvent.receiptId)
+            is ReceiptEvent.GoBack -> {
+                setIntent(ReceiptIntent.GoBackNavigation)
             }
 
-            is ReceiptUiEvent.RetrieveAllReceipts -> {
-                setUiState(ReceiptUiState.Loading)
-                retrieveAllReceipts()
+            is ReceiptEvent.OpenSettings -> {
+                setIntent(ReceiptIntent.GoToSettings)
             }
 
-            is ReceiptUiEvent.OpenSplitReceiptScreen -> {
-                setSplitReceiptData(newUiEvent.splitReceiptData)
-                setSplitOrderDataList(newUiEvent.splitReceiptData.orders)
-                setOrderReportText(null)
-                setIntent(ReceiptIntent.GoToSplitReceiptScreen)
+            is ReceiptEvent.NewReceiptIsCreated -> {
+                setIntent(ReceiptIntent.NewReceiptIsCreated(newEvent.receiptId))
             }
 
-            is ReceiptUiEvent.SetShowState -> {
-                setUiState(ReceiptUiState.Show)
+            is ReceiptEvent.SignOut -> {
+                setIntent(ReceiptIntent.UserIsEmpty)
             }
         }
     }
+}
 
-    private fun convertReceiptFromImage(image: Uri) {
-        viewModelScope.launch {
-            val response: ImageReceiptConverterUseCaseResponse =
-                imageReceiptConverterUseCase.convertReceiptFromImage(image = image)
-            when (response) {
-                is ImageReceiptConverterUseCaseResponse.ImageIsInappropriate -> {
-                    setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiErrorIntent.ImageIsInappropriate)
-                }
+interface ReceiptUiState : BasicUiState {
+    object Loading : ReceiptUiState
+    object Show : ReceiptUiState
+}
 
-                is ImageReceiptConverterUseCaseResponse.JsonError -> {
-                    setUiState(ReceiptUiState.Show)
-                }
+sealed interface ReceiptEvent : BasicEvent {
+    class OpenSplitReceiptScreen(val receiptId: Long) : ReceiptEvent
+    object OpenCreateReceiptScreen : ReceiptEvent
+    class OpenEditReceiptsScreen(val receiptId: Long) : ReceiptEvent
+    class NewReceiptIsCreated(val receiptId: Long) : ReceiptEvent
+    object OpenAllReceiptsScreen : ReceiptEvent
+    object GoBack : ReceiptEvent
+    object OpenSettings : ReceiptEvent
+    object SignOut : ReceiptEvent
+}
 
-                is ImageReceiptConverterUseCaseResponse.Success -> {
-                    setUiState(ReceiptUiState.Show)
-//                    setSplitReceiptData(response.receiptData)
-//                    setSplitReceiptItems(response.receiptData.toSplitReceiptDataList())
-//                    setIntent(ReceiptIntent.GoToSplitReceiptScreen)
-//                    addNewReceipt(response.receiptData)
-                }
+interface ReceiptIntent : BasicIntent {
+    class GoToSplitReceiptScreen(val receiptId: Long) : ReceiptIntent
+    object GoToCreateReceiptScreen : ReceiptIntent
+    class GoToEditReceiptsScreen(val receiptId: Long) : ReceiptIntent
+    class NewReceiptIsCreated(val receiptId: Long) : ReceiptIntent
+    object GoToAllReceiptsScreen : ReceiptIntent
+    object GoBackNavigation : ReceiptIntent
+    object GoToSettings : ReceiptIntent
+    object UserIsEmpty : ReceiptIntent
+}
 
-                is ImageReceiptConverterUseCaseResponse.Error -> {
-                    setUiState(ReceiptUiState.Show)
-                    setUiErrorIntent(ReceiptUiErrorIntent.ReceiptError(msg = response.msg))
-                }
-            }
-        }
-    }
+interface ReceiptUiMessageIntent : BasicUiMessageIntent
 
-    private fun addQuantityToSplitOrderData(orderId: Long, list: List<SplitOrderData>) {
-        viewModelScope.launch {
-            val newList = receiptDataConverterUseCase.addQuantityToSplitOrderData(
-                splitOrderDataList = list,
-                orderId = orderId,
-            )
-            setSplitOrderDataList(newList)
-            buildOrderReport()
-        }
-    }
-
-    private fun subtractQuantityToSplitOrderData(orderId: Long, list: List<SplitOrderData>) {
-        viewModelScope.launch {
-            val newList = receiptDataConverterUseCase.subtractQuantityToSplitOrderData(
-                splitOrderDataList = list,
-                orderId = orderId,
-            )
-            setSplitOrderDataList(newList)
-            buildOrderReport()
-        }
-    }
-
-    private fun buildOrderReport() {
-        viewModelScope.launch {
-            splitReceiptDataState.value?.let { data ->
-                val newOrderReportText = orderReportCreatorUseCase.buildOrderReport(
-                    receiptData = data,
-                    splitOrderDataList = splitOrderDataFlow.value,
-                )
-                setOrderReportText(newOrderReportText)
-            } ?: setOrderReportText(null)
-        }
-    }
-
-    private fun retrieveAllReceipts() {
-        viewModelScope.launch {
-            roomReceiptUseCase.getAllReceipts().collect { list ->
-                setAllReceiptsList(list.reversed())
-            }
-        }
-    }
-
-    private fun removeReceipt(receiptId: Long) {
-        viewModelScope.launch {
-            val response: BasicFunResponse =
-                roomReceiptUseCase.deleteReceipt(receiptId = receiptId)
-            when (response) {
-                is BasicFunResponse.onSuccess -> {}
-                is BasicFunResponse.onError -> {}
-            }
-        }
-    }
-
+enum class ReceiptUiMessage(val msg: String) {
+    INTERNAL_ERROR("Internal error"),
 }

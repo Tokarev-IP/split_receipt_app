@@ -1,32 +1,29 @@
 package com.example.receipt_splitter.receipt.presentation
 
-import android.net.Uri
-import com.example.receipt_splitter.main.basic.BasicIntent
-import com.example.receipt_splitter.main.basic.BasicUiErrorIntent
-import com.example.receipt_splitter.main.basic.BasicUiEvent
-import com.example.receipt_splitter.main.basic.BasicUiState
+import androidx.compose.runtime.Immutable
+import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 class ReceiptDataJson(
-    @SerialName("restaurant_name")
-    val restaurant: String = "no name",
-    @SerialName("date_dd_mm-yyyy")
+    @SerialName("receipt_name")
+    val receiptName: String = "no name",
+    @SerialName("translated_receipt_name")
+    val translatedReceiptName: String? = null,
+    @SerialName("date")
     val date: String = "no date",
     @SerialName("orders")
     val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
-    @SerialName("sub_total_sum")
-    val subTotal: Float? = null,
-    @SerialName("total_sum")
-    val total: Float? = null,
-    @SerialName("tax_in_percent")
+    @SerialName("final_total_sum")
+    val total: Float = 0.0F,
+    @SerialName("final_tax_in_percent")
     val tax: Float? = null,
-    @SerialName("discount_in_percent")
+    @SerialName("final_discount_in_percent")
     val discount: Float? = null,
-    @SerialName("tip_in_percent")
+    @SerialName("final_tip_in_percent")
     val tip: Float? = null,
-    @SerialName("tip_sum")
+    @SerialName("total_tip_sum")
     val tipSum: Float? = null,
 )
 
@@ -34,67 +31,73 @@ class ReceiptDataJson(
 class OrderDataJson(
     @SerialName("name")
     val name: String,
+    @SerialName("translated_name")
+    val translatedName: String? = null,
     @SerialName("quantity")
     val quantity: Int,
     @SerialName("price")
     val price: Float,
 )
 
-data class SplitReceiptData(
+@Immutable
+data class ReceiptData(
     val id: Long,
-    val restaurant: String,
-    val date: String,
-    val orders: List<SplitOrderData>,
-    val subTotal: Float? = null,
-    val total: Float?,
+    val receiptName: String = "no name",
+    val translatedReceiptName: String? = null,
+    val date: String = "no date",
+    val total: Float = 0.0F,
     val tax: Float? = null,
     val discount: Float? = null,
     val tip: Float? = null,
-    val tipSum: Float? = null,
+    val additionalSum: List<Pair<String, Float>> = emptyList(),
 )
 
-data class SplitOrderData(
+@Immutable
+data class OrderData(
     val id: Long,
-    val name: String,
+    val name: String = "no name",
+    val translatedName: String? = null,
     val selectedQuantity: Int = 0,
-    val quantity: Int,
-    val price: Float,
+    val quantity: Int = 1,
+    val price: Float = 0f,
+    val receiptId: Long,
+)
+
+@Serializable
+class UserAttemptsData(
+    @PropertyName("lastAttemptTime")
+    val lastAttemptTime: Long = 0L,
+    @PropertyName("attempts")
+    val attempts: Int = 1,
+)
+
+@Serializable
+class ReceiptVertexData(
+    @PropertyName("deltaTimeBetweenAttempts")
+    val deltaTimeBetweenAttempts: Long = 0L,
+    @PropertyName("maximumAttemptsForUser")
+    val maximumAttemptsForUser: Int = 0,
+    @PropertyName("requestText")
+    val requestText: String = "",
+    @PropertyName("vertexModel")
+    val vertexModel: String = "",
 )
 
 sealed interface ReceiptNavHostDestinations {
     @Serializable
-    object ChoosePhotoScreenNav : ReceiptNavHostDestinations
+    object CreateReceiptScreenNav : ReceiptNavHostDestinations
 
     @Serializable
-    object ShowReceiptsScreenNav : ReceiptNavHostDestinations
+    object AllReceiptsScreenNav : ReceiptNavHostDestinations
 
     @Serializable
-    object SplitReceiptScreenNav : ReceiptNavHostDestinations
+    class SplitReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
+
+    @Serializable
+    class EditReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
 }
 
-interface ReceiptUiState : BasicUiState {
-    object Loading : ReceiptUiState
-    object Show : ReceiptUiState
-}
-
-sealed interface ReceiptUiEvent : BasicUiEvent {
-    class ConvertReceiptFromImage(val imageUri: Uri) : ReceiptUiEvent
-    class AddQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
-    class SubtractQuantityToSplitOrderData(val orderId: Long) : ReceiptUiEvent
-    object AddNewReceipt : ReceiptUiEvent
-    class ReceiptDeletion(val receiptId: Long) : ReceiptUiEvent
-    object RetrieveAllReceipts : ReceiptUiEvent
-    class OpenSplitReceiptScreen(val splitReceiptData: SplitReceiptData) : ReceiptUiEvent
-    object SetShowState : ReceiptUiEvent
-}
-
-interface ReceiptIntent : BasicIntent {
-    object GoToSplitReceiptScreen : ReceiptIntent
-    object GoToChoosePhotoScreen : ReceiptIntent
-    object GoToShowReceiptsScreen : ReceiptIntent
-}
-
-interface ReceiptUiErrorIntent : BasicUiErrorIntent {
-    object ImageIsInappropriate : ReceiptUiErrorIntent
-    class ReceiptError(val msg: String) : ReceiptUiErrorIntent
+object ReceiptUIConstants {
+    const val ONE_LINE = 1
+    const val ONE_ELEMENT = 1
 }
