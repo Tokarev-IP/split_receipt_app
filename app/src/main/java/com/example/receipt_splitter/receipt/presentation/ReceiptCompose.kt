@@ -146,5 +146,9 @@ private fun handleReceiptIntent(
         is ReceiptIntent.GoToSettings -> {
             mainViewModel.setEvent(MainEvent.OpenSettings)
         }
+
+        is ReceiptIntent.UserIsEmpty -> {
+            mainViewModel.setEvent(MainEvent.UserIsSignedOut)
+        }
     }
 }
