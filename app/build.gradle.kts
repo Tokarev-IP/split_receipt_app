@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.receipt_splitter"
+    namespace = "com.iliatokarev.receipt_splitter"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.receipt_splitter"
+        applicationId = "com.iliatokarev.receipt_splitter"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
