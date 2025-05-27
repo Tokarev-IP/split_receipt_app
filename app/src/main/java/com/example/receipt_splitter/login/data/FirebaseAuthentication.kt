@@ -78,6 +78,18 @@ class FirebaseAuthentication : FirebaseAuthenticationInterface {
                 .addOnFailureListener { e -> continuation.resumeWithException(e) }
         }
     }
+
+    override suspend fun deleteUserAccount(currentUser: FirebaseUser) {
+        return suspendCancellableCoroutine { continuation ->
+            currentUser.delete()
+                .addOnSuccessListener {
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener { e: Exception ->
+                    continuation.resumeWithException(e)
+                }
+        }
+    }
 }
 
 interface FirebaseAuthenticationInterface {
@@ -88,4 +100,5 @@ interface FirebaseAuthenticationInterface {
     suspend fun getCurrentUser(): FirebaseUser?
     suspend fun sendEmailVerification(currentUser: FirebaseUser)
     suspend fun sendPasswordResetEmail(email: String)
+    suspend fun deleteUserAccount(currentUser: FirebaseUser)
 }
