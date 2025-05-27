@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Receipt Splitter</string>
     <string name="sign_in">Sign In</string>
-    <string name="sign_out">Sign Out</string>
     <string name="something_went_wrong">Something Went Wrong</string>
     <string name="select_receipt_photo">Select photos</string>
     <string name="make_photo">Make photos</string>
@@ -112,7 +111,7 @@
     <string name="do_you_want_to_delete_this_order">Do you really want to delete this order?</string>
     <string name="do_you_want_to_delete_this_receipt">Do you really want to delete this receipt?</string>
     <string name="edit_receipt_info_button">Edit the receipt info button</string>
-    <string name="login_required">Please, log in to continue</string>
+    <string name="sign_in_required">Please, sign in to continue</string>
     <string name="too_many_attempts">Too many attempts. Try again later in minutes:</string>
     <string name="remaining_attempts">Remaining attempts:</string>
     <string name="add_new_order_dialog_title">Add new order</string>
@@ -127,6 +126,14 @@
     <string name="no_additional_sum">Empty. Add the first one</string>
     <string name="expand_receipt_info_button">Expand receipt info button</string>
     <string name="there_is_limited_attempts">Mind that the attempts are limited</string>
+
+    //Settings
+    <string name="sign_out">Sign Out</string>
+    <string name="delete_user_account">Delete the account</string>
+    <string name="version_of_app">version: %s</string>
+    <string name="sign_out_request">Do you really want to sign out?</string>
+    <string name="delete_account_request">Do you really want to delete your account? This action cannot be undone. Once you delete your account, you will not be able to recover it and have to register again.</string>
+    <string name="account_was_deleted">Account was deleted</string>
 
     //Languages
     <string name="do_not_translate">Do not translate</string>
