@@ -14,9 +14,28 @@ class SettingsUseCase(
     override suspend fun getUserData(): FirebaseUser? {
         return firebaseAuthentication.getCurrentUser()
     }
+
+    override suspend fun deleteUserAccount(): DeleteUserAccountResponse {
+        runCatching {
+            val currentUser = firebaseAuthentication.getCurrentUser()
+            currentUser?.let { user ->
+                firebaseAuthentication.deleteUserAccount(currentUser = currentUser)
+            } ?: return DeleteUserAccountResponse.EmptyUser
+            return DeleteUserAccountResponse.Success
+        }.getOrElse { e: Throwable ->
+            return DeleteUserAccountResponse.Error(e.message ?: SettingsUiMessages.INTERNAL_ERROR.message)
+        }
+    }
 }
 
 interface SettingsUseCaseInterface {
     suspend fun signOut()
     suspend fun getUserData(): FirebaseUser?
+    suspend fun deleteUserAccount(): DeleteUserAccountResponse
+}
+
+interface DeleteUserAccountResponse {
+    object Success : DeleteUserAccountResponse
+    class Error(val message: String) : DeleteUserAccountResponse
+    object EmptyUser : DeleteUserAccountResponse
 }
