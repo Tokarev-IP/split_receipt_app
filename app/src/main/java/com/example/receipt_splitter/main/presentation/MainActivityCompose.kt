@@ -15,7 +15,7 @@ import com.example.receipt_splitter.login.presentation.LoginCompose
 import com.example.receipt_splitter.login.presentation.LoginViewModel
 import com.example.receipt_splitter.receipt.presentation.ReceiptCompose
 import com.example.receipt_splitter.receipt.presentation.ReceiptViewModel
-import com.example.receipt_splitter.settings.SettingsCompose
+import com.example.receipt_splitter.settings.screens.SettingsCompose
 import com.example.receipt_splitter.settings.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
