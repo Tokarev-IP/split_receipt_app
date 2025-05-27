@@ -22,24 +22,25 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     orderReport.append("${receiptData.receiptName} \n")
                 if (receiptData.date.isNotEmpty())
                     orderReport.append("${receiptData.date} \n")
-                orderReport.append("--------------\n")
+
+                if (orderDataList.isNotEmpty())
+                    orderReport.append("--------------\n")
 
                 for (splitReceiptData in orderDataList) {
                     if (splitReceiptData.selectedQuantity.isNotZero()) {
                         val sumPrice = splitReceiptData.selectedQuantity * splitReceiptData.price
                         finalPrice += sumPrice
-                        orderReport.append(
-                            "${splitReceiptData.name}     ${splitReceiptData.selectedQuantity} x ${splitReceiptData.price}  =  ${sumPrice.roundToTwoDecimalPlaces()}\n"
-                        )
+                        orderReport.append("${splitReceiptData.name}     ${splitReceiptData.selectedQuantity} x ${splitReceiptData.price}  =  ${sumPrice.roundToTwoDecimalPlaces()}\n")
                     }
                 }
-                if (orderDataList.isNotEmpty())
+                if (finalPrice.isNotZero())
                     orderReport.append(" = ${finalPrice.roundToTwoDecimalPlaces()}\n")
 
                 if (receiptData.discount != null
                     || receiptData.tip != null
                     || receiptData.tax != null
                 ) {
+                    orderReport.append(" = ${finalPrice.roundToTwoDecimalPlaces()}\n")
                     orderReport.append("------\n")
 
                     receiptData.discount?.let { discount ->
@@ -59,15 +60,17 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                 }
 
                 if (receiptData.additionalSumList.isNotEmpty()) {
+                    orderReport.append("------\n")
                     for (additionalSum in receiptData.additionalSumList) {
                         orderReport.append("${additionalSum.first}     ${additionalSum.second}\n")
                         finalPrice += additionalSum.second
                     }
-                    orderReport.append("------\n")
                     orderReport.append(" = ${finalPrice.roundToTwoDecimalPlaces()}\n")
                 }
 
-                orderReport.append("--------------\n")
+                if (finalPrice.isNotZero())
+                    orderReport.append("--------------\n")
+
                 orderReport.append("${finalPrice.roundToTwoDecimalPlaces()}")
 
                 return@withContext orderReport.toString()
