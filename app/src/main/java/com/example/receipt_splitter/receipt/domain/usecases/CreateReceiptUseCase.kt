@@ -62,8 +62,6 @@ class CreateReceiptUseCase(
         translateTo: String?,
     ): ReceiptCreationResult = withContext(Dispatchers.IO) {
         runCatching {
-            val receiptVertexConstants: ReceiptVertexData =
-                firestoreRepository.getReceiptVertexConstants()
             val listOfBitmaps = listOfImages.map { image ->
                 imageConverter.convertImageFromUriToBitmap(image)
             }
@@ -72,6 +70,8 @@ class CreateReceiptUseCase(
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
             }
             val userId = getUserId() ?: return@withContext ReceiptCreationResult.LoginRequired
+            val receiptVertexConstants: ReceiptVertexData =
+                firestoreRepository.getReceiptVertexConstants()
             val userAttempts = manageAttemptsToCreateReceipt(
                 userId = userId,
                 maximumAttemptsForUser = receiptVertexConstants.maximumAttemptsForUser,
