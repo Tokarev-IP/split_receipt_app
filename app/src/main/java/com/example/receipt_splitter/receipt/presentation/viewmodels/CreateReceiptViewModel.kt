@@ -82,6 +82,7 @@ class CreateReceiptViewModel(
                 is ReceiptCreationResult.LoginRequired -> {
                     setUiMessageIntent(CreateReceiptUiMessageIntent.LoginRequired)
                     setUiState(CreateReceiptUiState.Show)
+                    setIntent(CreateReceiptIntent.UserIsEmpty)
                 }
             }
         }
@@ -131,6 +132,7 @@ interface CreateReceiptUiMessageIntent : BasicUiMessageIntent {
 
 interface CreateReceiptIntent : BasicIntent {
     class NewReceiptIsCreated(val receiptId: Long) : CreateReceiptIntent
+    object UserIsEmpty : CreateReceiptIntent
 }
 
 enum class CreateReceiptUiMessage(val message: String) {
