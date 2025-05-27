@@ -7,8 +7,9 @@ import java.util.Locale
 import kotlin.math.round
 
 fun Int.isZero(): Boolean = this == 0
-
 fun Int.isNotZero(): Boolean = this > 0
+fun Float.isZero(): Boolean = this == 0F
+fun Float.isNotZero(): Boolean = this > 0
 
 fun String.isEmail(): Boolean {
     val emailRegex = Regex("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
