@@ -1,6 +1,5 @@
 package com.example.receipt_splitter.settings
 
-import android.util.Log
 import com.example.receipt_splitter.login.data.FirebaseAuthenticationInterface
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
