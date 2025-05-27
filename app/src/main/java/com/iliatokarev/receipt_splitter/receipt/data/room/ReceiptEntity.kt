@@ -12,22 +12,20 @@ import androidx.room.Relation
 data class ReceiptEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo(name = "restaurant_name")
-    val restaurant: String = "",
-    @ColumnInfo(name = "translated_restaurant_name")
-    val translatedRestaurant: String? = null,
+    @ColumnInfo(name = "receipt_name")
+    val receiptName: String = "no name",
+    @ColumnInfo(name = "translated_receipt_name")
+    val translatedReceiptName: String? = null,
     @ColumnInfo(name = "date")
     val date: String = "",
     @ColumnInfo(name = "total_sum")
     val total: Float = 0.0F,
-    @ColumnInfo(name = "additional_tax_in_percent")
+    @ColumnInfo(name = "tax_in_percent")
     val tax: Float? = null,
-    @ColumnInfo(name = "total_discount_in_percent")
+    @ColumnInfo(name = "discount_in_percent")
     val discount: Float? = null,
-    @ColumnInfo(name = "total_tip_in_percent")
+    @ColumnInfo(name = "tip_in_percent")
     val tip: Float? = null,
-    @ColumnInfo(name = "total_tip_sum")
-    val tipSum: Float? = null
 )
 
 @Entity(
