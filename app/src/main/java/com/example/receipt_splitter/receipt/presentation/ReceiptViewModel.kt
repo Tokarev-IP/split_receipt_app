@@ -42,6 +42,10 @@ class ReceiptViewModel() : BasicViewModel<
             is ReceiptEvent.NewReceiptIsCreated -> {
                 setIntent(ReceiptIntent.NewReceiptIsCreated(newEvent.receiptId))
             }
+
+            is ReceiptEvent.SignOut -> {
+                setIntent(ReceiptIntent.UserIsEmpty)
+            }
         }
     }
 }
@@ -59,6 +63,7 @@ sealed interface ReceiptEvent : BasicEvent {
     object OpenAllReceiptsScreen : ReceiptEvent
     object GoBack : ReceiptEvent
     object OpenSettings : ReceiptEvent
+    object SignOut : ReceiptEvent
 }
 
 interface ReceiptIntent : BasicIntent {
@@ -69,6 +74,7 @@ interface ReceiptIntent : BasicIntent {
     object GoToAllReceiptsScreen : ReceiptIntent
     object GoBackNavigation : ReceiptIntent
     object GoToSettings : ReceiptIntent
+    object UserIsEmpty : ReceiptIntent
 }
 
 interface ReceiptUiMessageIntent : BasicUiMessageIntent
