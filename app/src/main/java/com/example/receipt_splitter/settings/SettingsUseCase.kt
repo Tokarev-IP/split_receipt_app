@@ -1,6 +1,8 @@
 package com.example.receipt_splitter.settings
 
+import android.util.Log
 import com.example.receipt_splitter.login.data.FirebaseAuthenticationInterface
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 
 class SettingsUseCase(
@@ -23,7 +25,12 @@ class SettingsUseCase(
             } ?: return DeleteUserAccountResponse.EmptyUser
             return DeleteUserAccountResponse.Success
         }.getOrElse { e: Throwable ->
-            return DeleteUserAccountResponse.Error(e.message ?: SettingsUiMessages.INTERNAL_ERROR.message)
+            return if (e is FirebaseAuthRecentLoginRequiredException)
+                DeleteUserAccountResponse.EmptyUser
+            else
+                DeleteUserAccountResponse.Error(
+                    e.message ?: SettingsUiMessages.INTERNAL_ERROR.message
+                )
         }
     }
 }
