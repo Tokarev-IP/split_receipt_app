@@ -15,16 +15,14 @@ class ReceiptDataJson(
     val date: String = "no date",
     @SerialName("orders")
     val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
-    @SerialName("final_total_sum")
+    @SerialName("total_sum")
     val total: Float = 0.0F,
-    @SerialName("final_tax_in_percent")
+    @SerialName("tax_in_percent")
     val tax: Float? = null,
-    @SerialName("final_discount_in_percent")
+    @SerialName("discount_in_percent")
     val discount: Float? = null,
-    @SerialName("final_tip_in_percent")
+    @SerialName("tip_in_percent")
     val tip: Float? = null,
-    @SerialName("total_tip_sum")
-    val tipSum: Float? = null,
 )
 
 @Serializable
