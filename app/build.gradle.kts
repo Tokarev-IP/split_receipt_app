@@ -9,15 +9,15 @@ plugins {
 }
 
 android {
-    namespace = "com.iliatokarev.receipt_splitter"
+    namespace = "com.iliatokarev.receipt_splitter_app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.iliatokarev.receipt_splitter"
+        applicationId = "com.iliatokarev.receipt_splitter_app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 4
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,6 +41,9 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    firebaseCrashlytics {
+        mappingFileUploadEnabled = true
     }
 }
 
@@ -69,7 +72,7 @@ dependencies {
     implementation(libs.mlkit.image.labeling)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-    implementation(libs.firebase.vertax)
+    implementation(libs.firebase.ai)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
