@@ -20,72 +20,16 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-############## KOTLIN ##############
--keepclassmembers class kotlinx.coroutines.** { *; }
--dontwarn kotlinx.coroutines.**
+# Kotlinx Serialization
+-keep class kotlinx.serialization.** { *; }
+-keep @kotlinx.serialization.Serializable class * { *; }
 
--keepattributes *Annotation*
--keepclassmembers class ** {
-    @kotlin.Metadata *;
-}
--keep class kotlin.** { *; }
--keep class kotlinx.** { *; }
-
-############## COMPOSE UI ##############
--keep class androidx.compose.** { *; }
--dontwarn androidx.compose.**
-
-############## ROOM ##############
--keep class androidx.room.Entity
--keep class androidx.room.Dao
--keep class androidx.room.Database
--keep class androidx.room.RoomDatabase
+# @Serializable
 -keepclassmembers class * {
-    @androidx.room.* <methods>;
+    @kotlinx.serialization.SerialName <fields>;
 }
--dontwarn androidx.room.**
 
-############## FIREBASE ##############
--keep class com.google.firebase.** { *; }
--dontwarn com.google.firebase.**
-
-# Firestore serialization (PropertyName annotations)
+#Firebase @PropertyName
 -keepclassmembers class * {
-    @com.google.firebase.firestore.PropertyName <methods>;
-}
--keepattributes Signature, RuntimeVisibleAnnotations, AnnotationDefault
-
-# Firebase Auth / OneTap / AppCheck
--dontwarn com.google.android.gms.**
--keep class com.google.android.gms.** { *; }
-
-############## ML KIT ##############
--keep class com.google.mlkit.** { *; }
--dontwarn com.google.mlkit.**
-
-############## COIL (image loading) ##############
--keep class coil.** { *; }
--dontwarn coil.**
-
-############## KOIN (DI) ##############
--keep class org.koin.** { *; }
--dontwarn org.koin.**
-
-############## ANDROIDX CREDENTIALS (OneTap / Passwords) ##############
--keep class androidx.credentials.** { *; }
--dontwarn androidx.credentials.**
-
--keep class com.google.android.libraries.identity.googleid.** { *; }
--dontwarn com.google.android.libraries.identity.googleid.**
-
-############## PLAY INTEGRITY ##############
--keep class com.google.android.play.core.integrity.** { *; }
--dontwarn com.google.android.play.core.integrity.**
-
-############## OTHER SAFETY ##############
--keepclassmembers class * {
-    public <init>(...);
-}
--keepclassmembers class * {
-    public void *(...);
+    @com.google.firebase.firestore.PropertyName <fields>;
 }
