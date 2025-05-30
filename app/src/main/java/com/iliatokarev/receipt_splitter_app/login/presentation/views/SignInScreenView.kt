@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.login.presentation.screens.SignInTextFieldErrorState
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEmailTextField
@@ -53,6 +54,7 @@ internal fun SignInScreenView(
     onEmailTextChanged: (String) -> Unit = {},
     onPasswordTextChanged: (String) -> Unit = {},
     onGetSavedCredentialClick: () -> Unit = {},
+    versionText: String = "",
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -81,6 +83,7 @@ internal fun SignInScreenView(
                     onPasswordTextChanged(value)
                 },
                 onGetSavedCredentialClick = { onGetSavedCredentialClick() },
+                versionText = versionText,
             )
         }
     }
@@ -101,6 +104,7 @@ private fun SignInView(
     onEmailTextChanged: (String) -> Unit,
     onPasswordTextChanged: (String) -> Unit,
     onGetSavedCredentialClick: () -> Unit,
+    versionText: String,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
 
@@ -142,7 +146,7 @@ private fun SignInView(
             }
         )
 
-        Spacer(modifier = modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         BasicPasswordTextField(
             passwordText = { passwordText() },
             onPasswordTextChanged = { value: String ->
@@ -171,7 +175,7 @@ private fun SignInView(
                 else stringResource(R.string.password_is_incorrect),
         )
 
-        Spacer(modifier = modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Button(
             modifier = modifier
                 .fillMaxWidth()
@@ -211,11 +215,18 @@ private fun SignInView(
             Text(text = stringResource(R.string.sign_in_with_google))
         }
 
-        Spacer(modifier = modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(40.dp))
         RegistrationAndForgotPasswordView(
             onRegistrationClick = { onRegistrationClick() },
             onForgotPasswordClick = { onForgotPasswordClick() },
             enabled = { enabled() },
+        )
+
+        Spacer(modifier = Modifier.height(64.dp))
+        Text(
+            text = versionText,
+            fontWeight = FontWeight.Light,
+            fontSize = 12.sp
         )
     }
 }
