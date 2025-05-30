@@ -1,6 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.login.presentation.screens
 
 import android.app.Activity
+import android.content.Context
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialProviderConfigurationException
@@ -34,6 +36,7 @@ import com.iliatokarev.receipt_splitter_app.login.presentation.LoginUiState
 import com.iliatokarev.receipt_splitter_app.login.presentation.LoginViewModel
 import com.iliatokarev.receipt_splitter_app.login.presentation.views.SignInScreenView
 import com.google.firebase.auth.AuthCredential
+import com.iliatokarev.receipt_splitter_app.main.basic.getAppVersion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -47,8 +50,10 @@ fun SignInScreen(
     modifier: Modifier = Modifier,
     loginViewModel: LoginViewModel,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    localActivity: Activity? = LocalActivity.current
+    localActivity: Activity? = LocalActivity.current,
+    localContext: Context = LocalContext.current,
 ) {
+    val appVersion = stringResource(R.string.version_of_app, getAppVersion(localContext))
     val uiState by loginViewModel.getUiStateFlow().collectAsStateWithLifecycle()
 
     var signInTextFieldErrorState by remember {
@@ -153,7 +158,8 @@ fun SignInScreen(
             onPasswordTextChanged = { value: String ->
                 passwordText = value
             },
-            onGetSavedCredentialClick = { showSavedCredential = true }
+            onGetSavedCredentialClick = { showSavedCredential = true },
+            versionText = appVersion,
         )
     }
 }
