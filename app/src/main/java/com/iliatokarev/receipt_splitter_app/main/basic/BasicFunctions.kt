@@ -5,8 +5,8 @@ import android.content.Context
 fun getAppVersion(context: Context): String {
     return try {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        packageInfo.versionName ?: "Unknown"
+        packageInfo.versionName ?: ""
     } catch (e: Exception) {
-        "Unknown"
+        ""
     }
 }
