@@ -8,11 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 class ReceiptDataJson(
     @SerialName("receipt_name")
-    val receiptName: String = "no name",
+    val receiptName: String = "-",
     @SerialName("translated_receipt_name")
     val translatedReceiptName: String? = null,
     @SerialName("date")
-    val date: String = "no date",
+    val date: String = "-",
     @SerialName("orders")
     val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
     @SerialName("total_sum")
@@ -28,13 +28,13 @@ class ReceiptDataJson(
 @Serializable
 class OrderDataJson(
     @SerialName("name")
-    val name: String,
+    val name: String = "-",
     @SerialName("translated_name")
     val translatedName: String? = null,
     @SerialName("quantity")
-    val quantity: Int,
+    val quantity: Int = 1,
     @SerialName("price")
-    val price: Float,
+    val price: Float = 0.0F,
 )
 
 @Immutable
