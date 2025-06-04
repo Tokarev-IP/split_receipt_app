@@ -3,8 +3,8 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -23,8 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.Receipt
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
@@ -45,11 +47,15 @@ fun EditReceiptScreen(
     receiptViewModel: ReceiptViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
 ) {
+    val limitExceededMessage = stringResource(R.string.exceed_info_message)
+
     var showDeleteOrderDialog by rememberSaveable { mutableStateOf(false) }
     var orderIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
 
     val orderDataList by editReceiptViewModel.getOrderDataList().collectAsStateWithLifecycle()
     val receiptData by editReceiptViewModel.getReceiptData().collectAsStateWithLifecycle()
+    val isOrderCountAtLimit by editReceiptViewModel.getIsOrderCountAtLimit()
+        .collectAsStateWithLifecycle()
 
     var showEditReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var showAddNewOrderDialog by rememberSaveable { mutableStateOf(false) }
@@ -67,8 +73,7 @@ fun EditReceiptScreen(
                 title = {
                     Text(
                         maxLines = ReceiptUIConstants.ONE_LINE,
-                        text = receiptData?.receiptName
-                            ?: stringResource(R.string.edit_the_receipt),
+                        text = stringResource(R.string.edit_the_receipt),
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
@@ -82,26 +87,25 @@ fun EditReceiptScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            receiptData?.id?.let { id ->
-                                receiptViewModel.setEvent(
-                                    ReceiptEvent.OpenSplitReceiptScreen(
-                                        receiptId = id
-                                    )
-                                )
-                            }
-                        },
-                    ) {
-                        Icon(
-                            Icons.Outlined.Share,
-                            contentDescription = stringResource(R.string.go_to_split_the_receipt_button)
-                        )
-                    }
-                }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                modifier = Modifier.padding(12.dp),
+                onClick = {
+                    receiptData?.id?.let { id ->
+                        receiptViewModel.setEvent(
+                            ReceiptEvent.OpenSplitReceiptScreen(receiptId = id)
+                        )
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Receipt,
+                    contentDescription = stringResource(R.string.go_to_split_receipt_screen_button),
+                )
+            }
+        }
     ) { innerPadding ->
         EditReceiptScreenView(
             modifier = modifier.padding(innerPadding),
@@ -119,7 +123,10 @@ fun EditReceiptScreen(
                 showEditReceiptDialog = true
             },
             onAddNewOrderClicked = {
-                showAddNewOrderDialog = true
+                if (isOrderCountAtLimit == false)
+                    showAddNewOrderDialog = true
+                else
+                    receiptViewModel.setEvent(ReceiptEvent.SetUiMessage(limitExceededMessage))
             },
         )
 
