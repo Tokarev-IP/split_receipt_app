@@ -112,7 +112,7 @@ private suspend fun handleEmailAndPasswordSavingPopUp(
         )
     }.onFailure { e: Throwable ->
         if (e !is CreateCredentialCancellationException && e !is CreateCredentialUnknownException)
-            loginViewModel.setEvent(LoginEvent.SetErrorIntent(e.message.toString()))
+            loginViewModel.setEvent(LoginEvent.SetErrorIntent(LoginUiMessages.INTERNAL_ERROR.message))
     }
 }
 
