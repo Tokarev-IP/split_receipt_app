@@ -195,11 +195,7 @@ private suspend fun showCredentialSignInPopUp(
         } else if (e !is GetCredentialProviderConfigurationException
             && e !is GetCredentialCancellationException
         ) {
-            loginViewModel.setEvent(
-                LoginEvent.SetErrorIntent(
-                    msg = e.message ?: LoginUiMessages.INTERNAL_ERROR.message
-                )
-            )
+            loginViewModel.setEvent(LoginEvent.SetErrorIntent(LoginUiMessages.INTERNAL_ERROR.message))
         }
     }
 }
@@ -224,11 +220,7 @@ private suspend fun showGoogleSignInPopUp(
                 )
             )
         if (e !is GetCredentialCancellationException)
-            loginViewModel.setEvent(
-                LoginEvent.SetErrorIntent(
-                    msg = e.message ?: LoginUiMessages.INTERNAL_ERROR.message
-                )
-            )
+            loginViewModel.setEvent(LoginEvent.SetErrorIntent(LoginUiMessages.INTERNAL_ERROR.message))
         loginViewModel.setEvent(LoginEvent.SetShowState)
     }
 }
