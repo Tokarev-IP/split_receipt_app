@@ -34,12 +34,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Minus
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Plus
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
 
 @Composable
 internal fun AdditionalSumDialog(
@@ -50,13 +49,10 @@ internal fun AdditionalSumDialog(
     additionalSumList: () -> List<Pair<String, Float>>,
 ) {
     Dialog(
-        properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = { onDismissRequest() }
     ) {
         Surface(
-            modifier = modifier
-                .fillMaxWidth()
-                .animateContentSize(),
+            modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
         ) {
             AdditionalSumDialogView(
@@ -84,7 +80,8 @@ private fun AdditionalSumDialogView(
     LazyColumn(
         modifier = modifier
             .padding(horizontal = 12.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .animateContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
@@ -123,24 +120,7 @@ private fun AddAdditionalSumView(
         verticalArrangement = Arrangement.Center,
     ) {
         Spacer(modifier = modifier.height(12.dp))
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.additional_sum_title),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-            )
-            IconButton(
-                onClick = { onDismissRequest() }
-            ) {
-                Icon(Icons.Filled.Clear, stringResource(R.string.close_the_dialog))
-            }
-        }
+        DialogCap(text = stringResource(R.string.additional_sum_title)) { onDismissRequest() }
         Spacer(modifier = modifier.height(12.dp))
 
         OutlinedTextField(
@@ -165,7 +145,7 @@ private fun AddAdditionalSumView(
             maxLines = MAXIMUM_LINES,
             supportingText = {
                 if (isNameTextError && nameText.isEmpty())
-                    Text(text = stringResource(R.string.is_empty))
+                    Text(text = stringResource(R.string.field_is_empty))
                 else
                     Text(
                         text = stringResource(
@@ -202,12 +182,12 @@ private fun AddAdditionalSumView(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             supportingText = {
                 if (isSumTextError && sumText.isEmpty())
-                    Text(text = stringResource(R.string.is_empty))
+                    Text(text = stringResource(R.string.field_is_empty))
                 else
                     Text(
                         text = stringResource(
                             R.string.must_be_from_to,
-                            MINIMUM_is_0,
+                            MINIMUM_TOTAL_SUM,
                             MAXIMUM_TOTAL_SUM
                         )
                     )
@@ -345,7 +325,7 @@ private fun AdditionalSumDialogViewPreview() {
 
 private const val MAXIMUM_LINES = 5
 private const val MAXIMUM_LENGTH = 100
-private const val MINIMUM_is_0 = 0
+private const val MINIMUM_TOTAL_SUM = -99_999_999
 private const val EMPTY_STRING = ""
-private const val MAXIMUM_TOTAL_SUM = 99999999
+private const val MAXIMUM_TOTAL_SUM = 99_999_999
 private const val ZERO_F = 0.0F
