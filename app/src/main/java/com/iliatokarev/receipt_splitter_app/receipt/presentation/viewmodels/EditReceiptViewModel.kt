@@ -4,9 +4,11 @@ import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicUiState
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -21,21 +23,31 @@ class EditReceiptViewModel(
     private val orderDataList = MutableStateFlow<List<OrderData>>(emptyList())
     private val orderDataListState = orderDataList.asStateFlow()
 
+    private val isOrderCountAtLimit = MutableStateFlow(false)
+    private val isOrderCountAtLimitState = isOrderCountAtLimit.asStateFlow()
+
     private fun setReceiptData(newReceiptData: ReceiptData?) {
         receiptData.value = newReceiptData
     }
+
     private fun setOrderDataList(newOrderDataList: List<OrderData>) {
         orderDataList.value = newOrderDataList
     }
 
+    fun setIsOrderCountAtLimit(newState: Boolean) {
+        isOrderCountAtLimit.value = newState
+    }
+
     fun getReceiptData() = receiptDataState
     fun getOrderDataList() = orderDataListState
+    fun getIsOrderCountAtLimit() = isOrderCountAtLimitState
 
     override fun setEvent(newEvent: EditReceiptEvent) {
         when (newEvent) {
             is EditReceiptEvent.RetrieveReceiptData -> {
                 retrieveReceiptData(receiptId = newEvent.receiptId)
                 retrieveOrderDataList(receiptId = newEvent.receiptId)
+                monitorAmountOfOrders()
             }
 
             is EditReceiptEvent.DeleteOrder -> {
@@ -96,6 +108,16 @@ class EditReceiptViewModel(
         }
     }
 
+    private fun monitorAmountOfOrders(){
+        viewModelScope.launch(Dispatchers.Default) {
+            orderDataList.collect { list ->
+                if (list.size > DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES)
+                    setIsOrderCountAtLimit(true)
+                else
+                    setIsOrderCountAtLimit(false)
+            }
+        }
+    }
 }
 
 interface EditReceiptUiState : BasicUiState {
