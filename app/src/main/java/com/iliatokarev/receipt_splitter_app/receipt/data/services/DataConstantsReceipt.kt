@@ -76,6 +76,13 @@ object DataConstantsReceipt {
     const val MAIN_CONSTANTS_COLLECTION = "main_constants"
     const val MAIN_CONSTANTS_DOCUMENT = "receipt_constants"
 
+    const val MAXIMUM_AMOUNT_OF_DISHES = 300
+    const val MAXIMUM_AMOUNT_OF_DISH_QUANTITY = 99
+    const val MAXIMUM_AMOUNT_OF_RECEIPTS = 10_000_000
+    const val MAXIMUM_TEXT_LENGTH = 100
+    const val MAXIMUM_SUM = 999_999
+    const val MAXIMUM_PERCENT = 100
+
     const val LANGUAGE_TEXT = "Translate to:"
 
     // Labels for images are the following:
