@@ -11,10 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,14 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
 
 @Composable
 internal fun ChooseLanguageDialog(
@@ -46,13 +40,17 @@ internal fun ChooseLanguageDialog(
     Dialog(
         onDismissRequest = { onDismissRequest() }
     ) {
-        ChooseLanguageDialogView(
-            onLanguageSelected = { language ->
-                onLanguageSelected(language)
-            },
-            onDismissRequest = { onDismissRequest() },
-            selectedLanguage = selectedLanguage,
-        )
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            ChooseLanguageDialogView(
+                onLanguageSelected = { language ->
+                    onLanguageSelected(language)
+                },
+                onDismissRequest = { onDismissRequest() },
+                selectedLanguage = selectedLanguage,
+            )
+        }
     }
 }
 
@@ -85,51 +83,28 @@ private fun ChooseLanguageDialogView(
     )
     var selectedOption by remember { mutableStateOf(selectedLanguage ?: radioOptions.first()) }
 
-    Surface(
-        shape = RoundedCornerShape(16.dp),
+    LazyColumn(
+        modifier = modifier.padding(horizontal = 12.dp)
     ) {
-        LazyColumn(
-            modifier = modifier.padding(horizontal = 12.dp)
-        ) {
-            item {
-                Spacer(modifier = modifier.padding(4.dp))
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 20.sp,
-                        text = stringResource(R.string.choose_language_title),
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    IconButton(
-                        onClick = { onDismissRequest() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.close_the_dialog),
-                        )
-                    }
-                }
-                Spacer(modifier = modifier.padding(4.dp))
-                RadioButtonView(
-                    selectedOption = { selectedOption },
-                    onLanguageSelected = { option ->
-                        selectedOption = option
-                    },
-                    radioOptions = radioOptions,
-                )
-                Spacer(modifier = modifier.padding(4.dp))
-                CancelSaveButtonView(
-                    onCancelClicked = { onDismissRequest() },
-                    onSaveClicked = {
-                        onLanguageSelected(selectedOption)
-                    },
-                )
-                Spacer(modifier = modifier.padding(4.dp))
-            }
+        item {
+            Spacer(modifier = modifier.padding(4.dp))
+            DialogCap(text = stringResource(R.string.choose_language_title)) { onDismissRequest() }
+            Spacer(modifier = modifier.padding(4.dp))
+            RadioButtonView(
+                selectedOption = { selectedOption },
+                onLanguageSelected = { option ->
+                    selectedOption = option
+                },
+                radioOptions = radioOptions,
+            )
+            Spacer(modifier = modifier.padding(4.dp))
+            CancelSaveButtonView(
+                onCancelClicked = { onDismissRequest() },
+                onSaveClicked = {
+                    onLanguageSelected(selectedOption)
+                },
+            )
+            Spacer(modifier = modifier.padding(4.dp))
         }
     }
 }
