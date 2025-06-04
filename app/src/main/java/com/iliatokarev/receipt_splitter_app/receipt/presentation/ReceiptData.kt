@@ -6,13 +6,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class ReceiptDataJson(
+data class ReceiptDataJson(
     @SerialName("receipt_name")
-    val receiptName: String = "-",
+    val receiptName: String = "no name",
     @SerialName("translated_receipt_name")
     val translatedReceiptName: String? = null,
     @SerialName("date")
-    val date: String = "-",
+    val date: String = "00/00/2025",
     @SerialName("orders")
     val orders: List<OrderDataJson> = emptyList<OrderDataJson>(),
     @SerialName("total_sum")
@@ -26,9 +26,9 @@ class ReceiptDataJson(
 )
 
 @Serializable
-class OrderDataJson(
+data class OrderDataJson(
     @SerialName("name")
-    val name: String = "-",
+    val name: String = "no name",
     @SerialName("translated_name")
     val translatedName: String? = null,
     @SerialName("quantity")
@@ -59,6 +59,15 @@ data class OrderData(
     val quantity: Int = 1,
     val price: Float = 0f,
     val receiptId: Long,
+)
+
+@Immutable
+data class OrderDataCheck(
+    val name: String = "no name",
+    val translatedName: String? = null,
+    val price: Float = 0f,
+    val consumerName: String? = null,
+    val checked: Boolean = false,
 )
 
 @Serializable
