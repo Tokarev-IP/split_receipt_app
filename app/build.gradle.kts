@@ -16,8 +16,8 @@ android {
         applicationId = "com.iliatokarev.receipt_splitter_app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 11
+        versionName = "0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,9 +41,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    firebaseCrashlytics {
-        mappingFileUploadEnabled = true
     }
 }
 
