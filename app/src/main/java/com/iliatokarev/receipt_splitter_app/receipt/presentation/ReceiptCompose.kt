@@ -1,10 +1,13 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,8 +24,10 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllR
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptEvent
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllEvents
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneEvent
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +38,7 @@ fun ReceiptCompose(
     receiptViewModel: ReceiptViewModel,
     navHostController: NavHostController = rememberNavController(),
     startDestination: ReceiptNavHostDestinations = ReceiptNavHostDestinations.AllReceiptsScreenNav,
+    context: Context = LocalContext.current,
 ) {
     LaunchedEffect(key1 = Unit) {
         receiptViewModel.getIntentFlow().collect { receiptIntent ->
@@ -41,6 +47,20 @@ fun ReceiptCompose(
                 navHostController = navHostController,
                 mainViewModel = mainViewModel
             )
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        receiptViewModel.getUiMessageIntentFlow().collect { uiMessageIntent ->
+            when (uiMessageIntent) {
+                is ReceiptUiMessageIntent.UiMessage -> {
+                    Toast.makeText(
+                        context,
+                        uiMessageIntent.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 
@@ -69,15 +89,27 @@ fun ReceiptCompose(
         }
 
         composable<ReceiptNavHostDestinations.SplitReceiptScreenNav> { backStackEntry ->
-            val splitReceiptViewModel: SplitReceiptViewModel = koinViewModel()
+            val splitReceiptForOneViewModel: SplitReceiptForOneViewModel = koinViewModel()
+            val splitReceiptForAllViewModel: SplitReceiptForAllViewModel = koinViewModel()
             val data = backStackEntry.toRoute<ReceiptNavHostDestinations.EditReceiptScreenNav>()
             LaunchedEffect(key1 = Unit) {
-                splitReceiptViewModel.setEvent(SplitReceiptEvent.RetrieveReceiptData(data.receiptId))
-                splitReceiptViewModel.setEvent(SplitReceiptEvent.ActivateOrderReportCreator)
+                splitReceiptForOneViewModel.setEvent(
+                    SplitReceiptForOneEvent.RetrieveReceiptData(
+                        data.receiptId
+                    )
+                )
+                splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ActivateOrderReportCreator)
+                splitReceiptForAllViewModel.setEvent(
+                    SplitReceiptForAllEvents.RetrieveReceiptData(
+                        data.receiptId
+                    )
+                )
+                splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.ActivateOrderReportCreator)
             }
             SplitReceiptScreen(
                 receiptViewModel = receiptViewModel,
-                splitReceiptViewModel = splitReceiptViewModel,
+                splitReceiptForOneViewModel = splitReceiptForOneViewModel,
+                splitReceiptForAllViewModel = splitReceiptForAllViewModel,
             )
         }
 
@@ -105,7 +137,7 @@ private fun handleReceiptIntent(
             navHostController.navigate(
                 ReceiptNavHostDestinations.SplitReceiptScreenNav(receiptId = intent.receiptId)
             ) {
-                popUpTo<ReceiptNavHostDestinations.EditReceiptScreenNav>{
+                popUpTo<ReceiptNavHostDestinations.EditReceiptScreenNav> {
                     inclusive = true
                 }
             }
@@ -119,7 +151,7 @@ private fun handleReceiptIntent(
             navHostController.navigate(
                 ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
             ) {
-                popUpTo<ReceiptNavHostDestinations.SplitReceiptScreenNav>{
+                popUpTo<ReceiptNavHostDestinations.SplitReceiptScreenNav> {
                     inclusive = true
                 }
             }
