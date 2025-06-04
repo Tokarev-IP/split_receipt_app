@@ -40,10 +40,13 @@ fun AllReceiptsScreen(
     allReceiptViewModel: AllReceiptsViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
 ) {
+    val limitExceededMessage = stringResource(R.string.exceed_info_message)
     var showAcceptDeletionReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var receiptIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
 
     val allReceiptsList by allReceiptViewModel.getAllReceiptsList().collectAsStateWithLifecycle()
+    val isReceiptsAtMaxLimit by allReceiptViewModel.getIsReceiptsAtMaxLimit()
+        .collectAsStateWithLifecycle()
 
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
@@ -72,7 +75,10 @@ fun AllReceiptsScreen(
             FloatingActionButton(
                 modifier = Modifier.padding(12.dp),
                 onClick = {
-                    receiptViewModel.setEvent(ReceiptEvent.OpenCreateReceiptScreen)
+                    if (isReceiptsAtMaxLimit == false)
+                        receiptViewModel.setEvent(ReceiptEvent.OpenCreateReceiptScreen)
+                    else
+                        receiptViewModel.setEvent(ReceiptEvent.SetUiMessage(limitExceededMessage))
                 }
             ) {
                 Icon(
