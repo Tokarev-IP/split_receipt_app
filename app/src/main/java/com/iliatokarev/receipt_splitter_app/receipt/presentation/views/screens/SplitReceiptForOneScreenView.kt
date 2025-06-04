@@ -13,17 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,21 +43,22 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.OrderItemView
 
 @Composable
-internal fun SplitReceiptScreenView(
+internal fun SplitReceiptForOneScreenView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData?,
     orderDataList: List<OrderData>,
     orderReportText: String?,
     onSubtractOneQuantityClicked: (orderId: Long) -> Unit,
     onAddOneQuantityClicked: (orderId: Long) -> Unit,
-    orderListState: LazyListState,
     onEditReportClicked: () -> Unit,
+    onClearReportClicked: () -> Unit,
+    onShareReportClicked: () -> Unit,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
         receiptData?.let { receipt ->
-            SplitReceiptView(
+            SplitReceiptForOneView(
                 receiptData = receipt,
                 orderDataList = orderDataList,
                 orderReportText = orderReportText,
@@ -66,32 +68,35 @@ internal fun SplitReceiptScreenView(
                 onAddOneQuantityClicked = { orderId ->
                     onAddOneQuantityClicked(orderId)
                 },
-                orderListState = orderListState,
-                onEditReportClicked = { onEditReportClicked() }
+                onEditReportClicked = { onEditReportClicked() },
+                onClearReportClicked = { onClearReportClicked() },
+                onShareReportClicked = { onShareReportClicked() },
             )
-        } ?: ShimmedSplitReceiptsScreenView()
+        } ?: ShimmedSplitReceiptScreenView()
     }
 }
 
 @Composable
-private fun SplitReceiptView(
+private fun SplitReceiptForOneView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData,
     orderDataList: List<OrderData> = emptyList(),
     orderReportText: String? = null,
     onSubtractOneQuantityClicked: (orderId: Long) -> Unit = {},
     onAddOneQuantityClicked: (orderId: Long) -> Unit = {},
-    orderListState: LazyListState = rememberLazyListState(),
     onEditReportClicked: () -> Unit = {},
+    onClearReportClicked: () -> Unit = {},
+    onShareReportClicked: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp),
-        state = orderListState,
     ) {
         item {
+            Spacer(modifier = Modifier.height(20.dp))
             ReceiptInfoView(receiptData = receiptData)
+            Spacer(modifier = Modifier.height(20.dp))
         }
         items(orderDataList.size) { index ->
             val orderData = orderDataList[index]
@@ -103,16 +108,20 @@ private fun SplitReceiptView(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
+            Spacer(modifier = Modifier.height(8.dp))
             ReportBottomSheetView(
                 orderReportText = orderReportText,
-                onEditReportClicked = { onEditReportClicked() }
+                onEditReportClicked = { onEditReportClicked() },
+                onClearReportClicked = { onClearReportClicked() },
+                onShareReportClicked = { onShareReportClicked() },
             )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-private fun ReceiptInfoView(
+internal fun ReceiptInfoView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData,
 ) {
@@ -120,7 +129,6 @@ private fun ReceiptInfoView(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
         Text(
             fontWeight = FontWeight.Medium,
             fontSize = 24.sp,
@@ -179,7 +187,6 @@ private fun ReceiptInfoView(
             text = stringResource(R.string.total_sum, receiptData.total),
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -200,11 +207,11 @@ private fun SplitItemView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            OrderItemView(orderData = { orderData })
+            OrderItemView(orderData = orderData)
             Spacer(modifier = Modifier.height(4.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(4.dp))
-            SplitOrderItemView(
+            SubtractAddQuantityView(
                 onSubtractOrderClicked = { onSubtractQuantityClicked() },
                 onAddOneQuantityClicked = { onAddOneQuantityClicked() },
                 quantity = orderData.selectedQuantity,
@@ -216,7 +223,7 @@ private fun SplitItemView(
 }
 
 @Composable
-private fun SplitOrderItemView(
+private fun SubtractAddQuantityView(
     modifier: Modifier = Modifier,
     onSubtractOrderClicked: () -> Unit,
     onAddOneQuantityClicked: () -> Unit,
@@ -271,47 +278,74 @@ private fun ReportBottomSheetView(
     modifier: Modifier = Modifier,
     orderReportText: String?,
     onEditReportClicked: () -> Unit,
+    onClearReportClicked: () -> Unit,
+    onShareReportClicked: () -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        orderReportText?.let { orderText ->
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(8.dp))
+
+        orderReportText?.let { orderReport ->
             Row(
                 modifier = modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(
-                    onClick = { onEditReportClicked() }
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Outlined.Edit, stringResource(R.string.edit_order_report_button))
+                    IconButton(
+                        onClick = { onEditReportClicked() }
+                    ) {
+                        Icon(Icons.Outlined.Edit, stringResource(R.string.edit_order_report_button))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    IconButton(
+                        onClick = { onClearReportClicked() }
+                    ) {
+                        Icon(
+                            Icons.Outlined.Clear,
+                            stringResource(R.string.clear_order_report_button)
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Left,
-                    text = orderText,
+                    text = orderReport,
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
-        } ?: run {
+
+            OutlinedButton(
+                onClick = { onShareReportClicked() }
+            ) {
+                Icon(Icons.Outlined.Share, stringResource(R.string.share_order_report_button))
+            }
             Spacer(modifier = Modifier.height(8.dp))
+        } ?: run {
             Text(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Normal,
-                text = stringResource(R.string.no_order_report),
+                text = stringResource(R.string.order_report_is_empty),
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
         }
     }
 }
 
 @Composable
-private fun ShimmedSplitReceiptsScreenView(
+private fun ShimmedSplitReceiptScreenView(
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -343,8 +377,8 @@ private fun ShimmedSplitReceiptsScreenView(
 
 @Composable
 @Preview(showBackground = true)
-private fun SplitReceiptScreenViewPreview() {
-    SplitReceiptView(
+private fun SplitReceiptViewPreview() {
+    SplitReceiptForOneView(
         receiptData =
             ReceiptData(
                 id = 1,
@@ -381,6 +415,6 @@ private fun SplitReceiptScreenViewPreview() {
                     receiptId = 1,
                 ),
             ),
-        orderReportText = null,
+        orderReportText = "Report is not empty fdg d df fd  h dh hdf hf gdf dfg d gdf gdf g",
     )
 }
