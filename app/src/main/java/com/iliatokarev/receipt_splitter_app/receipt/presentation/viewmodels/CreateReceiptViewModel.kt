@@ -84,6 +84,11 @@ class CreateReceiptViewModel(
                     setUiState(CreateReceiptUiState.Show)
                     setIntent(CreateReceiptIntent.UserIsEmpty)
                 }
+
+                is ReceiptCreationResult.ReceiptIsTooBig -> {
+                    setUiMessageIntent(CreateReceiptUiMessageIntent.ReceiptIsTooBig)
+                    setUiState(CreateReceiptUiState.Show)
+                }
             }
         }
     }
@@ -128,6 +133,7 @@ interface CreateReceiptUiMessageIntent : BasicUiMessageIntent {
     class TooManyAttempts(val resetTimeMin: Int) : CreateReceiptUiMessageIntent
     object LoginRequired : CreateReceiptUiMessageIntent
     class AttemptsLeft(val attemptsLeft: Int) : CreateReceiptUiMessageIntent
+    object ReceiptIsTooBig : CreateReceiptUiMessageIntent
 }
 
 interface CreateReceiptIntent : BasicIntent {
@@ -142,4 +148,5 @@ enum class CreateReceiptUiMessage(val message: String) {
     TOO_MANY_ATTEMPTS("Too many attempts. Try again later."),
     LOGIN_REQUIRED("Login required."),
     ATTEMPTS_LEFT("You have attempts left."),
+    RECEIPT_IS_TOO_BIG("Receipt is too big. Use another image.")
 }
