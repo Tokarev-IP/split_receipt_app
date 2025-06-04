@@ -10,8 +10,10 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreReposito
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserId
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitter
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitterInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataCheckService
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataCheckServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreator
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCase
@@ -26,7 +28,8 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewMode
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
@@ -37,7 +40,8 @@ val receiptModule = module {
     viewModelOf(::ReceiptViewModel)
     viewModelOf(::AllReceiptsViewModel)
     viewModelOf(::EditReceiptViewModel)
-    viewModelOf(::SplitReceiptViewModel)
+    viewModelOf(::SplitReceiptForOneViewModel)
+    viewModelOf(::SplitReceiptForAllViewModel)
     viewModelOf(::CreateReceiptViewModel)
 
     // Services & Utilities
@@ -55,5 +59,6 @@ val receiptModule = module {
 
     // Business Logic
     factoryOf(::OrderReportCreator) { bind<OrderReportCreatorInterface>() }
-    factoryOf(::OrderDataSplitter) { bind<OrderDataSplitterInterface>() }
+    factoryOf(::OrderDataService) { bind<OrderDataServiceInterface>() }
+    factoryOf(::OrderDataCheckService) { bind<OrderDataCheckServiceInterface>() }
 }
