@@ -22,14 +22,12 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 @Composable
 internal fun OrderItemView(
     modifier: Modifier = Modifier,
-    orderData: () -> OrderData,
+    orderData: OrderData,
 ) {
-    val orderData = orderData()
-
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
             modifier = modifier
@@ -69,6 +67,6 @@ internal fun OrderItemView(
 @Composable
 private fun OrderItemViewPreview() {
     OrderItemView(
-        orderData = { OrderData(id = 1, receiptId = 2) }
+        orderData = OrderData(id = 1, receiptId = 2, translatedName = "test123")
     )
 }
