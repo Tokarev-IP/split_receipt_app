@@ -112,11 +112,11 @@ private fun EditReceiptView(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             AddOrderView(
                 onAddNewOrderClicked = { onAddNewOrderClicked() }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -134,7 +134,9 @@ private fun EditReceiptInfo(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .animateContentSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -148,17 +150,20 @@ private fun EditReceiptInfo(
                     value = receiptData.receiptName,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text(text = stringResource(R.string.receipt_name)) }
+                    label = { Text(text = stringResource(R.string.receipt_name)) },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 AnimatedVisibility(visible = expanded) {
-                    Column {
+                    Column(
+                        modifier = modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         OutlinedTextField(
                             value = receiptData.translatedReceiptName ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text(text = stringResource(R.string.translated_receipt_name)) }
+                            label = { Text(text = stringResource(R.string.translated_receipt_name)) },
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -275,7 +280,7 @@ private fun OrderCardView(
             modifier = modifier.padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            OrderItemView(orderData = { orderData })
+            OrderItemView(orderData = orderData)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
