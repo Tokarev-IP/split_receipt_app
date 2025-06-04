@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelClearButtonView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelDeleteButtonView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +47,42 @@ internal fun AcceptDeletionDialog(
                 )
                 Spacer(modifier = modifier.height(20.dp))
                 CancelDeleteButtonView(
+                    onCancelClicked = { onDismissRequest() },
+                    onAcceptClicked = { onAcceptClicked() }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AcceptClearingDialog(
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+    onAcceptClicked: () -> Unit,
+    infoText: String,
+) {
+    BasicAlertDialog(
+        modifier = modifier.fillMaxWidth(),
+        onDismissRequest = { onDismissRequest() },
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = infoText,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                )
+                Spacer(modifier = modifier.height(20.dp))
+                CancelClearButtonView(
                     onCancelClicked = { onDismissRequest() },
                     onAcceptClicked = { onAcceptClicked() }
                 )
