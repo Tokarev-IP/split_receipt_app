@@ -3,16 +3,14 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -25,10 +23,8 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -41,10 +37,16 @@ import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptEvent
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllEvents
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneEvent
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptClearingDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AdditionalSumDialog
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptScreenView
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.SetConsumerNameDialog
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptForAllScreenView
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptForOneScreenView
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptSubmenuBox
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 
@@ -53,15 +55,33 @@ import kotlinx.coroutines.flow.debounce
 fun SplitReceiptScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
-    splitReceiptViewModel: SplitReceiptViewModel,
+    splitReceiptForOneViewModel: SplitReceiptForOneViewModel,
+    splitReceiptForAllViewModel: SplitReceiptForAllViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
-    orderListState: LazyListState = rememberLazyListState(),
 ) {
-    val receiptData by splitReceiptViewModel.getSplitReceiptData().collectAsStateWithLifecycle()
-    val orderDataList by splitReceiptViewModel.getOrderDataList().collectAsStateWithLifecycle()
+    var isShowReceiptForAll by rememberSaveable { mutableStateOf(true) }
 
-    var orderReportText by rememberSaveable { mutableStateOf<String?>(null) }
+    //Receipt For One VM
+    val receiptDataForOne by splitReceiptForOneViewModel.getSplitReceiptData()
+        .collectAsStateWithLifecycle()
+    val orderDataListForOne by splitReceiptForOneViewModel.getOrderDataList()
+        .collectAsStateWithLifecycle()
+    var orderReportTextForOne by rememberSaveable { mutableStateOf<String?>(null) }
     var showAdditionalSumDialog by rememberSaveable { mutableStateOf(false) }
+    var showClearOrderReportForOneDialog by rememberSaveable { mutableStateOf(false) }
+
+    //Receipt For All VM
+    val receiptDataForAll by splitReceiptForAllViewModel.getSplitReceiptData()
+        .collectAsStateWithLifecycle()
+    val orderDataCheckListForAll by splitReceiptForAllViewModel.getOrderDataCheckList()
+        .collectAsStateWithLifecycle()
+    val consumerNameList by splitReceiptForAllViewModel.getConsumerNameList()
+        .collectAsStateWithLifecycle()
+    var orderReportTextForAll by rememberSaveable { mutableStateOf<String?>(null) }
+    var showSetConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
+    var showClearOrderReportForAllDialog by rememberSaveable { mutableStateOf(false) }
+    val isCheckStateExisted by splitReceiptForAllViewModel.getIsCheckStateExisted()
+        .collectAsStateWithLifecycle()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -70,19 +90,18 @@ fun SplitReceiptScreen(
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
 
-    val isOrderListAtBottom = remember {
-        derivedStateOf {
-            val lastVisibleItem = orderListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null &&
-                    lastVisibleItem.index >= orderListState.layoutInfo.totalItemsCount - AMOUNT_OF_ELEMENTS
-        }
+    LaunchedEffect(key1 = Unit) {
+        splitReceiptForOneViewModel.getOrderReportText()
+            .debounce(500L)
+            .collect { text ->
+                orderReportTextForOne = text
+            }
     }
 
     LaunchedEffect(key1 = Unit) {
-        splitReceiptViewModel.getOrderReportText()
-            .debounce(500L)
+        splitReceiptForAllViewModel.getOrderReportText()
             .collect { text ->
-                orderReportText = text
+                orderReportTextForAll = text
             }
     }
 
@@ -92,12 +111,22 @@ fun SplitReceiptScreen(
             TopAppBar(
                 scrollBehavior = scrollBehavior,
                 title = {
-                    Text(
-                        maxLines = ReceiptUIConstants.ONE_LINE,
-                        text = receiptData?.receiptName
-                            ?: stringResource(R.string.split_the_receipt),
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    AnimatedContent(
+                        targetState = isShowReceiptForAll,
+                    ) { showForAll ->
+                        if (showForAll)
+                            Text(
+                                maxLines = ReceiptUIConstants.ONE_LINE,
+                                text = stringResource(R.string.split_the_receipt_for_all),
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        else
+                            Text(
+                                maxLines = ReceiptUIConstants.ONE_LINE,
+                                text = stringResource(R.string.split_the_receipt_for_one),
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                    }
                 },
                 navigationIcon = {
                     IconButton(
@@ -110,85 +139,160 @@ fun SplitReceiptScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            receiptData?.id?.let { id ->
+                    SplitReceiptSubmenuBox(
+                        onEditReceiptClick = {
+                            receiptDataForOne?.id?.let { id ->
                                 receiptViewModel.setEvent(
                                     ReceiptEvent.OpenEditReceiptsScreen(
                                         receiptId = id
                                     )
                                 )
                             }
+                        },
+                        onSwapUiModesClick = {
+                            isShowReceiptForAll = !isShowReceiptForAll
                         }
-                    ) {
-                        Icon(
-                            Icons.Outlined.Edit,
-                            stringResource(R.string.edit_receipt_button)
-                        )
-                    }
+                    )
                 }
             )
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isOrderListAtBottom.value,
+                visible = isCheckStateExisted && isShowReceiptForAll,
                 enter = scaleIn(),
                 exit = scaleOut(),
             ) {
                 FloatingActionButton(
                     modifier = Modifier.padding(12.dp),
                     onClick = {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, orderReportText)
-                        }
-                        launcher.launch(Intent.createChooser(shareIntent, "Share order report"))
+                        showSetConsumerNameDialog = true
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Share,
-                        contentDescription = stringResource(R.string.share_order_report),
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = stringResource(R.string.set_consumer_name_button),
                     )
                 }
             }
         }
     ) { innerPadding ->
-        SplitReceiptScreenView(
-            modifier = modifier.padding(innerPadding),
-            receiptData = receiptData,
-            orderDataList = orderDataList,
-            orderReportText = orderReportText,
-            onSubtractOneQuantityClicked = { orderId ->
-                splitReceiptViewModel.setEvent(
-                    SplitReceiptEvent.RemoveOneQuantityToSpecificOrder(
-                        orderId
-                    )
+        AnimatedContent(
+            targetState = isShowReceiptForAll,
+        ) { showReceiptForAll ->
+            if (showReceiptForAll) {
+                SplitReceiptForAllScreenView(
+                    modifier = modifier.padding(innerPadding),
+                    receiptData = receiptDataForAll,
+                    orderDataCheckList = orderDataCheckListForAll,
+                    orderReportText = orderReportTextForAll,
+                    onShareOrderReportClick = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, orderReportTextForAll)
+                        }
+                        launcher.launch(Intent.createChooser(shareIntent, "Share order report"))
+                    },
+                    onClearOrderReportClick = { showClearOrderReportForAllDialog = true },
+                    onCheckStateChange = { state, position ->
+                        splitReceiptForAllViewModel.setEvent(
+                            SplitReceiptForAllEvents.SetCheckState(
+                                position = position,
+                                state = state,
+                            )
+                        )
+                    },
+                    onClearConsumerNameClick = { position ->
+                        splitReceiptForAllViewModel.setEvent(
+                            SplitReceiptForAllEvents.ClearConsumerName(position = position)
+                        )
+                    },
                 )
-            },
-            onAddOneQuantityClicked = { orderId ->
-                splitReceiptViewModel.setEvent(
-                    SplitReceiptEvent.AddOneQuantityToSpecificOrder(
-                        orderId
-                    )
+            } else {
+                SplitReceiptForOneScreenView(
+                    modifier = modifier.padding(innerPadding),
+                    receiptData = receiptDataForOne,
+                    orderDataList = orderDataListForOne,
+                    orderReportText = orderReportTextForOne,
+                    onSubtractOneQuantityClicked = { orderId ->
+                        splitReceiptForOneViewModel.setEvent(
+                            SplitReceiptForOneEvent.RemoveOneQuantityToSpecificOrder(
+                                orderId
+                            )
+                        )
+                    },
+                    onAddOneQuantityClicked = { orderId ->
+                        splitReceiptForOneViewModel.setEvent(
+                            SplitReceiptForOneEvent.AddOneQuantityToSpecificOrder(
+                                orderId
+                            )
+                        )
+                    },
+                    onEditReportClicked = { showAdditionalSumDialog = true },
+                    onClearReportClicked = { showClearOrderReportForOneDialog = true },
+                    onShareReportClicked = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, orderReportTextForOne)
+                        }
+                        launcher.launch(Intent.createChooser(shareIntent, "Share order report"))
+                    },
                 )
-            },
-            orderListState = orderListState,
-            onEditReportClicked = { showAdditionalSumDialog = true }
-        )
+            }
+        }
 
-        if (showAdditionalSumDialog) {
+        if (showAdditionalSumDialog && isShowReceiptForAll == false) {
             AdditionalSumDialog(
                 onDismissRequest = { showAdditionalSumDialog = false },
                 onAddItemClicked = { pair ->
-                    splitReceiptViewModel.setEvent(SplitReceiptEvent.AddAdditionalSum(pair))
+//                    showAdditionalSumDialog = false
+                    splitReceiptForOneViewModel.setEvent(
+                        SplitReceiptForOneEvent.AddAdditionalSum(pair = pair)
+                    )
                 },
-                additionalSumList = { receiptData?.additionalSumList ?: emptyList() },
+                additionalSumList = { receiptDataForOne?.additionalSumList ?: emptyList() },
                 onRemoveItemClicked = { pair ->
-                    splitReceiptViewModel.setEvent(SplitReceiptEvent.RemoveAdditionalSum(pair))
+                    splitReceiptForOneViewModel.setEvent(
+                        SplitReceiptForOneEvent.RemoveAdditionalSum(
+                            pair
+                        )
+                    )
                 }
+            )
+        }
+
+        if (showClearOrderReportForOneDialog && isShowReceiptForAll == false) {
+            AcceptClearingDialog(
+                onDismissRequest = { showClearOrderReportForOneDialog = false },
+                onAcceptClicked = {
+                    splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ClearOrderReport)
+                    showClearOrderReportForOneDialog = false
+                },
+                infoText = stringResource(R.string.clear_order_report_text),
+            )
+        }
+
+        if (showSetConsumerNameDialog && isShowReceiptForAll) {
+            SetConsumerNameDialog(
+                consumerNamesList = consumerNameList,
+                onDismissClick = { showSetConsumerNameDialog = false },
+                onNameSelectedClick = { name ->
+                    splitReceiptForAllViewModel.setEvent(
+                        SplitReceiptForAllEvents.SetConsumerName(name)
+                    )
+                    showSetConsumerNameDialog = false
+                }
+            )
+        }
+
+        if (showClearOrderReportForAllDialog && isShowReceiptForAll) {
+            AcceptClearingDialog(
+                onDismissRequest = { showClearOrderReportForAllDialog = false },
+                onAcceptClicked = {
+                    splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.ClearOrderReport)
+                    showClearOrderReportForAllDialog = false
+                },
+                infoText = stringResource(R.string.clear_order_report_text),
             )
         }
     }
 }
-
-private const val AMOUNT_OF_ELEMENTS = 1
