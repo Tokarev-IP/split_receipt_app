@@ -46,6 +46,10 @@ class ReceiptViewModel() : BasicViewModel<
             is ReceiptEvent.SignOut -> {
                 setIntent(ReceiptIntent.UserIsEmpty)
             }
+
+            is ReceiptEvent.SetUiMessage -> {
+                setUiMessageIntent(ReceiptUiMessageIntent.UiMessage(newEvent.message))
+            }
         }
     }
 }
@@ -64,6 +68,7 @@ sealed interface ReceiptEvent : BasicEvent {
     object GoBack : ReceiptEvent
     object OpenSettings : ReceiptEvent
     object SignOut : ReceiptEvent
+    class SetUiMessage(val message: String) : ReceiptEvent
 }
 
 interface ReceiptIntent : BasicIntent {
@@ -77,7 +82,9 @@ interface ReceiptIntent : BasicIntent {
     object UserIsEmpty : ReceiptIntent
 }
 
-interface ReceiptUiMessageIntent : BasicUiMessageIntent
+interface ReceiptUiMessageIntent : BasicUiMessageIntent {
+    class UiMessage(val message: String) : ReceiptUiMessageIntent
+}
 
 enum class ReceiptUiMessage(val msg: String) {
     INTERNAL_ERROR("Internal error"),
