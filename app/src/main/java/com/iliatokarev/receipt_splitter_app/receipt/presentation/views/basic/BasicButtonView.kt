@@ -61,3 +61,28 @@ internal fun CancelDeleteButtonView(
         }
     }
 }
+
+@Composable
+internal fun CancelClearButtonView(
+    modifier: Modifier = Modifier,
+    onCancelClicked: () -> Unit = {},
+    onAcceptClicked: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedButton(
+            onClick = { onCancelClicked() },
+        ) {
+            Text(text = stringResource(R.string.cancel))
+        }
+
+        Button(
+            onClick = { onAcceptClicked() },
+        ) {
+            Text(text = stringResource(R.string.delete))
+        }
+    }
+}
