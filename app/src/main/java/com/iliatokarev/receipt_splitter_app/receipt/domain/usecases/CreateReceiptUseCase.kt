@@ -7,6 +7,8 @@ import com.iliatokarev.receipt_splitter_app.main.basic.convertMillisToMinutes
 import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptDbRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ONE_ATTEMPT
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverterInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKitInterface
@@ -83,22 +85,25 @@ class CreateReceiptUseCase(
                     remainingTime = receiptVertexConstants.deltaTimeBetweenAttempts.convertMillisToMinutes()
                 )
             }
+            val remainingAttempts = receiptVertexConstants.maximumAttemptsForUser - userAttempts
             val receiptJson = receiptService.getReceiptJsonFromImages(
                 listOfBitmaps = listOfBitmaps,
                 requestText = receiptVertexConstants.requestText,
                 aiModel = receiptVertexConstants.aiModel,
                 translateTo = translateTo,
             )
-            val receiptDataJson = Json.decodeFromString<ReceiptDataJson>(receiptJson)
-            if (receiptDataJson.orders.isNotEmpty()) {
-                val receiptId: Long = receiptDbRepository.insertReceiptDataJson(receiptDataJson)
-                return@withContext ReceiptCreationResult.Success(
-                    receiptId = receiptId,
-                    remainingAttempts = receiptVertexConstants.maximumAttemptsForUser - userAttempts,
-                )
-            } else {
+            val receiptDataJson: ReceiptDataJson =
+                Json.decodeFromString<ReceiptDataJson>(receiptJson)
+            val correctedReceiptDataJson = correctReceiptDataJson(receiptDataJson)
+            if (correctedReceiptDataJson.orders.size > MAXIMUM_AMOUNT_OF_DISHES)
+                return@withContext ReceiptCreationResult.ReceiptIsTooBig
+            if (correctedReceiptDataJson.orders.isEmpty())
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
-            }
+            val receiptId: Long = receiptDbRepository.insertReceiptDataJson(correctedReceiptDataJson)
+            return@withContext ReceiptCreationResult.Success(
+                receiptId = receiptId,
+                remainingAttempts = remainingAttempts,
+            )
         }.getOrElse { e: Throwable ->
             delay(DELAY_TIME)
             return@withContext ReceiptCreationResult.Error(
@@ -188,6 +193,37 @@ class CreateReceiptUseCase(
     private fun getUserId(): String? {
         return firebaseUserId.getUserId()
     }
+
+    private fun correctReceiptDataJson(
+        receiptDataJson: ReceiptDataJson,
+    ): ReceiptDataJson {
+        return receiptDataJson.copy(
+            receiptName = receiptDataJson.receiptName.take(MAXIMUM_TEXT_LENGTH),
+            translatedReceiptName = receiptDataJson.translatedReceiptName?.take(MAXIMUM_TEXT_LENGTH),
+            date = receiptDataJson.date.take(MAXIMUM_TEXT_LENGTH),
+            orders = receiptDataJson.orders.take(MAXIMUM_AMOUNT_OF_DISHES).map { order ->
+                order.copy(
+                    name = order.name.take(MAXIMUM_TEXT_LENGTH),
+                    translatedName = order.translatedName?.take(MAXIMUM_TEXT_LENGTH),
+                    quantity = order.quantity.takeIf { order.quantity <= DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISH_QUANTITY }
+                        ?: DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISH_QUANTITY,
+                    price = order.price.takeIf { order.price <= DataConstantsReceipt.MAXIMUM_SUM }
+                        ?: DataConstantsReceipt.MAXIMUM_SUM.toFloat()
+                )
+            },
+            total = receiptDataJson.total.takeIf { receiptDataJson.total <= DataConstantsReceipt.MAXIMUM_SUM }
+                ?: DataConstantsReceipt.MAXIMUM_SUM.toFloat(),
+            tax = if (receiptDataJson.tax == null) receiptDataJson.tax else
+                receiptDataJson.tax.takeIf { receiptDataJson.tax <= DataConstantsReceipt.MAXIMUM_PERCENT }
+                    ?: DataConstantsReceipt.MAXIMUM_PERCENT.toFloat(),
+            discount = if (receiptDataJson.discount == null) receiptDataJson.discount else
+                receiptDataJson.discount.takeIf { receiptDataJson.discount <= DataConstantsReceipt.MAXIMUM_PERCENT }
+                    ?: DataConstantsReceipt.MAXIMUM_PERCENT.toFloat(),
+            tip = if (receiptDataJson.tip == null) receiptDataJson.tip else
+                receiptDataJson.tip.takeIf { receiptDataJson.tip <= DataConstantsReceipt.MAXIMUM_PERCENT }
+                    ?: DataConstantsReceipt.MAXIMUM_PERCENT.toFloat(),
+        )
+    }
 }
 
 interface CreateReceiptUseCaseInterface {
@@ -206,4 +242,5 @@ sealed interface ReceiptCreationResult {
     class Error(val msg: String) : ReceiptCreationResult
     class TooManyAttempts(val remainingTime: Int) : ReceiptCreationResult
     object LoginRequired : ReceiptCreationResult
+    object ReceiptIsTooBig : ReceiptCreationResult
 }
