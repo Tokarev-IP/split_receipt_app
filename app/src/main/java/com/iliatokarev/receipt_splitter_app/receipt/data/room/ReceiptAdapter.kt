@@ -56,7 +56,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         )
     }
 
-    override suspend fun transformOrderDataJsonListToOrderEntity(
+    override suspend fun transformOrderDataJsonListToOrderEntityList(
         orderDataJsonList: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity> {
@@ -82,6 +82,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = orderEntity.quantity,
                 price = orderEntity.price.roundToTwoDecimalPlaces(),
                 receiptId = orderEntity.receiptId,
+                consumerNames = orderEntity.consumerNames.split("_"),
             )
         }
     }
@@ -110,6 +111,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
+                consumerNames = consumerNames.joinToString("_")
             )
         }
     }
@@ -122,6 +124,23 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
+                consumerNames = consumerNames.joinToString("_")
+            )
+        }
+    }
+
+    override suspend fun transformOrderDataListToOrderEntityList(
+        orderDataList: List<OrderData>
+    ): List<OrderEntity> {
+        return orderDataList.map { orderData ->
+            OrderEntity(
+                id = orderData.id,
+                name = orderData.name,
+                translatedName = orderData.translatedName,
+                quantity = orderData.quantity,
+                price = orderData.price.roundToTwoDecimalPlaces(),
+                receiptId = orderData.receiptId,
+                consumerNames = orderData.consumerNames.joinToString("_")
             )
         }
     }
@@ -140,7 +159,7 @@ interface ReceiptAdapterInterface {
         receiptDataJson: ReceiptDataJson
     ): ReceiptEntity
 
-    suspend fun transformOrderDataJsonListToOrderEntity(
+    suspend fun transformOrderDataJsonListToOrderEntityList(
         orderListData: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity>
@@ -160,4 +179,8 @@ interface ReceiptAdapterInterface {
     suspend fun transformOrderDataToNewOrderEntity(
         orderData: OrderData
     ): OrderEntity
+
+    suspend fun transformOrderDataListToOrderEntityList(
+        orderDataList: List<OrderData>
+    ): List<OrderEntity>
 }

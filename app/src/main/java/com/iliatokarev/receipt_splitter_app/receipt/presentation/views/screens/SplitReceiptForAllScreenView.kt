@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,19 +50,21 @@ import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Swap
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataCheck
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 
 @Composable
 internal fun SplitReceiptForAllScreenView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData?,
-    orderDataCheckList: List<OrderDataCheck>,
+    orderDataSplitList: List<OrderDataSplit>,
     orderReportText: String?,
     onShareOrderReportClick: () -> Unit,
     onClearOrderReportClick: () -> Unit,
     onCheckStateChange: (Boolean, Int) -> Unit,
     onClearConsumerNameClick: (Int) -> Unit,
+    onSaveOrderDataSplitClick: () -> Unit,
+    isSavedState: Boolean,
 ) {
     Box(
         modifier = modifier.fillMaxSize()
@@ -70,7 +72,7 @@ internal fun SplitReceiptForAllScreenView(
         receiptData?.let {
             SplitReceiptForAllView(
                 receiptData = receiptData,
-                orderDataCheckList = orderDataCheckList,
+                orderDataSplitList = orderDataSplitList,
                 orderReportText = orderReportText,
                 onShareOrderReportClick = { onShareOrderReportClick() },
                 onClearOrderReportClick = { onClearOrderReportClick() },
@@ -80,6 +82,8 @@ internal fun SplitReceiptForAllScreenView(
                 onClearConsumerNameClick = { position ->
                     onClearConsumerNameClick(position)
                 },
+                onSaveOrderDataSplitClick = { onSaveOrderDataSplitClick() },
+                isSavedState = isSavedState,
             )
         } ?: ShimmedSplitReceiptForAllScreenView()
     }
@@ -89,12 +93,14 @@ internal fun SplitReceiptForAllScreenView(
 private fun SplitReceiptForAllView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData,
-    orderDataCheckList: List<OrderDataCheck>,
+    orderDataSplitList: List<OrderDataSplit>,
     orderReportText: String?,
     onShareOrderReportClick: () -> Unit = {},
     onClearOrderReportClick: () -> Unit = {},
     onCheckStateChange: (Boolean, Int) -> Unit = { _, _ -> },
     onClearConsumerNameClick: (Int) -> Unit = {},
+    onSaveOrderDataSplitClick: () -> Unit = {},
+    isSavedState: Boolean = false,
 ) {
     LazyColumn(
         modifier = modifier
@@ -106,10 +112,10 @@ private fun SplitReceiptForAllView(
             ReceiptInfoView(receiptData = receiptData)
             Spacer(modifier = Modifier.height(20.dp))
         }
-        items(orderDataCheckList.size) { index ->
-            val orderDataCheck = orderDataCheckList[index]
+        items(orderDataSplitList.size) { index ->
+            val orderDataCheck = orderDataSplitList[index]
             OrderDataCheckCardItem(
-                orderDataCheck = orderDataCheck,
+                orderDataSplit = orderDataCheck,
                 onCheckedChange = { state ->
                     onCheckStateChange(state, index)
                 },
@@ -125,6 +131,8 @@ private fun SplitReceiptForAllView(
                 receiptReportText = orderReportText,
                 onShareOrderReportClick = { onShareOrderReportClick() },
                 onClearOrderReportClick = { onClearOrderReportClick() },
+                onSaveOrderDataSplitClick = { onSaveOrderDataSplitClick() },
+                isSavedState = isSavedState,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -135,12 +143,12 @@ private fun SplitReceiptForAllView(
 @Composable
 private fun OrderDataCheckCardItem(
     modifier: Modifier = Modifier,
-    orderDataCheck: OrderDataCheck,
+    orderDataSplit: OrderDataSplit,
     onCheckedChange: (Boolean) -> Unit,
     onClearConsumerNameClick: () -> Unit,
 ) {
     AnimatedContent(
-        targetState = orderDataCheck.consumerName.isNullOrEmpty(),
+        targetState = orderDataSplit.consumerName.isNullOrEmpty(),
         transitionSpec = {
             slideInHorizontally(
                 initialOffsetX = { fullWidth -> fullWidth },
@@ -158,10 +166,10 @@ private fun OrderDataCheckCardItem(
                 modifier = modifier
                     .fillMaxWidth()
                     .animateContentSize(),
-                onClick = { onCheckedChange(!orderDataCheck.checked) }
+                onClick = { onCheckedChange(!orderDataSplit.checked) },
             ) {
                 OrderDataCheckItem(
-                    orderDataCheck = orderDataCheck,
+                    orderDataSplit = orderDataSplit,
                     onCheckedChange = { checked ->
                         onCheckedChange(checked)
                     },
@@ -174,7 +182,7 @@ private fun OrderDataCheckCardItem(
                     .animateContentSize(),
             ) {
                 OrderDataCheckItemWithConsumer(
-                    orderDataCheck = orderDataCheck,
+                    orderDataSplit = orderDataSplit,
                     onCheckedChange = { checked ->
                         onCheckedChange(checked)
                     },
@@ -187,7 +195,7 @@ private fun OrderDataCheckCardItem(
 @Composable
 private fun OrderDataCheckItem(
     modifier: Modifier = Modifier,
-    orderDataCheck: OrderDataCheck,
+    orderDataSplit: OrderDataSplit,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
@@ -198,11 +206,11 @@ private fun OrderDataCheckItem(
     ) {
         Checkbox(
             modifier = modifier.weight(2f),
-            checked = orderDataCheck.checked,
+            checked = orderDataSplit.checked,
             onCheckedChange = { checked ->
                 onCheckedChange(checked)
             },
-            enabled = orderDataCheck.consumerName.isNullOrEmpty(),
+            enabled = orderDataSplit.consumerName.isNullOrEmpty(),
         )
         Column(
             modifier = modifier.weight(12f)
@@ -216,11 +224,11 @@ private fun OrderDataCheckItem(
                     modifier = modifier.weight(10f),
                 ) {
                     Text(
-                        text = orderDataCheck.name,
+                        text = orderDataSplit.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Normal,
                     )
-                    orderDataCheck.translatedName?.let { translatedName ->
+                    orderDataSplit.translatedName?.let { translatedName ->
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = translatedName,
@@ -232,7 +240,7 @@ private fun OrderDataCheckItem(
                 Text(
                     modifier = modifier.weight(4f),
                     textAlign = TextAlign.End,
-                    text = orderDataCheck.price.toString(),
+                    text = orderDataSplit.price.toString(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Normal,
                 )
@@ -244,7 +252,7 @@ private fun OrderDataCheckItem(
 @Composable
 private fun OrderDataCheckItemWithConsumer(
     modifier: Modifier = Modifier,
-    orderDataCheck: OrderDataCheck,
+    orderDataSplit: OrderDataSplit,
     onCheckedChange: (Boolean) -> Unit,
     onClearConsumerNameClick: () -> Unit,
 ) {
@@ -256,16 +264,16 @@ private fun OrderDataCheckItemWithConsumer(
     ) {
         Checkbox(
             modifier = modifier.weight(2f),
-            checked = orderDataCheck.checked,
+            checked = orderDataSplit.checked,
             onCheckedChange = { checked ->
                 onCheckedChange(checked)
             },
-            enabled = orderDataCheck.consumerName.isNullOrEmpty(),
+            enabled = orderDataSplit.consumerName.isNullOrEmpty(),
         )
         Column(
             modifier = modifier.weight(12f)
         ) {
-            orderDataCheck.consumerName?.let { consumer ->
+            orderDataSplit.consumerName?.let { consumer ->
                 Row(
                     modifier = modifier
                         .fillMaxWidth()
@@ -302,11 +310,11 @@ private fun OrderDataCheckItemWithConsumer(
                     modifier = modifier.weight(10f),
                 ) {
                     Text(
-                        text = orderDataCheck.name,
+                        text = orderDataSplit.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Normal,
                     )
-                    orderDataCheck.translatedName?.let { translatedName ->
+                    orderDataSplit.translatedName?.let { translatedName ->
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = translatedName,
@@ -318,7 +326,7 @@ private fun OrderDataCheckItemWithConsumer(
                 Text(
                     modifier = modifier.weight(4f),
                     textAlign = TextAlign.End,
-                    text = orderDataCheck.price.toString(),
+                    text = orderDataSplit.price.toString(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Normal,
                 )
@@ -333,11 +341,31 @@ private fun ReceiptReportTextView(
     receiptReportText: String?,
     onShareOrderReportClick: () -> Unit,
     onClearOrderReportClick: () -> Unit,
+    onSaveOrderDataSplitClick: () -> Unit,
+    isSavedState: Boolean,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        OutlinedButton(
+            onClick = { onSaveOrderDataSplitClick() },
+            enabled = isSavedState == false,
+        ) {
+            AnimatedContent(
+                targetState = isSavedState,
+            ) { isSaved ->
+                if (isSaved)
+                    Row {
+                        Icon(Icons.Outlined.Check, stringResource(R.string.data_was_saved))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = stringResource(R.string.saved))
+                    }
+                else
+                    Text(text = stringResource(R.string.save))
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
         receiptReportText?.let { orderReport ->
@@ -368,10 +396,7 @@ private fun ReceiptReportTextView(
             OutlinedButton(
                 onClick = { onShareOrderReportClick() }
             ) {
-                Icon(
-                    Icons.Outlined.Share,
-                    stringResource(R.string.share_order_report_button)
-                )
+                Text(text = stringResource(R.string.share))
             }
             Spacer(modifier = Modifier.height(8.dp))
         } ?: run {
@@ -489,33 +514,37 @@ private fun SplitReceiptForAllViewPreview() {
                 discount = null,
                 tip = null,
             ),
-        orderDataCheckList =
+        orderDataSplitList =
             listOf(
-                OrderDataCheck(
+                OrderDataSplit(
                     name = "order1",
                     translatedName = "заказ 1",
                     price = 999000.0f,
                     consumerName = null,
                     checked = true,
+                    orderDataId = 1,
                 ),
-                OrderDataCheck(
+                OrderDataSplit(
                     name = "order2",
                     price = 20.0f,
                     consumerName = "Alex",
                     checked = true,
+                    orderDataId = 1,
                 ),
-                OrderDataCheck(
+                OrderDataSplit(
                     name = "order3 fdgdf dfgfdg dfgdfg erter xcxv sdfdsf sdfsdf asd jyhn vcvf erret fgdfg",
                     translatedName = "перевод 1223 паошпов вошвоп вопшавоп ушегуре впргвр",
                     price = 30.0f,
                     consumerName = null,
                     checked = false,
+                    orderDataId = 1,
                 ),
-                OrderDataCheck(
+                OrderDataSplit(
                     name = "order3 fdgdf dfgfdg dfgdfg erter xcxv sdfdsf sdfsdf asd jyhn vcvf erret fgdfg",
                     price = 30.0f,
                     consumerName = "Deny with friends and his dog JoJo",
                     checked = false,
+                    orderDataId = 1,
                 ),
             ),
         orderReportText = "Report 123 fjdfg kdgjdkfg df djfjg fdg fdjg j dflkjdfgj dfgjdfjg",

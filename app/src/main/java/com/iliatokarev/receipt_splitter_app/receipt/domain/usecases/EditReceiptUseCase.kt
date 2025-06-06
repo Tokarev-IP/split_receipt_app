@@ -32,9 +32,7 @@ class EditReceiptUseCase(
         }.fold(
             onSuccess = { BasicFunResponse.Success },
             onFailure = { e ->
-                BasicFunResponse.Error(
-                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                BasicFunResponse.Error(e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg)
             }
         )
     }
@@ -47,9 +45,7 @@ class EditReceiptUseCase(
         }.fold(
             onSuccess = { BasicFunResponse.Success },
             onFailure = { e ->
-                BasicFunResponse.Error(
-                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                BasicFunResponse.Error(e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg)
             }
         )
     }
@@ -62,9 +58,7 @@ class EditReceiptUseCase(
         }.fold(
             onSuccess = { BasicFunResponse.Success },
             onFailure = { e ->
-                BasicFunResponse.Error(
-                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                BasicFunResponse.Error(e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg)
             }
         )
     }
@@ -77,9 +71,7 @@ class EditReceiptUseCase(
         }.fold(
             onSuccess = { BasicFunResponse.Success },
             onFailure = { e ->
-                BasicFunResponse.Error(
-                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                BasicFunResponse.Error(e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg)
             }
         )
     }
@@ -92,9 +84,7 @@ class EditReceiptUseCase(
         }.fold(
             onSuccess = { BasicFunResponse.Success },
             onFailure = { e ->
-                BasicFunResponse.Error(
-                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                BasicFunResponse.Error(e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg)
             }
         )
     }

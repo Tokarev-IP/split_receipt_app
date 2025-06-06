@@ -10,8 +10,8 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreReposito
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserId
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataCheckService
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataCheckServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitService
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreator
@@ -60,5 +60,5 @@ val receiptModule = module {
     // Business Logic
     factoryOf(::OrderReportCreator) { bind<OrderReportCreatorInterface>() }
     factoryOf(::OrderDataService) { bind<OrderDataServiceInterface>() }
-    factoryOf(::OrderDataCheckService) { bind<OrderDataCheckServiceInterface>() }
+    factoryOf(::OrderDataSplitService) { bind<OrderDataSplitServiceInterface>() }
 }

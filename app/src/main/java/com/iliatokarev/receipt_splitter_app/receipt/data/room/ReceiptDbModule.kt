@@ -10,12 +10,12 @@ val receiptDbModule = module {
     single {
         Room.databaseBuilder(
             androidContext(),
-            AppDatabase::class.java,
+            ReceiptAppDatabase::class.java,
             "receipt_database"
         ).build()
     }
 
-    single { get<AppDatabase>().receiptDao() }
+    single { get<ReceiptAppDatabase>().receiptDao() }
 
     factoryOf(::ReceiptAdapter) { bind<ReceiptAdapterInterface>() }
     factoryOf(::ReceiptDbRepository) { bind<ReceiptDbRepositoryInterface>() }

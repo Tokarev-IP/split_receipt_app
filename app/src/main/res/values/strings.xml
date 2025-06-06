@@ -39,6 +39,7 @@
     <string name="edit_order_button">Edit order button</string>
     <string name="edit_order_report_button">Edit order report button</string>
     <string name="clear_order_report_button">Clear order report button</string>
+    <string name="save_split_data_button">Save split data button</string>
     <string name="receipt_was_not_found">Inner error. Receipt was not found. Try again</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
@@ -140,6 +141,8 @@
     <string name="previous_names">Previous names</string>
     <string name="receipt_is_too_big">Receipt is too big. Use another image</string>
     <string name="exceed_info_message">The limit has been exceeded</string>
+    <string name="data_was_saved">Data was saved</string>
+    <string name="saved">Saved</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>

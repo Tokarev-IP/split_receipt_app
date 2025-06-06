@@ -1,6 +1,8 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
+import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -29,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +41,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllEvents
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllUiMessageIntent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
@@ -58,8 +62,12 @@ fun SplitReceiptScreen(
     splitReceiptForOneViewModel: SplitReceiptForOneViewModel,
     splitReceiptForAllViewModel: SplitReceiptForAllViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
+    localContext: Context = LocalContext.current,
 ) {
+    val internalErrorText = stringResource(R.string.internal_error)
+
     var isShowReceiptForAll by rememberSaveable { mutableStateOf(true) }
+    var isDataSavedState by rememberSaveable { mutableStateOf(false) }
 
     //Receipt For One VM
     val receiptDataForOne by splitReceiptForOneViewModel.getSplitReceiptData()
@@ -73,7 +81,7 @@ fun SplitReceiptScreen(
     //Receipt For All VM
     val receiptDataForAll by splitReceiptForAllViewModel.getSplitReceiptData()
         .collectAsStateWithLifecycle()
-    val orderDataCheckListForAll by splitReceiptForAllViewModel.getOrderDataCheckList()
+    val orderDataSplitListForAll by splitReceiptForAllViewModel.getOrderDataSplitList()
         .collectAsStateWithLifecycle()
     val consumerNameList by splitReceiptForAllViewModel.getConsumerNameList()
         .collectAsStateWithLifecycle()
@@ -89,6 +97,20 @@ fun SplitReceiptScreen(
 
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
+
+    LaunchedEffect(key1 = Unit) {
+        splitReceiptForAllViewModel.getUiMessageIntentFlow().collect { uiMessageState ->
+            when (uiMessageState) {
+                is SplitReceiptForAllUiMessageIntent.InternalError -> {
+                    Toast.makeText(localContext, internalErrorText, Toast.LENGTH_SHORT).show()
+                }
+
+                is SplitReceiptForAllUiMessageIntent.DataWasSaved -> {
+                    isDataSavedState = true
+                }
+            }
+        }
+    }
 
     LaunchedEffect(key1 = Unit) {
         splitReceiptForOneViewModel.getOrderReportText()
@@ -183,7 +205,7 @@ fun SplitReceiptScreen(
                 SplitReceiptForAllScreenView(
                     modifier = modifier.padding(innerPadding),
                     receiptData = receiptDataForAll,
-                    orderDataCheckList = orderDataCheckListForAll,
+                    orderDataSplitList = orderDataSplitListForAll,
                     orderReportText = orderReportTextForAll,
                     onShareOrderReportClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -200,12 +222,18 @@ fun SplitReceiptScreen(
                                 state = state,
                             )
                         )
+                        isDataSavedState = false
                     },
                     onClearConsumerNameClick = { position ->
                         splitReceiptForAllViewModel.setEvent(
                             SplitReceiptForAllEvents.ClearConsumerName(position = position)
                         )
+                        isDataSavedState = false
                     },
+                    onSaveOrderDataSplitClick = {
+                        splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.SaveOrderDataSplit)
+                    },
+                    isSavedState = isDataSavedState,
                 )
             } else {
                 SplitReceiptForOneScreenView(
@@ -244,7 +272,6 @@ fun SplitReceiptScreen(
             AdditionalSumDialog(
                 onDismissRequest = { showAdditionalSumDialog = false },
                 onAddItemClicked = { pair ->
-//                    showAdditionalSumDialog = false
                     splitReceiptForOneViewModel.setEvent(
                         SplitReceiptForOneEvent.AddAdditionalSum(pair = pair)
                     )
@@ -252,9 +279,7 @@ fun SplitReceiptScreen(
                 additionalSumList = { receiptDataForOne?.additionalSumList ?: emptyList() },
                 onRemoveItemClicked = { pair ->
                     splitReceiptForOneViewModel.setEvent(
-                        SplitReceiptForOneEvent.RemoveAdditionalSum(
-                            pair
-                        )
+                        SplitReceiptForOneEvent.RemoveAdditionalSum(pair = pair)
                     )
                 }
             )

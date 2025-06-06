@@ -3,7 +3,7 @@ package com.iliatokarev.receipt_splitter_app.receipt.domain
 import com.iliatokarev.receipt_splitter_app.main.basic.isNotZero
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataCheck
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -79,7 +79,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
 
     override suspend fun buildOrderReportForAll(
         receiptData: ReceiptData,
-        orderDataCheckList: List<OrderDataCheck>,
+        orderDataSplitList: List<OrderDataSplit>,
         consumerNameList: List<String>,
     ): String? {
         return withContext(Dispatchers.Default) {
@@ -99,7 +99,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                 for (consumerName in consumerNameList) {
                     var consumerFinalPrice = 0F
                     val newOrderDataCheckList =
-                        orderDataCheckList.filter { it.consumerName == consumerName }
+                        orderDataSplitList.filter { it.consumerName == consumerName }
 
                     orderReport.append("${consumerName}\n")
 
@@ -147,7 +147,7 @@ interface OrderReportCreatorInterface {
 
     suspend fun buildOrderReportForAll(
         receiptData: ReceiptData,
-        orderDataCheckList: List<OrderDataCheck>,
+        orderDataSplitList: List<OrderDataSplit>,
         consumerNameList: List<String>,
     ): String?
 }

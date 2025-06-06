@@ -50,7 +50,9 @@ data class OrderEntity(
     @ColumnInfo(name = "price")
     val price: Float,
     @ColumnInfo(name = "receipt_id")
-    val receiptId: Long
+    val receiptId: Long,
+    @ColumnInfo(name = "consumer_names")
+    val consumerNames: String = "",
 )
 
 data class ReceiptWithOrdersEntity(

@@ -15,7 +15,7 @@ class ReceiptDbRepository(
     override suspend fun insertReceiptDataJson(receiptDataJson: ReceiptDataJson): Long {
         val receiptEntity = receiptAdapter.transformReceiptDataJsonToReceiptEntity(receiptDataJson)
         val receiptId = receiptDao.insertReceipt(receipt = receiptEntity)
-        val orderEntityList = receiptAdapter.transformOrderDataJsonListToOrderEntity(
+        val orderEntityList = receiptAdapter.transformOrderDataJsonListToOrderEntityList(
                 orderDataJsonList = receiptDataJson.orders,
                 receiptId = receiptId,
             )
@@ -36,6 +36,12 @@ class ReceiptDbRepository(
     override suspend fun insertNewOrderData(orderData: OrderData) {
         val orderEntity = receiptAdapter.transformOrderDataToNewOrderEntity(orderData)
         receiptDao.insertOrder(order = orderEntity)
+    }
+
+    override suspend fun insertOrderDataLists(orderDataList: List<OrderData>) {
+        val orderEntityList =
+            receiptAdapter.transformOrderDataListToOrderEntityList(orderDataList = orderDataList)
+        receiptDao.insertOrders(orders = orderEntityList)
     }
 
     override suspend fun getAllReceiptDataFlow(): Flow<List<ReceiptData>> {
@@ -83,6 +89,7 @@ interface ReceiptDbRepositoryInterface {
     suspend fun insertReceiptData(receiptData: ReceiptData)
     suspend fun insertOrderData(orderData: OrderData)
     suspend fun insertNewOrderData(orderData: OrderData)
+    suspend fun insertOrderDataLists(orderDataList: List<OrderData>)
     suspend fun getAllReceiptDataFlow(): Flow<List<ReceiptData>>
     suspend fun getOrdersByReceiptIdFlow(receiptId: Long): Flow<List<OrderData>>
     suspend fun getOrdersByReceiptId(receiptId: Long): List<OrderData>

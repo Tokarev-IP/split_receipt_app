@@ -1,6 +1,5 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation
 
-import androidx.compose.runtime.Immutable
 import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -37,7 +36,6 @@ data class OrderDataJson(
     val price: Float = 0.0F,
 )
 
-@Immutable
 data class ReceiptData(
     val id: Long,
     val receiptName: String = "no name",
@@ -50,7 +48,6 @@ data class ReceiptData(
     val additionalSumList: List<Pair<String, Float>> = emptyList(),
 )
 
-@Immutable
 data class OrderData(
     val id: Long,
     val name: String = "no name",
@@ -59,15 +56,16 @@ data class OrderData(
     val quantity: Int = 1,
     val price: Float = 0f,
     val receiptId: Long,
+    val consumerNames: List<String> = emptyList(),
 )
 
-@Immutable
-data class OrderDataCheck(
+data class OrderDataSplit(
     val name: String = "no name",
     val translatedName: String? = null,
     val price: Float = 0f,
     val consumerName: String? = null,
     val checked: Boolean = false,
+    val orderDataId: Long,
 )
 
 @Serializable
