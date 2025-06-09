@@ -79,11 +79,16 @@ object DataConstantsReceipt {
     const val MAXIMUM_AMOUNT_OF_DISHES = 300
     const val MAXIMUM_AMOUNT_OF_DISH_QUANTITY = 99
     const val MAXIMUM_AMOUNT_OF_RECEIPTS = 10_000_000
-    const val MAXIMUM_TEXT_LENGTH = 100
+    const val MAXIMUM_TEXT_LENGTH = 80
     const val MAXIMUM_SUM = 999_999
     const val MAXIMUM_PERCENT = 100
 
     const val LANGUAGE_TEXT = "Translate to:"
+
+    const val RECEIPT_CONSUMER_NAME_DIVIDER = "%"
+    const val ORDER_CONSUMER_NAME_DIVIDER = "#"
+    const val MAXIMUM_AMOUNT_OF_CONSUMER_NAMES = 20
+    const val MAXIMUM_CONSUMER_NAME_TEXT_LENGTH = 60
 
     // Labels for images are the following:
     // https://developers.google.com/ml-kit/vision/image-labeling/label-map

@@ -224,9 +224,12 @@ fun SplitReceiptScreen(
                         )
                         isDataSavedState = false
                     },
-                    onClearConsumerNameClick = { position ->
+                    onRemoveConsumerNameClick = { position, consumerName ->
                         splitReceiptForAllViewModel.setEvent(
-                            SplitReceiptForAllEvents.ClearConsumerName(position = position)
+                            SplitReceiptForAllEvents.ClearSpecificConsumerName(
+                                position = position,
+                                name = consumerName,
+                            )
                         )
                         isDataSavedState = false
                     },
@@ -234,6 +237,11 @@ fun SplitReceiptScreen(
                         splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.SaveOrderDataSplit)
                     },
                     isSavedState = isDataSavedState,
+                    onClearAllConsumerNamesClick = { position ->
+                        splitReceiptForAllViewModel.setEvent(
+                            SplitReceiptForAllEvents.ClearAllConsumerNames(position = position)
+                        )
+                    }
                 )
             } else {
                 SplitReceiptForOneScreenView(

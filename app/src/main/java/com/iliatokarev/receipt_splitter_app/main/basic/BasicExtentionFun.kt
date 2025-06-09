@@ -8,6 +8,7 @@ import kotlin.math.round
 
 fun Int.isZero(): Boolean = this == 0
 fun Int.isNotZero(): Boolean = this > 0
+fun Int.isMoreThanOne(): Boolean = this >1
 fun Float.isZero(): Boolean = this == 0F
 fun Float.isNotZero(): Boolean = this > 0
 

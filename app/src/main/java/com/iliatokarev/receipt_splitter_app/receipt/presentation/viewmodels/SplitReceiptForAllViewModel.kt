@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 class SplitReceiptForAllViewModel(
     private val orderReportCreator: OrderReportCreatorInterface,
     private val splitReceiptUseCase: SplitReceiptUseCase,
-    private val orderDataCheckService: OrderDataSplitService,
+    private val orderDataSplitService: OrderDataSplitService,
 ) : BasicViewModel<
         SplitReceiptForAllUiState,
         SplitReceiptForAllIntent,
@@ -82,10 +82,11 @@ class SplitReceiptForAllViewModel(
                 monitorOrderDataCheck()
             }
 
-            is SplitReceiptForAllEvents.ClearConsumerName -> {
-                clearConsumerName(
+            is SplitReceiptForAllEvents.ClearSpecificConsumerName -> {
+                clearSpecificConsumerNameForSpecificOrder(
                     orderDataSplitList = splitOrderDataCheckListState.value,
                     position = newEvent.position,
+                    consumerName = newEvent.name,
                 )
             }
 
@@ -118,6 +119,13 @@ class SplitReceiptForAllViewModel(
                 saveOrderDataSplitList(
                     orderDataSplitList = splitOrderDataCheckListState.value,
                     orderDataList = orderDataList.value,
+                )
+            }
+
+            is SplitReceiptForAllEvents.ClearAllConsumerNames -> {
+                clearAllConsumerNamesForSpecificOrder(
+                    orderDataSplitList = splitOrderDataCheckListState.value,
+                    position = newEvent.position,
                 )
             }
         }
@@ -158,14 +166,16 @@ class SplitReceiptForAllViewModel(
         }
     }
 
-    private fun clearConsumerName(
+    private fun clearSpecificConsumerNameForSpecificOrder(
         orderDataSplitList: List<OrderDataSplit>,
         position: Int,
+        consumerName: String,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newOrderDataCheckList = orderDataCheckService.clearConsumerName(
+            val newOrderDataCheckList = orderDataSplitService.clearSpecificConsumerNameForSpecificOrder(
                 orderDataSplitList = orderDataSplitList,
                 position = position,
+                consumerName = consumerName,
             )
             setOrderDataSplitList(newOrderDataCheckList)
         }
@@ -176,9 +186,9 @@ class SplitReceiptForAllViewModel(
         name: String,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newOrderDataCheckList = orderDataCheckService.setConsumerName(
+            val newOrderDataCheckList = orderDataSplitService.setConsumerName(
                 orderDataSplitList = orderDataSplitList,
-                name = name,
+                consumerName = name,
             )
             setOrderDataSplitList(newOrderDataCheckList)
         }
@@ -190,7 +200,7 @@ class SplitReceiptForAllViewModel(
         state: Boolean,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newOrderDataCheckList = orderDataCheckService.setCheckState(
+            val newOrderDataCheckList = orderDataSplitService.setCheckState(
                 orderDataSplitList = orderDataSplitList,
                 position = position,
                 state = state,
@@ -204,7 +214,7 @@ class SplitReceiptForAllViewModel(
         orderDataSplitList: List<OrderDataSplit>,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val currentConsumerList = orderDataCheckService.getAllConsumerNames(
+            val currentConsumerList = orderDataSplitService.getAllConsumerNames(
                 orderDataSplitList = orderDataSplitList,
             )
             val response = orderReportCreator.buildOrderReportForAll(
@@ -220,7 +230,7 @@ class SplitReceiptForAllViewModel(
         orderDataSplitList: List<OrderDataSplit>,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newOrderDataCheckList = orderDataCheckService.clearAllCheckState(
+            val newOrderDataCheckList = orderDataSplitService.clearOrderDataSplits(
                 orderDataSplitList = orderDataSplitList,
             )
             setOrderDataSplitList(newOrderDataCheckList)
@@ -231,7 +241,7 @@ class SplitReceiptForAllViewModel(
         orderDataSplitList: List<OrderDataSplit>,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newConsumerNameList = orderDataCheckService.getAllConsumerNames(
+            val newConsumerNameList = orderDataSplitService.getAllConsumerNames(
                 orderDataSplitList = orderDataSplitList,
             )
             setConsumerNameList(newConsumerNameList)
@@ -242,7 +252,7 @@ class SplitReceiptForAllViewModel(
         orderDataSplitList: List<OrderDataSplit>,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val newIsCheckStateExisted = orderDataCheckService.hasExistingCheckState(
+            val newIsCheckStateExisted = orderDataSplitService.hasExistingCheckState(
                 orderDataSplitList = orderDataSplitList,
             )
             setCheckStateExistence(newIsCheckStateExisted)
@@ -269,6 +279,19 @@ class SplitReceiptForAllViewModel(
             }
         }
     }
+
+    private fun clearAllConsumerNamesForSpecificOrder(
+        orderDataSplitList: List<OrderDataSplit>,
+        position: Int,
+    ){
+        viewModelScope.launch(Dispatchers.Default) {
+            val newOrderSplitDataList = orderDataSplitService.clearAllConsumerNamesForSpecificOrder(
+                orderDataSplitList = orderDataSplitList,
+                position = position,
+            )
+            setOrderDataSplitList(newOrderSplitDataList)
+        }
+    }
 }
 
 sealed interface SplitReceiptForAllEvents : BasicEvent {
@@ -276,9 +299,10 @@ sealed interface SplitReceiptForAllEvents : BasicEvent {
     object ActivateOrderReportCreator : SplitReceiptForAllEvents
     class SetCheckState(val position: Int, val state: Boolean) : SplitReceiptForAllEvents
     class SetConsumerName(val name: String) : SplitReceiptForAllEvents
-    class ClearConsumerName(val position: Int) : SplitReceiptForAllEvents
+    class ClearSpecificConsumerName(val position: Int, val name: String) : SplitReceiptForAllEvents
     object ClearOrderReport : SplitReceiptForAllEvents
     object SaveOrderDataSplit : SplitReceiptForAllEvents
+    class ClearAllConsumerNames(val position: Int) : SplitReceiptForAllEvents
 }
 
 interface SplitReceiptForAllUiState : BasicUiState {

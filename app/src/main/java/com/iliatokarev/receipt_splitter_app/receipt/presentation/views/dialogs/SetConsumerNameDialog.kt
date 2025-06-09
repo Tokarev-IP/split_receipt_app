@@ -31,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
 
@@ -137,7 +139,7 @@ private fun SetConsumerNameView(
             value = consumerName,
             onValueChange = { name ->
                 isConsumerNameErrorState = false
-                if (name.length <= MAXIMUM_TEXT_LENGTH)
+                if (name.length <= MAXIMUM_CONSUMER_NAME_TEXT_LENGTH)
                     consumerName = name
             },
             isError = isConsumerNameErrorState,
@@ -157,12 +159,14 @@ private fun SetConsumerNameView(
             supportingText = {
                 if (isConsumerNameErrorState && consumerName.isEmpty())
                     Text(text = stringResource(R.string.field_is_empty))
+                else if (isConsumerNameErrorState)
+                    Text(text = stringResource(R.string.inappropriate_symbols))
                 else
                     Text(
                         text = stringResource(
                             R.string.maximum_letters,
                             consumerName.length,
-                            MAXIMUM_TEXT_LENGTH,
+                            MAXIMUM_CONSUMER_NAME_TEXT_LENGTH,
                         )
                     )
             }
@@ -172,7 +176,13 @@ private fun SetConsumerNameView(
         CancelSaveButtonView(
             onCancelClicked = { onDismissClick() },
             onSaveClicked = {
-                if (consumerName.trim().isEmpty() || consumerName.length > MAXIMUM_TEXT_LENGTH) {
+                if (consumerName.trim().isEmpty() || consumerName.length > MAXIMUM_CONSUMER_NAME_TEXT_LENGTH) {
+                    isConsumerNameErrorState = true
+                    return@CancelSaveButtonView
+                }
+                if (RECEIPT_CONSUMER_NAME_DIVIDER in consumerName.trim() ||
+                    ORDER_CONSUMER_NAME_DIVIDER in consumerName.trim()
+                ) {
                     isConsumerNameErrorState = true
                     return@CancelSaveButtonView
                 }

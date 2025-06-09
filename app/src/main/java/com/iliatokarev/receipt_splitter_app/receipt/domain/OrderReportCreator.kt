@@ -1,5 +1,6 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain
 
+import com.iliatokarev.receipt_splitter_app.main.basic.isMoreThanOne
 import com.iliatokarev.receipt_splitter_app.main.basic.isNotZero
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
@@ -31,7 +32,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     if (splitReceiptData.selectedQuantity.isNotZero()) {
                         val sumPrice = splitReceiptData.selectedQuantity * splitReceiptData.price
                         finalPrice += sumPrice
-                        orderReport.append("· ${splitReceiptData.name} ${splitReceiptData.translatedName ?: ""}   ${splitReceiptData.selectedQuantity} x ${splitReceiptData.price}  =  ${sumPrice.roundToTwoDecimalPlaces()}\n")
+                        orderReport.append("· ${splitReceiptData.name} ${splitReceiptData.translatedName ?: ""}   ${splitReceiptData.selectedQuantity} x ${splitReceiptData.price.roundToTwoDecimalPlaces()}  =  ${sumPrice.roundToTwoDecimalPlaces()}\n")
                     }
                 }
 
@@ -98,14 +99,20 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     orderReport.append("--------------\n")
                 for (consumerName in consumerNameList) {
                     var consumerFinalPrice = 0F
-                    val newOrderDataCheckList =
-                        orderDataSplitList.filter { it.consumerName == consumerName }
+                    val newOrderDataSplitList =
+                        orderDataSplitList.filter { consumerName in it.consumerNamesList }
 
                     orderReport.append("${consumerName}\n")
 
-                    for (orderDataCheck in newOrderDataCheckList) {
-                        orderReport.append("· ${orderDataCheck.name} ${orderDataCheck.translatedName ?: ""}   ${orderDataCheck.price}\n")
-                        consumerFinalPrice += orderDataCheck.price
+                    for (orderDataSplit in newOrderDataSplitList) {
+                        if (orderDataSplit.consumerNamesList.size.isMoreThanOne()) {
+                            val newPrice = (orderDataSplit.price / orderDataSplit.consumerNamesList.size).roundToTwoDecimalPlaces()
+                            orderReport.append("· ${orderDataSplit.name} ${orderDataSplit.translatedName ?: ""} 1/${orderDataSplit.consumerNamesList.size} x ${orderDataSplit.price} = ${newPrice}\n")
+                            consumerFinalPrice += newPrice
+                        } else {
+                            orderReport.append("· ${orderDataSplit.name} ${orderDataSplit.translatedName ?: ""}   ${orderDataSplit.price}\n")
+                            consumerFinalPrice += orderDataSplit.price.roundToTwoDecimalPlaces()
+                        }
                     }
 
                     if (receiptData.discount != null

@@ -56,14 +56,14 @@ data class OrderData(
     val quantity: Int = 1,
     val price: Float = 0f,
     val receiptId: Long,
-    val consumerNames: List<String> = emptyList(),
+    val consumersList: List<String> = emptyList(),
 )
 
 data class OrderDataSplit(
     val name: String = "no name",
     val translatedName: String? = null,
     val price: Float = 0f,
-    val consumerName: String? = null,
+    val consumerNamesList: List<String> = emptyList(),
     val checked: Boolean = false,
     val orderDataId: Long,
 )

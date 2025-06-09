@@ -1,5 +1,6 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain
 
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,7 +14,7 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
-                if (index == position) {
+                if (index == position && orderDataCheck.consumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
                     orderDataCheck.copy(checked = state)
                 } else {
                     orderDataCheck
@@ -26,28 +27,44 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
 
     override suspend fun setConsumerName(
         orderDataSplitList: List<OrderDataSplit>,
-        name: String
+        consumerName: String
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.map { orderDataCheck ->
-                if (orderDataCheck.checked && orderDataCheck.consumerName.isNullOrBlank())
-                    orderDataCheck.copy(consumerName = name)
+            return@withContext orderDataSplitList.map { orderDataSplit ->
+                if (orderDataSplit.checked) {
+                    if (consumerName in orderDataSplit.consumerNamesList) {
+                        orderDataSplit.copy(checked = false)
+                    }
+                    else {
+                        val newConsumerNamesList = orderDataSplit.consumerNamesList
+                            .toMutableList()
+                            .apply { add(consumerName) }
+                        orderDataSplit.copy(
+                            consumerNamesList = newConsumerNamesList,
+                            checked = false
+                        )
+                    }
+                }
                 else
-                    orderDataCheck
+                    orderDataSplit
             }
         }.getOrElse { e: Throwable ->
             return@withContext orderDataSplitList
         }
     }
 
-    override suspend fun clearConsumerName(
+    override suspend fun clearSpecificConsumerNameForSpecificOrder(
         orderDataSplitList: List<OrderDataSplit>,
-        position: Int
+        position: Int,
+        consumerName: String,
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
                 if (index == position) {
-                    orderDataCheck.copy(consumerName = null, checked = false)
+                    val newConsumerNamesList = orderDataCheck.consumerNamesList.filter {
+                        it != consumerName
+                    }
+                    orderDataCheck.copy(consumerNamesList = newConsumerNamesList, checked = false)
                 } else {
                     orderDataCheck
                 }
@@ -63,8 +80,8 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         runCatching {
             val consumerNamesList = mutableSetOf<String>()
             for (orderDataCheck in orderDataSplitList) {
-                if (orderDataCheck.consumerName != null)
-                    consumerNamesList.add(orderDataCheck.consumerName)
+                if (orderDataCheck.consumerNamesList.isNotEmpty())
+                    consumerNamesList.addAll(orderDataCheck.consumerNamesList)
             }
             return@withContext consumerNamesList.toList()
         }.getOrElse { e: Throwable ->
@@ -72,13 +89,13 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         }
     }
 
-    override suspend fun clearAllCheckState(
+    override suspend fun clearOrderDataSplits(
         orderDataSplitList: List<OrderDataSplit>
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.map { orderDataCheck ->
                 orderDataCheck.copy(
-                    consumerName = null,
+                    consumerNamesList = emptyList(),
                     checked = false,
                 )
             }
@@ -92,10 +109,26 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
     ): Boolean = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.any { orderDataCheck ->
-                orderDataCheck.checked && orderDataCheck.consumerName.isNullOrEmpty()
+                orderDataCheck.checked
             }
         }.getOrElse { e: Throwable ->
             return@withContext false
+        }
+    }
+
+    override suspend fun clearAllConsumerNamesForSpecificOrder(
+        orderDataSplitList: List<OrderDataSplit>,
+        position: Int
+    ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
+        runCatching {
+            return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
+                if (index == position)
+                    orderDataCheck.copy(consumerNamesList = emptyList())
+                else
+                    orderDataCheck
+            }
+        }.getOrElse { e: Throwable ->
+            return@withContext orderDataSplitList
         }
     }
 }
@@ -112,20 +145,26 @@ interface OrderDataSplitServiceInterface {
         name: String,
     ): List<OrderDataSplit>
 
-    suspend fun clearConsumerName(
+    suspend fun clearSpecificConsumerNameForSpecificOrder(
         orderDataSplitList: List<OrderDataSplit>,
         position: Int,
+        consumerName: String,
     ): List<OrderDataSplit>
 
     suspend fun getAllConsumerNames(
         orderDataSplitList: List<OrderDataSplit>,
     ): List<String>
 
-    suspend fun clearAllCheckState(
+    suspend fun clearOrderDataSplits(
         orderDataSplitList: List<OrderDataSplit>,
     ): List<OrderDataSplit>
 
     suspend fun hasExistingCheckState(
         orderDataSplitList: List<OrderDataSplit>,
     ): Boolean
+
+    suspend fun clearAllConsumerNamesForSpecificOrder(
+        orderDataSplitList: List<OrderDataSplit>,
+        position: Int,
+    ): List<OrderDataSplit>
 }

@@ -52,7 +52,6 @@
     <string name="confirm_password">Confirm password</string>
     <string name="clear_text_button">Clear text button</string>
     <string name="clear_email_button">Clear email button</string>
-    <string name="clear_consumer_name_button">Clear consumer name button</string>
     <string name="close_the_dialog">Close the dialog</string>
     <string name="clear_additional_sum_button">Clear additional sum button</string>
     <string name="clear_password_button">Clear password button</string>
@@ -133,6 +132,7 @@
     <string name="minus_button">Minus button</string>
     <string name="no_additional_sum">Empty. Add the first one</string>
     <string name="expand_receipt_info_button">Expand receipt info button</string>
+    <string name="narrow_down_receipt_info_button">Narrow down receipt info button</string>
     <string name="there_is_limited_attempts">Mind that the attempts are limited</string>
     <string name="clear_order_report_text">Do you really want to clear the order report?</string>
     <string name="go_to_split_receipt_screen_button">Go to split receipt screen button</string>
@@ -143,6 +143,11 @@
     <string name="exceed_info_message">The limit has been exceeded</string>
     <string name="data_was_saved">Data was saved</string>
     <string name="saved">Saved</string>
+    <string name="inappropriate_symbols">This field contains inappropriate symbols</string>
+    <string name="expand_consumer_names_button">Expand consumer names button</string>
+    <string name="narrow_down_consumer_names_button">Narrow down consumer names button</string>
+    <string name="clear_consumer_name_button">Clear consumer name button</string>
+    <string name="clear_all_consumer_names_button">Clear all</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>
@@ -178,5 +183,4 @@
     <string name="chinese">Chinese</string>
     <string name="japanese">Japanese</string>
     <string name="arabic">Arabic</string>
-    <string name="narrow_down_receipt_info_button">Narrow down receipt info button</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.receipt.data.room
 
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataJson
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
@@ -82,7 +83,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = orderEntity.quantity,
                 price = orderEntity.price.roundToTwoDecimalPlaces(),
                 receiptId = orderEntity.receiptId,
-                consumerNames = orderEntity.consumerNames.split("_"),
+                consumersList = orderEntity.consumerNames.split(RECEIPT_CONSUMER_NAME_DIVIDER),
             )
         }
     }
@@ -111,7 +112,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
-                consumerNames = consumerNames.joinToString("_")
+                consumerNames = consumersList.joinToString(RECEIPT_CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -124,7 +125,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
-                consumerNames = consumerNames.joinToString("_")
+                consumerNames = consumersList.joinToString(RECEIPT_CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -140,7 +141,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = orderData.quantity,
                 price = orderData.price.roundToTwoDecimalPlaces(),
                 receiptId = orderData.receiptId,
-                consumerNames = orderData.consumerNames.joinToString("_")
+                consumerNames = orderData.consumersList.joinToString(RECEIPT_CONSUMER_NAME_DIVIDER)
             )
         }
     }
