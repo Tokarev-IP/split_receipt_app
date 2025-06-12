@@ -231,7 +231,7 @@ private fun OrderDataSplitItem(
     onAddConsumerNameClick: (String) -> Unit,
     allConsumerNamesList: List<String>,
 ) {
-    var expandConsumerNames by rememberSaveable { mutableStateOf(false) } //todo
+    var expandConsumerNames by rememberSaveable { mutableStateOf(false) }
 
     Row(
         modifier = modifier
