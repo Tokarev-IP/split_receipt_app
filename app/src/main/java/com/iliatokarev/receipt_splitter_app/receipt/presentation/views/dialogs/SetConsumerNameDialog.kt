@@ -166,9 +166,9 @@ private fun SetConsumerNameView(
                 },
                 chosenConsumerNamesList = chosenConsumerNamesList,
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider()
         Spacer(modifier = Modifier.height(16.dp))
         CancelSaveButtonView(
             onCancelClicked = { onDismissClick() },
