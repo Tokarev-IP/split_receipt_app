@@ -13,11 +13,11 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         state: Boolean
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
-                if (index == position && orderDataCheck.consumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
-                    orderDataCheck.copy(checked = state)
+            return@withContext orderDataSplitList.mapIndexed { index, orderDataSplit ->
+                if (index == position && orderDataSplit.consumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
+                    orderDataSplit.copy(checked = state)
                 } else {
-                    orderDataCheck
+                    orderDataSplit
                 }
             }
         }.getOrElse { e: Throwable ->
@@ -25,27 +25,22 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         }
     }
 
-    override suspend fun setConsumerName(
+    override suspend fun addNewConsumerNamesForCheckedOrders(
         orderDataSplitList: List<OrderDataSplit>,
-        consumerName: String
+        consumerNamesList: List<String>,
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.map { orderDataSplit ->
                 if (orderDataSplit.checked) {
-                    if (consumerName in orderDataSplit.consumerNamesList) {
-                        orderDataSplit.copy(checked = false)
-                    }
-                    else {
-                        val newConsumerNamesList = orderDataSplit.consumerNamesList
-                            .toMutableList()
-                            .apply { add(consumerName) }
-                        orderDataSplit.copy(
-                            consumerNamesList = newConsumerNamesList,
-                            checked = false
-                        )
-                    }
-                }
-                else
+                    val newConsumerNamesList = orderDataSplit.consumerNamesList
+                        .toMutableSet()
+                        .apply { addAll(consumerNamesList) }
+                        .toList()
+                    orderDataSplit.copy(
+                        consumerNamesList = newConsumerNamesList,
+                        checked = false
+                    )
+                } else
                     orderDataSplit
             }
         }.getOrElse { e: Throwable ->
@@ -59,14 +54,14 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         consumerName: String,
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
+            return@withContext orderDataSplitList.mapIndexed { index, orderDataSplit ->
                 if (index == position) {
-                    val newConsumerNamesList = orderDataCheck.consumerNamesList.filter {
+                    val newConsumerNamesList = orderDataSplit.consumerNamesList.filter {
                         it != consumerName
                     }
-                    orderDataCheck.copy(consumerNamesList = newConsumerNamesList, checked = false)
+                    orderDataSplit.copy(consumerNamesList = newConsumerNamesList, checked = false)
                 } else {
-                    orderDataCheck
+                    orderDataSplit
                 }
             }
         }.getOrElse { e: Throwable ->
@@ -75,15 +70,18 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
     }
 
     override suspend fun getAllConsumerNames(
-        orderDataSplitList: List<OrderDataSplit>
+        orderDataSplitList: List<OrderDataSplit>,
+        initialConsumerNamesList: List<String>,
     ): List<String> = withContext(Dispatchers.Default) {
         runCatching {
-            val consumerNamesList = mutableSetOf<String>()
+            val consumerNamesSet = mutableSetOf<String>()
+            consumerNamesSet.addAll(initialConsumerNamesList)
             for (orderDataCheck in orderDataSplitList) {
                 if (orderDataCheck.consumerNamesList.isNotEmpty())
-                    consumerNamesList.addAll(orderDataCheck.consumerNamesList)
+                    consumerNamesSet.addAll(orderDataCheck.consumerNamesList)
             }
-            return@withContext consumerNamesList.toList()
+            val consumerNamesList = consumerNamesSet.toList()
+            return@withContext consumerNamesList
         }.getOrElse { e: Throwable ->
             return@withContext emptyList<String>()
         }
@@ -93,8 +91,8 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         orderDataSplitList: List<OrderDataSplit>
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.map { orderDataCheck ->
-                orderDataCheck.copy(
+            return@withContext orderDataSplitList.map { orderDataSplit ->
+                orderDataSplit.copy(
                     consumerNamesList = emptyList(),
                     checked = false,
                 )
@@ -108,8 +106,8 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         orderDataSplitList: List<OrderDataSplit>
     ): Boolean = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.any { orderDataCheck ->
-                orderDataCheck.checked
+            return@withContext orderDataSplitList.any { orderDataSplit ->
+                orderDataSplit.checked
             }
         }.getOrElse { e: Throwable ->
             return@withContext false
@@ -121,11 +119,34 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         position: Int
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
-            return@withContext orderDataSplitList.mapIndexed { index, orderDataCheck ->
+            return@withContext orderDataSplitList.mapIndexed { index, orderDataSplit ->
                 if (index == position)
-                    orderDataCheck.copy(consumerNamesList = emptyList())
+                    orderDataSplit.copy(consumerNamesList = emptyList())
                 else
-                    orderDataCheck
+                    orderDataSplit
+            }
+        }.getOrElse { e: Throwable ->
+            return@withContext orderDataSplitList
+        }
+    }
+
+    override suspend fun addNewConsumerNameForSpecificOrder(
+        orderDataSplitList: List<OrderDataSplit>,
+        position: Int,
+        name: String
+    ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
+        runCatching {
+            return@withContext orderDataSplitList.mapIndexed { index, orderDataSplit ->
+                if (index == position) {
+                    val newConsumerNameList = orderDataSplit.consumerNamesList
+                        .toMutableList()
+                        .apply {
+                            if (size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES)
+                                add(name)
+                        }
+                    orderDataSplit.copy(consumerNamesList = newConsumerNameList)
+                } else
+                    orderDataSplit
             }
         }.getOrElse { e: Throwable ->
             return@withContext orderDataSplitList
@@ -140,9 +161,9 @@ interface OrderDataSplitServiceInterface {
         state: Boolean,
     ): List<OrderDataSplit>
 
-    suspend fun setConsumerName(
+    suspend fun addNewConsumerNamesForCheckedOrders(
         orderDataSplitList: List<OrderDataSplit>,
-        name: String,
+        consumerNamesList: List<String>,
     ): List<OrderDataSplit>
 
     suspend fun clearSpecificConsumerNameForSpecificOrder(
@@ -153,6 +174,7 @@ interface OrderDataSplitServiceInterface {
 
     suspend fun getAllConsumerNames(
         orderDataSplitList: List<OrderDataSplit>,
+        initialConsumerNamesList: List<String>,
     ): List<String>
 
     suspend fun clearOrderDataSplits(
@@ -166,5 +188,11 @@ interface OrderDataSplitServiceInterface {
     suspend fun clearAllConsumerNamesForSpecificOrder(
         orderDataSplitList: List<OrderDataSplit>,
         position: Int,
+    ): List<OrderDataSplit>
+
+    suspend fun addNewConsumerNameForSpecificOrder(
+        orderDataSplitList: List<OrderDataSplit>,
+        position: Int,
+        name: String,
     ): List<OrderDataSplit>
 }

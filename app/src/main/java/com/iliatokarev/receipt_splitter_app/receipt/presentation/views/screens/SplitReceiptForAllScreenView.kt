@@ -8,7 +8,9 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +22,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
@@ -37,6 +44,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,8 +55,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,9 +68,15 @@ import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Swap
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SplitReceiptForAllScreenView(
     modifier: Modifier = Modifier,
@@ -72,6 +90,8 @@ internal fun SplitReceiptForAllScreenView(
     onSaveOrderDataSplitClick: () -> Unit,
     isSavedState: Boolean,
     onClearAllConsumerNamesClick: (Int) -> Unit,
+    onAddConsumerNameClick: (Int, String) -> Unit,
+    allConsumerNamesList: List<String>,
 ) {
     Box(
         modifier = modifier.fillMaxSize()
@@ -93,7 +113,11 @@ internal fun SplitReceiptForAllScreenView(
                 isSavedState = isSavedState,
                 onClearAllConsumerNamesClick = { position ->
                     onClearAllConsumerNamesClick(position)
-                }
+                },
+                onAddConsumerNameClick = { position, name ->
+                    onAddConsumerNameClick(position, name)
+                },
+                allConsumerNamesList = allConsumerNamesList,
             )
         } ?: ShimmedSplitReceiptForAllScreenView()
     }
@@ -112,6 +136,8 @@ private fun SplitReceiptForAllView(
     onSaveOrderDataSplitClick: () -> Unit = {},
     isSavedState: Boolean = false,
     onClearAllConsumerNamesClick: (Int) -> Unit = {},
+    onAddConsumerNameClick: (Int, String) -> Unit = { _, _ -> },
+    allConsumerNamesList: List<String> = emptyList(),
 ) {
     LazyColumn(
         modifier = modifier
@@ -133,7 +159,11 @@ private fun SplitReceiptForAllView(
                 onRemoveConsumerNameClick = { consumerName ->
                     onRemoveConsumerNameClick(index, consumerName)
                 },
-                onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick(index) }
+                onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick(index) },
+                onAddConsumerNameClick = { name ->
+                    onAddConsumerNameClick(index, name)
+                },
+                allConsumerNamesList = allConsumerNamesList,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -158,21 +188,36 @@ private fun OrderDataCheckCardItem(
     onCheckedChange: (Boolean) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
     onClearAllConsumerNamesClick: () -> Unit,
+    onAddConsumerNameClick: (String) -> Unit,
+    allConsumerNamesList: List<String>,
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        onClick = { onCheckedChange(!orderDataSplit.checked) },
     ) {
-        OrderDataSplitItem(
-            orderDataSplit = orderDataSplit,
-            onCheckedChange = { checked ->
-                onCheckedChange(checked)
-            },
-            onRemoveConsumerNameClick = { consumerName ->
-                onRemoveConsumerNameClick(consumerName)
-            },
-            onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() }
-        )
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .then(
+                    if (orderDataSplit.consumerNamesList.isEmpty()) {
+                        Modifier.clickable { onCheckedChange(!orderDataSplit.checked) }
+                    } else Modifier
+                ),
+        ) {
+            OrderDataSplitItem(
+                orderDataSplit = orderDataSplit,
+                onCheckedChange = { checked ->
+                    onCheckedChange(checked)
+                },
+                onRemoveConsumerNameClick = { consumerName ->
+                    onRemoveConsumerNameClick(consumerName)
+                },
+                onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() },
+                onAddConsumerNameClick = { name ->
+                    onAddConsumerNameClick(name)
+                },
+                allConsumerNamesList = allConsumerNamesList,
+            )
+        }
     }
 }
 
@@ -183,9 +228,10 @@ private fun OrderDataSplitItem(
     onCheckedChange: (Boolean) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
     onClearAllConsumerNamesClick: () -> Unit,
+    onAddConsumerNameClick: (String) -> Unit,
+    allConsumerNamesList: List<String>,
 ) {
-    var expandConsumerNames by rememberSaveable { mutableStateOf(false) }
-    val consumerNamesText = orderDataSplit.consumerNamesList.joinToString(NAMES_DIVIDER)
+    var expandConsumerNames by rememberSaveable { mutableStateOf(false) } //todo
 
     Row(
         modifier = modifier
@@ -193,13 +239,17 @@ private fun OrderDataSplitItem(
             .padding(end = 12.dp, bottom = 8.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            modifier = modifier.weight(2f),
-            checked = orderDataSplit.checked,
-            onCheckedChange = { checked ->
-                onCheckedChange(checked)
-            },
-        )
+        if (orderDataSplit.consumerNamesList.isEmpty())
+            Checkbox(
+                modifier = modifier.weight(2f),
+                checked = orderDataSplit.checked,
+                onCheckedChange = { checked ->
+                    onCheckedChange(checked)
+                },
+            )
+        if (orderDataSplit.consumerNamesList.isNotEmpty())
+            Spacer(modifier = Modifier.width(12.dp))
+
         Column(
             modifier = modifier
                 .weight(12f)
@@ -210,7 +260,6 @@ private fun OrderDataSplitItem(
             )
             OrderConsumerNameView(
                 consumerNamesList = orderDataSplit.consumerNamesList,
-                consumerNamesText = consumerNamesText,
                 expandConsumerNames = expandConsumerNames,
                 onExpandConsumerNamesClick = { state: Boolean ->
                     expandConsumerNames = state
@@ -218,7 +267,11 @@ private fun OrderDataSplitItem(
                 onRemoveConsumerNameClick = { consumerName ->
                     onRemoveConsumerNameClick(consumerName)
                 },
-                onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() }
+                onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() },
+                onAddConsumerNameClick = { name ->
+                    onAddConsumerNameClick(name)
+                },
+                allConsumerNamesList = allConsumerNamesList,
             )
         }
     }
@@ -269,11 +322,12 @@ private fun OrderInfoView(
 private fun OrderConsumerNameView(
     modifier: Modifier = Modifier,
     consumerNamesList: List<String>,
-    consumerNamesText: String,
     expandConsumerNames: Boolean,
     onExpandConsumerNamesClick: (Boolean) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
     onClearAllConsumerNamesClick: () -> Unit,
+    onAddConsumerNameClick: (String) -> Unit,
+    allConsumerNamesList: List<String>,
 ) {
     AnimatedVisibility(
         visible = consumerNamesList.isNotEmpty(),
@@ -293,20 +347,15 @@ private fun OrderConsumerNameView(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AnimatedContent(
-                    targetState = expandConsumerNames == false || consumerNamesList.size <= MIN_ITEMS_TO_EXPAND,
+                    targetState = expandConsumerNames == false,
                     modifier = modifier.weight(12f),
                 ) { showNames ->
                     if (showNames)
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = consumerNamesText,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = MAXIMUM_AMOUNT_OF_LINES_IS_1,
+                        ConsumerNamesRowView(
+                            consumerNamesList = consumerNamesList.reversed(),
                         )
                     else
-                        Box{
+                        Box {
                             TextButton(
                                 modifier = modifier.align(Alignment.Center),
                                 onClick = { onClearAllConsumerNamesClick() }
@@ -317,33 +366,44 @@ private fun OrderConsumerNameView(
                 }
 
                 AnimatedContent(
-                    targetState = consumerNamesList.size > MIN_ITEMS_TO_EXPAND,
+                    targetState = expandConsumerNames,
                     modifier = modifier.weight(2f)
-                ) { moreThanMinAmount ->
-                    ConsumerNameIconView(
-                        consumerNamesList = consumerNamesList,
-                        moreThanMinAmount = moreThanMinAmount,
-                        expandConsumerNames = expandConsumerNames,
-                        onExpandConsumerNamesClick = { state: Boolean ->
-                            onExpandConsumerNamesClick(state)
-                        },
-                        onRemoveConsumerNameClick = { consumerName ->
-                            onRemoveConsumerNameClick(consumerName)
+                ) { expand ->
+                    if (expand)
+                        IconButton(
+                            onClick = { onExpandConsumerNamesClick(false) },
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowUp,
+                                stringResource(R.string.narrow_down_consumer_names_button)
+                            )
                         }
-                    )
+                    else
+                        IconButton(
+                            onClick = { onExpandConsumerNamesClick(true) }
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowDown,
+                                stringResource(R.string.expand_receipt_info_button)
+                            )
+                        }
                 }
             }
 
             AnimatedVisibility(
-                visible = expandConsumerNames && consumerNamesList.size > MIN_ITEMS_TO_EXPAND,
+                visible = expandConsumerNames,
                 enter = fadeIn() + expandIn(),
                 exit = fadeOut() + shrinkOut(),
             ) {
-                ConsumerNamesColumnView(
+                EditConsumerNamesView(
                     consumerNamesList = consumerNamesList,
                     onRemoveConsumerNameClick = { consumerName ->
                         onRemoveConsumerNameClick(consumerName)
                     },
+                    onAddConsumerNameClick = { name ->
+                        onAddConsumerNameClick(name)
+                    },
+                    allConsumerNamesList = allConsumerNamesList.reversed(),
                 )
             }
         }
@@ -351,89 +411,231 @@ private fun OrderConsumerNameView(
 }
 
 @Composable
-private fun ConsumerNameIconView(
+private fun ConsumerNamesRowView(
+    modifier: Modifier = Modifier,
     consumerNamesList: List<String>,
-    moreThanMinAmount: Boolean,
-    expandConsumerNames: Boolean,
-    onExpandConsumerNamesClick: (Boolean) -> Unit,
-    onRemoveConsumerNameClick: (String) -> Unit,
 ) {
-    if (moreThanMinAmount)
-        AnimatedContent(
-            targetState = expandConsumerNames,
-        ) { expand ->
-            if (expand)
-                IconButton(
-                    onClick = { onExpandConsumerNamesClick(false) },
-                ) {
-                    Icon(
-                        Icons.Outlined.KeyboardArrowUp,
-                        stringResource(R.string.narrow_down_consumer_names_button)
-                    )
-                }
-            else
-                IconButton(
-                    onClick = { onExpandConsumerNamesClick(true) }
-                ) {
-                    Icon(
-                        Icons.Outlined.KeyboardArrowDown,
-                        stringResource(R.string.expand_receipt_info_button)
-                    )
-                }
+    LazyRow(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        item {
+            if (consumerNamesList.joinToString(SEPARATOR).length
+                > INFO_DISPLAY_CHAR_COUNT
+            ) {
+                Text(
+                    text = consumerNamesList.size.toString(),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = MAXIMUM_AMOUNT_OF_LINES_IS_1,
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
         }
-    else
-        IconButton(
-            onClick = { onRemoveConsumerNameClick(consumerNamesList.firstOrNull() ?: EMPTY_STRING) }
-        ) {
-            Icon(
-                Icons.Outlined.Clear,
-                stringResource(R.string.clear_consumer_name_button)
-            )
+        items(consumerNamesList.size) { index ->
+            OutlinedCard {
+                Text(
+                    modifier = modifier
+                        .padding(vertical = 4.dp, horizontal = 8.dp),
+                    text = consumerNamesList[index],
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = MAXIMUM_AMOUNT_OF_LINES_IS_1,
+                )
+            }
+            Spacer(modifier = Modifier.width(4.dp))
         }
+    }
 }
 
 @Composable
-private fun ConsumerNamesColumnView(
+private fun EditConsumerNamesView(
     modifier: Modifier = Modifier,
     consumerNamesList: List<String>,
     onRemoveConsumerNameClick: (String) -> Unit,
+    onAddConsumerNameClick: (String) -> Unit,
+    allConsumerNamesList: List<String>,
 ) {
+    var consumerNameText by rememberSaveable { mutableStateOf("") }
+    var isConsumerNameErrorState by rememberSaveable { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        repeat(consumerNamesList.size) { index ->
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
+        ConsumerNamesGrid(
+            allConsumerNamesList = allConsumerNamesList,
+            consumerNamesList = consumerNamesList,
+            onChooseConsumerNameClick = { name ->
+                onAddConsumerNameClick(name)
+            },
+            onRemoveConsumerNameClick = { name ->
+                onRemoveConsumerNameClick(name)
+            },
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (allConsumerNamesList.size >= MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
+            Text(
+                textAlign = TextAlign.Center,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                text = stringResource(R.string.maximum_amount_of_consumer_names_is_reached)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        OutlinedTextField(
+            value = consumerNameText,
+            onValueChange = { name ->
+                isConsumerNameErrorState = false
+                if (name.length <= MAXIMUM_CONSUMER_NAME_TEXT_LENGTH)
+                    consumerNameText = name
+            },
+            isError = isConsumerNameErrorState,
+            singleLine = true,
+            label = { Text(text = stringResource(R.string.name)) },
+            trailingIcon = {
+                if (consumerNameText.isNotEmpty())
+                    IconButton(
+                        onClick = {
+                            consumerNameText = EMPTY_STRING
+                            isConsumerNameErrorState = false
+                        }
+                    ) {
+                        Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
+                    }
+            },
+            leadingIcon = {
+                IconButton(
+                    onClick = {
+                        addConsumerName(
+                            consumerNameText = consumerNameText.trim(),
+                            consumerNamesList = consumerNamesList,
+                            onConsumerNameErrorState = { state ->
+                                isConsumerNameErrorState = state
+                            },
+                            onAddConsumerNameClick = { name ->
+                                onAddConsumerNameClick(name)
+                                consumerNameText = EMPTY_STRING
+                            }
+                        )
+                        focusManager.clearFocus()
+                    }
+                ) {
+                    Icon(Icons.Outlined.Add, stringResource(R.string.add_name_button))
+                }
+            },
+            supportingText = {
+                if (isConsumerNameErrorState && consumerNameText.isEmpty())
+                    Text(text = stringResource(R.string.field_is_empty))
+                else if (isConsumerNameErrorState && consumerNameText.trim() in consumerNamesList)
+                    Text(text = stringResource(R.string.name_is_already_existed))
+                else if (isConsumerNameErrorState)
+                    Text(text = stringResource(R.string.inappropriate_symbols))
+                else if (consumerNameText.isNotEmpty())
+                    Text(
+                        text = stringResource(
+                            R.string.maximum_letters,
+                            consumerNameText.length,
+                            MAXIMUM_CONSUMER_NAME_TEXT_LENGTH,
+                        )
+                    )
+            },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    addConsumerName(
+                        consumerNameText = consumerNameText.trim(),
+                        consumerNamesList = consumerNamesList,
+                        onConsumerNameErrorState = { state ->
+                            isConsumerNameErrorState = state
+                        },
+                        onAddConsumerNameClick = { name ->
+                            onAddConsumerNameClick(name)
+                            consumerNameText = EMPTY_STRING
+                        }
+                    )
+                    focusManager.clearFocus()
+                }
+            ),
+            enabled = consumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
+        )
+    }
+}
+
+@Composable
+private fun ConsumerNamesGrid(
+    modifier: Modifier = Modifier,
+    allConsumerNamesList: List<String>,
+    consumerNamesList: List<String>,
+    onChooseConsumerNameClick: (String) -> Unit,
+    onRemoveConsumerNameClick: (String) -> Unit,
+) {
+    FlowGridLayout(
+        horizontalSpacing = 8.dp,
+        verticalSpacing = 4.dp,
+    ) {
+        repeat(allConsumerNamesList.size) { index ->
+            val consumerName = allConsumerNamesList[index]
+            OutlinedCard(
+                onClick = { onRemoveConsumerNameClick(consumerName) },
+                enabled = consumerName in consumerNamesList
             ) {
                 Box(
-                    modifier = modifier.weight(12f),
-                    contentAlignment = Alignment.Center,
+                    modifier = modifier
+                        .then(
+                            if (consumerName !in consumerNamesList)
+                                Modifier.clickable { onChooseConsumerNameClick(consumerName) }
+                            else
+                                Modifier
+                        )
                 ) {
                     Text(
-                        textAlign = TextAlign.Left,
-                        text = consumerNamesList[index],
+                        modifier = modifier
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        text = consumerName,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Normal,
+                        maxLines = MAXIMUM_AMOUNT_OF_LINES_IS_1,
                         overflow = TextOverflow.Ellipsis,
-                        maxLines = MAXIMUM_AMOUNT_OF_LINES_IS_3,
-                    )
-                }
-
-                IconButton(
-                    onClick = { onRemoveConsumerNameClick(consumerNamesList[index]) }
-                ) {
-                    Icon(
-                        Icons.Outlined.Clear,
-                        stringResource(R.string.clear_consumer_name_button)
                     )
                 }
             }
         }
     }
+}
+
+private fun addConsumerName(
+    consumerNameText: String,
+    consumerNamesList: List<String>,
+    onConsumerNameErrorState: (Boolean) -> Unit,
+    onAddConsumerNameClick: (String) -> Unit,
+) {
+    if (consumerNameText
+            .isEmpty() || consumerNameText.length > MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
+    ) {
+        onConsumerNameErrorState(true)
+        return
+    }
+
+    if (RECEIPT_CONSUMER_NAME_DIVIDER in consumerNameText ||
+        ORDER_CONSUMER_NAME_DIVIDER in consumerNameText
+    ) {
+        onConsumerNameErrorState(true)
+        return
+    }
+
+    if (consumerNameText in consumerNamesList) {
+        onConsumerNameErrorState(true)
+        return
+    }
+
+    onAddConsumerNameClick(consumerNameText)
 }
 
 @Composable
@@ -658,12 +860,22 @@ private fun SplitReceiptForAllViewPreview() {
                 ),
             ),
         orderReportText = "Report 123 fjdfg kdgjdkfg df djfjg fdg fdjg j dflkjdfgj dfgjdfjg",
+        allConsumerNamesList = listOf(
+            "Dan",
+            "John",
+            "Abby",
+            "Sian",
+            "Alex",
+            "Laura",
+            "Vasya",
+            "Oleg"
+        ),
     )
 }
 
 private const val MAXIMUM_AMOUNT_OF_LINES_IS_1 = 1
 private const val MAXIMUM_AMOUNT_OF_LINES_IS_2 = 2
 private const val MAXIMUM_AMOUNT_OF_LINES_IS_3 = 3
-private const val NAMES_DIVIDER = ", "
-private const val MIN_ITEMS_TO_EXPAND = 1
 private const val EMPTY_STRING = ""
+private const val SEPARATOR = "__"
+private const val INFO_DISPLAY_CHAR_COUNT = 20

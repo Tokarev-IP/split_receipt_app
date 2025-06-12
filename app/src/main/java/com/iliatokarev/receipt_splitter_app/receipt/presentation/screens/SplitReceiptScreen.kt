@@ -75,19 +75,19 @@ fun SplitReceiptScreen(
     val orderDataListForOne by splitReceiptForOneViewModel.getOrderDataList()
         .collectAsStateWithLifecycle()
     var orderReportTextForOne by rememberSaveable { mutableStateOf<String?>(null) }
-    var showAdditionalSumDialog by rememberSaveable { mutableStateOf(false) }
-    var showClearOrderReportForOneDialog by rememberSaveable { mutableStateOf(false) }
+    var isShownAdditionalSumDialog by rememberSaveable { mutableStateOf(false) }
+    var isShownClearOrderReportForOneDialog by rememberSaveable { mutableStateOf(false) }
 
     //Receipt For All VM
     val receiptDataForAll by splitReceiptForAllViewModel.getSplitReceiptData()
         .collectAsStateWithLifecycle()
     val orderDataSplitListForAll by splitReceiptForAllViewModel.getOrderDataSplitList()
         .collectAsStateWithLifecycle()
-    val consumerNameList by splitReceiptForAllViewModel.getConsumerNameList()
+    val allConsumerNamesList by splitReceiptForAllViewModel.getAllConsumerNamesList()
         .collectAsStateWithLifecycle()
     var orderReportTextForAll by rememberSaveable { mutableStateOf<String?>(null) }
-    var showSetConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
-    var showClearOrderReportForAllDialog by rememberSaveable { mutableStateOf(false) }
+    var isShownSetConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
+    var isShownClearOrderReportForAllDialog by rememberSaveable { mutableStateOf(false) }
     val isCheckStateExisted by splitReceiptForAllViewModel.getIsCheckStateExisted()
         .collectAsStateWithLifecycle()
 
@@ -187,7 +187,7 @@ fun SplitReceiptScreen(
                 FloatingActionButton(
                     modifier = Modifier.padding(12.dp),
                     onClick = {
-                        showSetConsumerNameDialog = true
+                        isShownSetConsumerNameDialog = true
                     },
                 ) {
                     Icon(
@@ -214,7 +214,7 @@ fun SplitReceiptScreen(
                         }
                         launcher.launch(Intent.createChooser(shareIntent, "Share order report"))
                     },
-                    onClearOrderReportClick = { showClearOrderReportForAllDialog = true },
+                    onClearOrderReportClick = { isShownClearOrderReportForAllDialog = true },
                     onCheckStateChange = { state, position ->
                         splitReceiptForAllViewModel.setEvent(
                             SplitReceiptForAllEvents.SetCheckState(
@@ -226,7 +226,7 @@ fun SplitReceiptScreen(
                     },
                     onRemoveConsumerNameClick = { position, consumerName ->
                         splitReceiptForAllViewModel.setEvent(
-                            SplitReceiptForAllEvents.ClearSpecificConsumerName(
+                            SplitReceiptForAllEvents.ClearConsumerNameForOrder(
                                 position = position,
                                 name = consumerName,
                             )
@@ -241,7 +241,16 @@ fun SplitReceiptScreen(
                         splitReceiptForAllViewModel.setEvent(
                             SplitReceiptForAllEvents.ClearAllConsumerNames(position = position)
                         )
-                    }
+                    },
+                    onAddConsumerNameClick = { position, name ->
+                        splitReceiptForAllViewModel.setEvent(
+                            SplitReceiptForAllEvents.AddConsumerNameForSpecificOrder(
+                                position = position,
+                                name = name,
+                            )
+                        )
+                    },
+                    allConsumerNamesList = allConsumerNamesList,
                 )
             } else {
                 SplitReceiptForOneScreenView(
@@ -263,8 +272,8 @@ fun SplitReceiptScreen(
                             )
                         )
                     },
-                    onEditReportClicked = { showAdditionalSumDialog = true },
-                    onClearReportClicked = { showClearOrderReportForOneDialog = true },
+                    onEditReportClicked = { isShownAdditionalSumDialog = true },
+                    onClearReportClicked = { isShownClearOrderReportForOneDialog = true },
                     onShareReportClicked = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
@@ -276,9 +285,9 @@ fun SplitReceiptScreen(
             }
         }
 
-        if (showAdditionalSumDialog && isShowReceiptForAll == false) {
+        if (isShownAdditionalSumDialog && isShowReceiptForAll == false) {
             AdditionalSumDialog(
-                onDismissRequest = { showAdditionalSumDialog = false },
+                onDismissRequest = { isShownAdditionalSumDialog = false },
                 onAddItemClicked = { pair ->
                     splitReceiptForOneViewModel.setEvent(
                         SplitReceiptForOneEvent.AddAdditionalSum(pair = pair)
@@ -293,39 +302,45 @@ fun SplitReceiptScreen(
             )
         }
 
-        if (showClearOrderReportForOneDialog && isShowReceiptForAll == false) {
+        if (isShownClearOrderReportForOneDialog && isShowReceiptForAll == false) {
             AcceptClearingDialog(
-                onDismissRequest = { showClearOrderReportForOneDialog = false },
+                onDismissRequest = { isShownClearOrderReportForOneDialog = false },
                 onAcceptClicked = {
                     splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ClearOrderReport)
-                    showClearOrderReportForOneDialog = false
+                    isShownClearOrderReportForOneDialog = false
                 },
                 infoText = stringResource(R.string.clear_order_report_text),
             )
         }
 
-        if (showSetConsumerNameDialog && isShowReceiptForAll) {
+        if (isShownSetConsumerNameDialog && isShowReceiptForAll) {
             SetConsumerNameDialog(
-                consumerNamesList = consumerNameList,
-                onDismissClick = { showSetConsumerNameDialog = false },
-                onNameSelectedClick = { name ->
+                allConsumerNamesList = allConsumerNamesList,
+                onDismissClick = { isShownSetConsumerNameDialog = false },
+                onSaveSelectedNamesClick = { names ->
                     splitReceiptForAllViewModel.setEvent(
-                        SplitReceiptForAllEvents.SetConsumerName(name)
+                        SplitReceiptForAllEvents.SetConsumerNames(consumerNamesList = names)
                     )
-                    showSetConsumerNameDialog = false
+                    isShownSetConsumerNameDialog = false
+                },
+                onAddNewConsumerNameClick = { name ->
+                    splitReceiptForAllViewModel.setEvent(
+                        SplitReceiptForAllEvents.AddNewNameForAllConsumerNames(name = name)
+                    )
                 }
             )
         }
 
-        if (showClearOrderReportForAllDialog && isShowReceiptForAll) {
+        if (isShownClearOrderReportForAllDialog && isShowReceiptForAll) {
             AcceptClearingDialog(
-                onDismissRequest = { showClearOrderReportForAllDialog = false },
+                onDismissRequest = { isShownClearOrderReportForAllDialog = false },
                 onAcceptClicked = {
                     splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.ClearOrderReport)
-                    showClearOrderReportForAllDialog = false
+                    isShownClearOrderReportForAllDialog = false
                 },
                 infoText = stringResource(R.string.clear_order_report_text),
             )
         }
+
     }
 }
