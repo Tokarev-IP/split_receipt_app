@@ -1,4 +1,4 @@
-package com.iliatokarev.receipt_splitter_app.receipt.data.room
+package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
@@ -26,6 +26,8 @@ data class ReceiptEntity(
     val discount: Float? = null,
     @ColumnInfo(name = "tip_in_percent")
     val tip: Float? = null,
+    @ColumnInfo(name = "folder_id")
+    val folderId: Long? = null,
 )
 
 @Entity(
@@ -62,4 +64,16 @@ data class ReceiptWithOrdersEntity(
         entityColumn = "receipt_id"
     )
     val orders: List<OrderEntity>,
+)
+
+@Entity(tableName = "folder_data")
+data class FolderEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    @ColumnInfo(name = "folder_name")
+    val folderName: String,
+    @ColumnInfo(name = "is_archived")
+    val isArchived: Boolean = false,
+    @ColumnInfo(name = "consumer_names")
+    val consumerNames: String = "",
 )

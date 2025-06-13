@@ -1,4 +1,4 @@
-package com.iliatokarev.receipt_splitter_app.receipt.data.room
+package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData

@@ -1,4 +1,4 @@
-package com.iliatokarev.receipt_splitter_app.receipt.data.room
+package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
