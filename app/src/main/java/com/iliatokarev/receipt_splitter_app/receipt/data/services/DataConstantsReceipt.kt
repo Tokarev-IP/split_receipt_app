@@ -85,7 +85,7 @@ object DataConstantsReceipt {
 
     const val LANGUAGE_TEXT = "Translate to:"
 
-    const val RECEIPT_CONSUMER_NAME_DIVIDER = "%"
+    const val CONSUMER_NAME_DIVIDER = "%"
     const val ORDER_CONSUMER_NAME_DIVIDER = "#"
     const val MAXIMUM_AMOUNT_OF_CONSUMER_NAMES = 20
     const val MAXIMUM_CONSUMER_NAME_TEXT_LENGTH = 60

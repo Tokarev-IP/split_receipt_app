@@ -169,7 +169,7 @@ class SplitReceiptForAllViewModel(
     }
 
     private fun monitorOrderDataCheck() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             splitOrderDataSplitListFlow.collect { orderDataSplitList ->
                 splitReceiptDataFlow.value?.let { receipt ->
                     createOrderReport(

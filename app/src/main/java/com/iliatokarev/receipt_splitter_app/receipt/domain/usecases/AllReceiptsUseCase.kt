@@ -1,7 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain.usecases
 
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicFunResponse
-import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptDbRepositoryInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUiMessage
 import kotlinx.coroutines.Dispatchers
@@ -14,8 +14,10 @@ class AllReceiptsUseCase(
 ) : AllReceiptsUseCaseInterface {
 
     override suspend fun getAllReceiptsFlow(): Flow<List<ReceiptData>> {
-        return receiptDbRepository.getAllReceiptDataFlow()
-            .catch { emit(emptyList()) }
+        return withContext(Dispatchers.IO) {
+            receiptDbRepository.getAllReceiptDataFlow()
+                .catch { emit(emptyList()) }
+        }
     }
 
     override suspend fun deleteReceiptData(receiptId: Long): BasicFunResponse {
@@ -32,9 +34,22 @@ class AllReceiptsUseCase(
             }
         )
     }
+
+    override suspend fun moveReceiptInFolder(
+        receiptData: ReceiptData,
+        folderId: Long
+    ): BasicFunResponse {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun moveReceiptOutFolder(receiptData: ReceiptData): BasicFunResponse {
+        TODO("Not yet implemented")
+    }
 }
 
 interface AllReceiptsUseCaseInterface {
     suspend fun getAllReceiptsFlow(): Flow<List<ReceiptData>>
     suspend fun deleteReceiptData(receiptId: Long): BasicFunResponse
+    suspend fun moveReceiptInFolder(receiptData: ReceiptData, folderId: Long): BasicFunResponse
+    suspend fun moveReceiptOutFolder(receiptData: ReceiptData): BasicFunResponse
 }

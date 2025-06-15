@@ -27,6 +27,10 @@ interface ReceiptDao {
     fun getReceiptByIdFlow(receiptId: Long): Flow<ReceiptEntity?>
 
     @Transaction
+    @Query("SELECT * FROM receipt_data WHERE folder_id = :folderId")
+    fun getReceiptsByFolderIdFlow(folderId: Long): Flow<List<ReceiptEntity>>
+
+    @Transaction
     @Query("SELECT * FROM receipt_data WHERE id = :receiptId")
     suspend fun getReceiptById(receiptId: Long): ReceiptEntity?
 

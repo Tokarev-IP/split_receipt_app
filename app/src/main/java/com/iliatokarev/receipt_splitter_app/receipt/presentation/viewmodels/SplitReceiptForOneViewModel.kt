@@ -156,7 +156,7 @@ class SplitReceiptForOneViewModel(
     }
 
     private fun monitorOrderData() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             splitOrderDataListFlow.collect { orders ->
                 splitReceiptDataFlow.value?.let { receipt ->
                     createOrderReport(

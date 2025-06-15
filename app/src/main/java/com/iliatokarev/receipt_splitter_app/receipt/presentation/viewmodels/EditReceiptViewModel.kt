@@ -69,7 +69,7 @@ class EditReceiptViewModel(
     }
 
     private fun retrieveReceiptData(receiptId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             editReceiptUseCase.getReceiptDataFlow(receiptId = receiptId).collect { data ->
                 setReceiptData(newReceiptData = data)
             }
@@ -77,7 +77,7 @@ class EditReceiptViewModel(
     }
 
     private fun retrieveOrderDataList(receiptId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             editReceiptUseCase.getOrderDataListFlow(receiptId = receiptId).collect { list ->
                 setOrderDataList(newOrderDataList = list)
             }

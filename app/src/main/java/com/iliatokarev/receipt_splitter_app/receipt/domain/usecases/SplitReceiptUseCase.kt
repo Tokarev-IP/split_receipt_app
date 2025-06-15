@@ -1,7 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain.usecases
 
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicFunResponse
-import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptDbRepositoryInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
@@ -70,8 +70,8 @@ class SplitReceiptUseCase(
     ): BasicFunResponse = withContext(Dispatchers.IO) {
         runCatching {
             val newOrderDataList = orderDataList.map { orderData ->
-                transformOrderDataWithConsumerNames(
-                    orderDataSplitList = orderDataSplitList,
+                transformOrderDataSplitListToOrderData(
+                    orderDataSplitList = orderDataSplitList.filter { it.orderDataId == orderData.id },
                     orderData = orderData
                 )
             }
@@ -84,14 +84,13 @@ class SplitReceiptUseCase(
         )
     }
 
-    private fun transformOrderDataWithConsumerNames(
+    private fun transformOrderDataSplitListToOrderData(
         orderDataSplitList: List<OrderDataSplit>,
         orderData: OrderData,
     ): OrderData {
         val newConsumerList = mutableListOf<String>()
-        val splitDataList = orderDataSplitList.filter { it.orderDataId == orderData.id }
-        for (splitData in splitDataList) {
-            val consumerNames = splitData.consumerNamesList.joinToString(ORDER_CONSUMER_NAME_DIVIDER)
+        for (orderDataSplit in orderDataSplitList) {
+            val consumerNames = orderDataSplit.consumerNamesList.joinToString(ORDER_CONSUMER_NAME_DIVIDER)
             if (consumerNames.isNotEmpty())
                 newConsumerList.add(consumerNames)
         }

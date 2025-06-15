@@ -69,18 +69,20 @@ fun ReceiptCompose(
         navController = navHostController,
         startDestination = startDestination,
     ) {
-        composable<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
+        composable<ReceiptNavHostDestinations.CreateReceiptScreenNav> { backStackEntry ->
             val createReceiptViewModel: CreateReceiptViewModel = koinViewModel()
+            val data = backStackEntry.toRoute<ReceiptNavHostDestinations.CreateReceiptScreenNav>()
             CreateReceiptScreen(
                 receiptViewModel = receiptViewModel,
-                createReceiptViewModel = createReceiptViewModel
+                createReceiptViewModel = createReceiptViewModel,
+                folderId = data.folderId,
             )
         }
 
         composable<ReceiptNavHostDestinations.AllReceiptsScreenNav> {
             val allReceiptsViewModel: AllReceiptsViewModel = koinViewModel()
             LaunchedEffect(key1 = Unit) {
-                allReceiptsViewModel.setEvent(AllReceiptsEvent.RetrieveAllReceipts)
+                allReceiptsViewModel.setEvent(AllReceiptsEvent.RetrieveAllData)
             }
             AllReceiptsScreen(
                 receiptViewModel = receiptViewModel,
@@ -144,7 +146,7 @@ private fun handleReceiptIntent(
         }
 
         is ReceiptIntent.GoToCreateReceiptScreen -> {
-            navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav)
+            navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav(folderId = null))
         }
 
         is ReceiptIntent.GoToEditReceiptsScreen -> {
@@ -181,6 +183,12 @@ private fun handleReceiptIntent(
 
         is ReceiptIntent.UserIsEmpty -> {
             mainViewModel.setEvent(MainEvent.UserIsSignedOut)
+        }
+
+        is ReceiptIntent.GoToCreateReceiptScreenFromFolder -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.CreateReceiptScreenNav(folderId = intent.folderId)
+            )
         }
     }
 }

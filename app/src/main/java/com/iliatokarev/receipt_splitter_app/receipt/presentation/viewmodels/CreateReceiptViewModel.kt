@@ -37,6 +37,7 @@ class CreateReceiptViewModel(
                     createReceipt(
                         listOfImages = it,
                         translateTo = newEvent.translateTo,
+                        folderId = newEvent.folderId,
                     )
                 } ?: setUiMessageIntent(CreateReceiptUiMessageIntent.SomeImagesAreInappropriate)
             }
@@ -50,6 +51,7 @@ class CreateReceiptViewModel(
     private fun createReceipt(
         listOfImages: List<Uri>,
         translateTo: String?,
+        folderId: Long?,
     ) {
         viewModelScope.launch {
             setUiState(CreateReceiptUiState.Loading)
@@ -57,6 +59,7 @@ class CreateReceiptViewModel(
                 createReceiptUseCase.createReceiptFromUriImage(
                     listOfImages = listOfImages,
                     translateTo = translateTo,
+                    folderId = folderId,
                 )
             when (response) {
                 is ReceiptCreationResult.Success -> {
@@ -122,7 +125,7 @@ interface CreateReceiptUiState : BasicUiState {
 }
 
 sealed interface CreateReceiptEvent : BasicEvent {
-    class CreateReceipt(val translateTo: String?) : CreateReceiptEvent
+    class CreateReceipt(val translateTo: String?, val folderId: Long?) : CreateReceiptEvent
     class PutImages(val listOfImages: List<Uri>) : CreateReceiptEvent
 }
 

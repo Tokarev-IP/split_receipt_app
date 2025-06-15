@@ -71,7 +71,7 @@ import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
@@ -367,26 +367,27 @@ private fun OrderConsumerNameView(
 
                 AnimatedContent(
                     targetState = expandConsumerNames,
-                    modifier = modifier.weight(2f)
+                    modifier = modifier.weight(2f),
                 ) { expand ->
-                    if (expand)
-                        IconButton(
-                            onClick = { onExpandConsumerNamesClick(false) },
-                        ) {
+                    IconButton(
+                        onClick = {
+                            if (expandConsumerNames)
+                                onExpandConsumerNamesClick(false)
+                            else
+                                onExpandConsumerNamesClick(true)
+                        },
+                    ) {
+                        if (expand)
                             Icon(
                                 Icons.Outlined.KeyboardArrowUp,
                                 stringResource(R.string.narrow_down_consumer_names_button)
                             )
-                        }
-                    else
-                        IconButton(
-                            onClick = { onExpandConsumerNamesClick(true) }
-                        ) {
+                        else
                             Icon(
                                 Icons.Outlined.KeyboardArrowDown,
-                                stringResource(R.string.expand_receipt_info_button)
+                                stringResource(R.string.expand_consumer_names_button)
                             )
-                        }
+                    }
                 }
             }
 
@@ -623,7 +624,7 @@ private fun addConsumerName(
         return
     }
 
-    if (RECEIPT_CONSUMER_NAME_DIVIDER in consumerNameText ||
+    if (CONSUMER_NAME_DIVIDER in consumerNameText ||
         ORDER_CONSUMER_NAME_DIVIDER in consumerNameText
     ) {
         onConsumerNameErrorState(true)

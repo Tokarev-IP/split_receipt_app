@@ -56,6 +56,7 @@ fun CreateReceiptScreen(
     receiptViewModel: ReceiptViewModel,
     createReceiptViewModel: CreateReceiptViewModel,
     currentActivity: Activity? = LocalActivity.current,
+    folderId: Long?,
 ) {
     val messageUiMap = mapOf<String, String>(
         CreateReceiptUiMessage.NETWORK_ERROR.message to stringResource(R.string.no_internet_connection),
@@ -114,7 +115,9 @@ fun CreateReceiptScreen(
                 GmsDocumentScanningResult.fromActivityResultIntent(result.data)
             result?.pages?.let { pages ->
                 val newListOfImages = pages.map { it.imageUri }
-                createReceiptViewModel.setEvent(CreateReceiptEvent.PutImages(listOfImages = newListOfImages))
+                createReceiptViewModel.setEvent(
+                    CreateReceiptEvent.PutImages(listOfImages = newListOfImages)
+                )
             }
         }
     }
@@ -162,7 +165,10 @@ fun CreateReceiptScreen(
                     },
                     onGetReceiptFromImageClicked = {
                         createReceiptViewModel.setEvent(
-                            CreateReceiptEvent.CreateReceipt(selectedLanguage)
+                            CreateReceiptEvent.CreateReceipt(
+                                translateTo = selectedLanguage,
+                                folderId = folderId,
+                            )
                         )
                     },
                     onMakePhotoClicked = {

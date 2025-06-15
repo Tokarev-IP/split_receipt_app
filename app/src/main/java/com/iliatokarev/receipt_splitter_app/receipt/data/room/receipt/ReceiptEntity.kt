@@ -1,12 +1,10 @@
 package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import androidx.room.Relation
 
 @Entity(tableName = "receipt_data")
 data class ReceiptEntity(
@@ -28,6 +26,8 @@ data class ReceiptEntity(
     val tip: Float? = null,
     @ColumnInfo(name = "folder_id")
     val folderId: Long? = null,
+    @ColumnInfo(name = "is_active")
+    val isActive: Boolean = true,
 )
 
 @Entity(
@@ -43,8 +43,8 @@ data class ReceiptEntity(
 data class OrderEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo(name = "name")
-    val name: String,
+    @ColumnInfo(name = "order_name")
+    val orderName: String,
     @ColumnInfo(name = "translated_name")
     val translatedName: String? = null,
     @ColumnInfo(name = "quantity")
@@ -53,27 +53,6 @@ data class OrderEntity(
     val price: Float,
     @ColumnInfo(name = "receipt_id")
     val receiptId: Long,
-    @ColumnInfo(name = "consumer_names")
-    val consumerNames: String = "",
-)
-
-data class ReceiptWithOrdersEntity(
-    @Embedded val receipt: ReceiptEntity,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "receipt_id"
-    )
-    val orders: List<OrderEntity>,
-)
-
-@Entity(tableName = "folder_data")
-data class FolderEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    @ColumnInfo(name = "folder_name")
-    val folderName: String,
-    @ColumnInfo(name = "is_archived")
-    val isArchived: Boolean = false,
     @ColumnInfo(name = "consumer_names")
     val consumerNames: String = "",
 )

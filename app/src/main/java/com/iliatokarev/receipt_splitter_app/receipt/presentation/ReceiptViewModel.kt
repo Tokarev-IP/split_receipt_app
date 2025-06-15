@@ -80,6 +80,7 @@ interface ReceiptIntent : BasicIntent {
     object GoBackNavigation : ReceiptIntent
     object GoToSettings : ReceiptIntent
     object UserIsEmpty : ReceiptIntent
+    class GoToCreateReceiptScreenFromFolder(val folderId: Long?): ReceiptIntent
 }
 
 interface ReceiptUiMessageIntent : BasicUiMessageIntent {

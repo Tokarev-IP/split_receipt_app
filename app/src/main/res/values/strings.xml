@@ -32,6 +32,7 @@
     <string name="open_submenu_button">Open submenu</string>
     <string name="delete_receipt_button">Delete receipt button</string>
     <string name="edit_receipt_button">Edit receipt button</string>
+    <string name="edit_folder_button">Edit folder button</string>
     <string name="swap_ui_modes_receipt_button">Swap UI modes receipt button</string>
     <string name="delete_order_button">Delete order button</string>
     <string name="settings_button">Settings button</string>
@@ -155,6 +156,19 @@
     <string name="select_consumer_names">Select names</string>
     <string name="add_new_consumer_name">Add new name</string>
     <string name="maximum_amount_of_consumer_names_is_reached">Maximum amount of consumer names is reached</string>
+    <string name="expand_archive_folders_button">Expand archive folders button</string>
+    <string name="narrow_down_archive_folders_button">Narrow down archive folders button</string>
+    <string name="archive_folder_button">Archive folder button</string>
+    <string name="unarchive_folder_button">Unarchive folder button</string>
+    <string name="delete_folder_button">Delete folder button</string>
+    <string name="archive">Archive</string>
+    <string name="unarchive">Unarchive</string>
+    <string name="add_new_folder_button">Add new folder button</string>
+    <string name="add_new_folder">Add new folder</string>
+    <string name="receipt_move_to_folder_button">Receipt move to folder button</string>
+    <string name="move">Move to</string>
+    <string name="add_new_folder_title">Add new folder</string>
+    <string name="edit_folder_title">Edit folder</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>

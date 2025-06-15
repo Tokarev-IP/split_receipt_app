@@ -3,7 +3,6 @@ package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptDataJson
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUiMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -12,8 +11,15 @@ class ReceiptDbRepository(
     private val receiptAdapter: ReceiptAdapter,
 ) : ReceiptDbRepositoryInterface {
 
-    override suspend fun insertReceiptDataJson(receiptDataJson: ReceiptDataJson): Long {
-        val receiptEntity = receiptAdapter.transformReceiptDataJsonToReceiptEntity(receiptDataJson)
+    override suspend fun insertReceiptDataJson(
+        receiptDataJson: ReceiptDataJson,
+        folderId: Long?,
+    ): Long {
+        val receiptEntity = receiptAdapter
+            .transformReceiptDataJsonToReceiptEntity(
+                receiptDataJson = receiptDataJson,
+                folderId = folderId
+            )
         val receiptId = receiptDao.insertReceipt(receipt = receiptEntity)
         val orderEntityList = receiptAdapter.transformOrderDataJsonListToOrderEntityList(
                 orderDataJsonList = receiptDataJson.orders,
@@ -64,15 +70,16 @@ class ReceiptDbRepository(
 
     override suspend fun getReceiptDataByIdFlow(id: Long): Flow<ReceiptData?> {
         return receiptDao.getReceiptByIdFlow(receiptId = id).map { receiptEntity ->
-            receiptEntity ?: throw Exception(ReceiptUiMessage.INTERNAL_ERROR.msg)
-            receiptAdapter.transformReceiptEntityToReceiptDate(receiptEntity)
+            receiptEntity?.let {
+                receiptAdapter.transformReceiptEntityToReceiptDate(receiptEntity)
+            }
         }
     }
 
     override suspend fun getReceiptDataById(id: Long): ReceiptData? {
         return receiptDao.getReceiptById(receiptId = id)?.let { receiptEntity ->
             receiptAdapter.transformReceiptEntityToReceiptDate(receiptEntity)
-        } ?: throw Exception(ReceiptUiMessage.INTERNAL_ERROR.msg)
+        }
     }
 
     override suspend fun deleteReceiptData(receiptId: Long) {
@@ -85,7 +92,7 @@ class ReceiptDbRepository(
 }
 
 interface ReceiptDbRepositoryInterface {
-    suspend fun insertReceiptDataJson(receiptDataJson: ReceiptDataJson): Long
+    suspend fun insertReceiptDataJson(receiptDataJson: ReceiptDataJson, folderId: Long?): Long
     suspend fun insertReceiptData(receiptData: ReceiptData)
     suspend fun insertOrderData(orderData: OrderData)
     suspend fun insertNewOrderData(orderData: OrderData)

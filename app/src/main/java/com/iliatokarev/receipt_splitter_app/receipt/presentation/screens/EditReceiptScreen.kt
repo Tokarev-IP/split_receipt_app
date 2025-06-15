@@ -2,6 +2,7 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iliatokarev.receipt_splitter_app.R
-import com.iliatokarev.receipt_splitter_app.main.basic.icons.Receipt
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
@@ -60,7 +60,8 @@ fun EditReceiptScreen(
     var showEditReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var showAddNewOrderDialog by rememberSaveable { mutableStateOf(false) }
     var showEditOrderDialog by rememberSaveable { mutableStateOf(false) }
-    var orderId by rememberSaveable { mutableLongStateOf(0L) }
+
+    var orderId: Long = 0L
 
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
@@ -101,7 +102,7 @@ fun EditReceiptScreen(
                 },
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Receipt,
+                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                     contentDescription = stringResource(R.string.go_to_split_receipt_screen_button),
                 )
             }

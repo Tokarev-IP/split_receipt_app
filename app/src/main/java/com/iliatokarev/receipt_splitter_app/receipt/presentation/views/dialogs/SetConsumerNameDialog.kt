@@ -47,7 +47,7 @@ import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.RECEIPT_CONSUMER_NAME_DIVIDER
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
@@ -212,7 +212,7 @@ private fun ConsumerNameTextFieldView(
         supportingText = {
             if (isConsumerNameErrorState && consumerNameText.isEmpty())
                 Text(text = stringResource(R.string.field_is_empty))
-            else if (RECEIPT_CONSUMER_NAME_DIVIDER in consumerNameText.trim() ||
+            else if (CONSUMER_NAME_DIVIDER in consumerNameText.trim() ||
                 ORDER_CONSUMER_NAME_DIVIDER in consumerNameText.trim()
             ) Text(text = stringResource(R.string.inappropriate_symbols))
             else if (isConsumerNameErrorState)
@@ -282,7 +282,7 @@ private fun addConsumerName(
         onConsumerNameErrorState(true)
         return
     }
-    if (RECEIPT_CONSUMER_NAME_DIVIDER in consumerNameText.trim() ||
+    if (CONSUMER_NAME_DIVIDER in consumerNameText.trim() ||
         ORDER_CONSUMER_NAME_DIVIDER in consumerNameText.trim()
     ) {
         onConsumerNameErrorState(true)

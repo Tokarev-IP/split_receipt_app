@@ -22,12 +22,15 @@ import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.CreateReceip
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.CreateReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptUseCaseInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCase
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
 import org.koin.core.module.dsl.bind
@@ -35,7 +38,7 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val receiptModule = module {
+val receiptSplitterModule = module {
     // View Model
     viewModelOf(::ReceiptViewModel)
     viewModelOf(::AllReceiptsViewModel)
@@ -43,6 +46,7 @@ val receiptModule = module {
     viewModelOf(::SplitReceiptForOneViewModel)
     viewModelOf(::SplitReceiptForAllViewModel)
     viewModelOf(::CreateReceiptViewModel)
+    viewModelOf(::FolderReceiptsViewModel)
 
     // Services & Utilities
     factoryOf(::ImageConverter) { bind<ImageConverterInterface>() }
@@ -56,6 +60,7 @@ val receiptModule = module {
     factoryOf(::AllReceiptsUseCase) { bind<AllReceiptsUseCaseInterface>() }
     factoryOf(::EditReceiptUseCase) { bind<EditReceiptUseCaseInterface>() }
     factoryOf(::CreateReceiptUseCase) { bind<CreateReceiptUseCaseInterface>() }
+    factoryOf(::AllFoldersUseCase) { bind<AllFoldersUseCaseInterface>() }
 
     // Business Logic
     factoryOf(::OrderReportCreator) { bind<OrderReportCreatorInterface>() }

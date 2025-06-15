@@ -30,6 +30,8 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewMode
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddNewFolderDialog
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.EditFolderDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.AllReceiptsScreenView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,13 +42,17 @@ fun AllReceiptsScreen(
     allReceiptViewModel: AllReceiptsViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
 ) {
-    val limitExceededMessage = stringResource(R.string.exceed_info_message)
     var showAcceptDeletionReceiptDialog by rememberSaveable { mutableStateOf(false) }
-    var receiptIdToDelete by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showAddNewFolderDialog by rememberSaveable { mutableStateOf(false) }
+    var showEditFolderDialog by rememberSaveable { mutableStateOf(false) }
 
     val allReceiptsList by allReceiptViewModel.getAllReceiptsList().collectAsStateWithLifecycle()
-    val isReceiptsAtMaxLimit by allReceiptViewModel.getIsReceiptsAtMaxLimit()
-        .collectAsStateWithLifecycle()
+    val foldersListUnarchived by allReceiptViewModel.getFoldersListUnarchived().collectAsStateWithLifecycle()
+    val foldersListArchived by allReceiptViewModel.getFoldersListArchived().collectAsStateWithLifecycle()
+
+    var chosenReceiptIdToDelete: Long? = null
+    var chosenFolderIdToEdit: Long? = null
+    var chosenReceiptIdToMove: Long? = null
 
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
@@ -75,10 +81,7 @@ fun AllReceiptsScreen(
             FloatingActionButton(
                 modifier = Modifier.padding(12.dp),
                 onClick = {
-                    if (isReceiptsAtMaxLimit == false)
-                        receiptViewModel.setEvent(ReceiptEvent.OpenCreateReceiptScreen)
-                    else
-                        receiptViewModel.setEvent(ReceiptEvent.SetUiMessage(limitExceededMessage))
+                    receiptViewModel.setEvent(ReceiptEvent.OpenCreateReceiptScreen)
                 }
             ) {
                 Icon(
@@ -97,7 +100,7 @@ fun AllReceiptsScreen(
                 )
             },
             onDeleteReceiptClicked = { receiptId ->
-                receiptIdToDelete = receiptId
+                chosenReceiptIdToDelete = receiptId
                 showAcceptDeletionReceiptDialog = true
             },
             onEditReceiptClicked = { receiptId ->
@@ -106,11 +109,30 @@ fun AllReceiptsScreen(
                         receiptId = receiptId
                     )
                 )
-            }
+            },
+            foldersListUnarchived = foldersListUnarchived,
+            foldersListArchived = foldersListArchived,
+            onAddNewFolderClicked = { showAddNewFolderDialog = true },
+            onEditFolderClicked = { folderId ->
+                chosenFolderIdToEdit = folderId
+                showEditFolderDialog = true
+            },
+            onArchiveFolderClicked = { folderData ->
+                allReceiptViewModel.setEvent(AllReceiptsEvent.ArchiveFolder(folderData = folderData))
+            },
+            onUnarchiveFolderClicked = { folderData ->
+                allReceiptViewModel.setEvent(AllReceiptsEvent.UnArchiveFolder(folderData = folderData))
+            },
+            onFolderClick = { folderId ->
+
+            },
+            onMoveReceiptToClicked = { receiptId ->
+                chosenReceiptIdToMove = receiptId
+            },
         )
 
-        if (showAcceptDeletionReceiptDialog && receiptIdToDelete != null)
-            receiptIdToDelete?.let { receiptId ->
+        if (showAcceptDeletionReceiptDialog)
+            chosenReceiptIdToDelete?.let { receiptId ->
                 AcceptDeletionDialog(
                     infoText = stringResource(R.string.do_you_want_to_delete_this_receipt),
                     onDismissRequest = { showAcceptDeletionReceiptDialog = false },
@@ -120,10 +142,43 @@ fun AllReceiptsScreen(
                                 receiptId
                             )
                         )
-                        receiptIdToDelete = null
+                        chosenReceiptIdToDelete = null
                         showAcceptDeletionReceiptDialog = false
                     }
                 )
             }
+
+        if (showEditFolderDialog) {
+            chosenFolderIdToEdit?.let { folderId ->
+                val folderData = foldersListUnarchived?.find { it.id == folderId }
+                    ?: foldersListArchived?.find { it.id == folderId }
+
+                folderData?.let { data ->
+                    EditFolderDialog(
+                        onDismissRequest = { showEditFolderDialog = false },
+                        folderData = data,
+                        onSaveButtonClicked = { folderData ->
+                            allReceiptViewModel.setEvent(
+                                AllReceiptsEvent.SaveFolder(folderData = folderData)
+                            )
+                            chosenFolderIdToEdit = null
+                            showEditFolderDialog = false
+                        }
+                    )
+                }
+            }
+        }
+
+        if (showAddNewFolderDialog) {
+            AddNewFolderDialog(
+                onDismissRequest = { showAddNewFolderDialog = false },
+                onSaveButtonClicked = { folderData ->
+                    allReceiptViewModel.setEvent(
+                        AllReceiptsEvent.SaveFolder(folderData = folderData)
+                    )
+                    showAddNewFolderDialog = false
+                },
+            )
+        }
     }
 }
