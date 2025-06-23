@@ -11,6 +11,9 @@ fun Int.isNotZero(): Boolean = this > 0
 fun Int.isMoreThanOne(): Boolean = this >1
 fun Float.isZero(): Boolean = this == 0F
 fun Float.isNotZero(): Boolean = this > 0
+fun Int?.getOrZero(): Int {
+    return if (this == null || this == 0) 0 else this
+}
 
 fun String.isEmail(): Boolean {
     val emailRegex = Regex("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
