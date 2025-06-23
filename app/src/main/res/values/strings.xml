@@ -46,7 +46,7 @@
     <string name="edit">Edit</string>
     <string name="swap">Swap</string>
     <string name="clear">Clear</string>
-    <string name="no_receipts_found">No receipts found. Add a new one.</string>
+    <string name="no_receipts_found">No receipts found. Add a new one</string>
     <string name="receipts">Receipts</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -103,6 +103,7 @@
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
     <string name="accept">Accept</string>
+    <string name="add">Add</string>
     <string name="share_order_report_button">"Share order report button"</string>
     <string name="add_order_button">Add a new order</string>"
     <string name="name">Name</string>
@@ -151,11 +152,10 @@
     <string name="clear_all_consumer_names_button">Clear all</string>
     <string name="add_name_button">Add name button</string>
     <string name="sum_of_consumer_names">Names: %s</string>
-    <string name="add_a_consumer_name_text">, %s</string>
     <string name="name_is_already_existed">This name is already existed</string>
     <string name="select_consumer_names">Select names</string>
     <string name="add_new_consumer_name">Add new name</string>
-    <string name="maximum_amount_of_consumer_names_is_reached">Maximum amount of consumer names is reached</string>
+    <string name="maximum_amount_of_names_is_reached">Maximum amount of names is reached</string>
     <string name="expand_archive_folders_button">Expand archive folders button</string>
     <string name="narrow_down_archive_folders_button">Narrow down archive folders button</string>
     <string name="archive_folder_button">Archive folder button</string>
@@ -169,6 +169,32 @@
     <string name="move">Move to</string>
     <string name="add_new_folder_title">Add new folder</string>
     <string name="edit_folder_title">Edit folder</string>
+    <string name="remove">Remove</string>
+    <string name="remove_from">Remove from</string>
+    <string name="remove_receipt_from_folder">Remove from folder</string>
+    <string name="remove_receipt_from_folder_button">Remove receipt from folder button</string>
+    <string name="mark_receipt_as_shared_button">Mark receipt as shared button</string>
+    <string name="mark_receipt_as_unshared_button">Mark receipt as unshared button</string>
+    <string name="mark_as_shared">Mark as shared</string>
+    <string name="mark_as_unshared">Mark as unshared</string>
+    <string name="split_mode_on_button">Split mode on button</string>
+    <string name="split_mode_off_button">Split mode off button</string>
+    <string name="folder_icon">Folder icon</string>
+    <string name="choose_folder_name_title">Choose folder name</string>
+    <string name="maximum_amount_of_folders_reached">Maximum amount of folders is reached</string>
+    <string name="maximum_amount_of_receipts_reached">Maximum amount of receipts is reached</string>
+    <string name="short_report">Short report</string>
+    <string name="long_report">Long report</string>
+    <string name="basic_report">Basic report</string>
+    <string name="short_report_icon">Short report icon</string>
+    <string name="long_report_icon">Long report icon</string>
+    <string name="basic_report_icon">Basic report icon</string>
+    <string name="share_report_button">Share report button</string>
+    <string name="add_person_name">Add person name</string>
+    <string name="add_person_name_button">Add person name</string>
+    <string name="names_are_empty">Names are empty. Add the first one</string>
+    <string name="delete_consumer_name_text">Do you really want to delete this name?</string>
+    <string name="archived_folders">Archived folders</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>
