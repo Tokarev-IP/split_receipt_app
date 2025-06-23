@@ -1,6 +1,8 @@
 package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.OrderEntity
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptEntity
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataJson
@@ -23,12 +25,12 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 discount = receiptEntity.discount?.roundToTwoDecimalPlaces(),
                 tip = receiptEntity.tip?.roundToTwoDecimalPlaces(),
                 folderId = receiptEntity.folderId,
-                isActive = receiptEntity.isActive,
+                isShared = receiptEntity.isShared,
             )
         }
     }
 
-    override suspend fun transformReceiptEntityToReceiptDate(
+    override suspend fun transformReceiptEntityToReceiptData(
         receiptEntity: ReceiptEntity
     ): ReceiptData {
         return receiptEntity.run {
@@ -42,7 +44,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 discount = discount?.roundToTwoDecimalPlaces(),
                 tip = tip?.roundToTwoDecimalPlaces(),
                 folderId = folderId,
-                isActive = isActive
+                isShared = isShared
             )
         }
     }
@@ -91,7 +93,9 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 quantity = orderEntity.quantity,
                 price = orderEntity.price.roundToTwoDecimalPlaces(),
                 receiptId = orderEntity.receiptId,
-                consumersList = orderEntity.consumerNames.split(CONSUMER_NAME_DIVIDER),
+                consumersList = orderEntity.consumerNames
+                    .split(CONSUMER_NAME_DIVIDER)
+                    .filter { it.isNotEmpty() },
             )
         }
     }
@@ -110,7 +114,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 discount = discount?.roundToTwoDecimalPlaces(),
                 tip = tip?.roundToTwoDecimalPlaces(),
                 folderId = folderId,
-                isActive = isActive,
+                isShared = isShared,
             )
         }
     }
@@ -164,7 +168,7 @@ interface ReceiptAdapterInterface {
         receiptEntityList: List<ReceiptEntity>,
     ): List<ReceiptData>
 
-    suspend fun transformReceiptEntityToReceiptDate(
+    suspend fun transformReceiptEntityToReceiptData(
         receiptEntity: ReceiptEntity,
     ): ReceiptData
 

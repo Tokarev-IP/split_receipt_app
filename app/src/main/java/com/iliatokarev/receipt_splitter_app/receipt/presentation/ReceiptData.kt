@@ -47,7 +47,7 @@ data class ReceiptData(
     val tip: Float? = null,
     val additionalSumList: List<Pair<String, Float>> = emptyList(),
     val folderId: Long? = null,
-    val isActive: Boolean = true,
+    val isShared: Boolean = false,
     val isChecked: Boolean = false,
 )
 
@@ -74,8 +74,23 @@ data class OrderDataSplit(
 data class FolderData(
     val id: Long,
     val folderName: String = "no name",
-    val consumersList: List<String> = emptyList(),
+    val consumerNamesList: List<String> = emptyList(),
     val isArchived: Boolean = false,
+)
+
+class ReceiptWithOrdersDataSplit(
+    val receipt: ReceiptData,
+    val orders: List<OrderDataSplit>,
+)
+
+class ReceiptWithFolderData(
+    val receipt: ReceiptData,
+    val folderName: String? = null,
+)
+
+class FolderWithReceiptsData(
+    val folder: FolderData,
+    val amountOfReceipts: Int = 0,
 )
 
 @Serializable
@@ -97,20 +112,6 @@ class ReceiptVertexData(
     @PropertyName("aiModel")
     val aiModel: String = "",
 )
-
-sealed interface ReceiptNavHostDestinations {
-    @Serializable
-    class CreateReceiptScreenNav(val folderId: Long?) : ReceiptNavHostDestinations
-
-    @Serializable
-    object AllReceiptsScreenNav : ReceiptNavHostDestinations
-
-    @Serializable
-    class SplitReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
-
-    @Serializable
-    class EditReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
-}
 
 object ReceiptUIConstants {
     const val ONE_LINE = 1

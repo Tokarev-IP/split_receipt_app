@@ -10,12 +10,16 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreReposito
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserId
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.FolderReceiptsReportCreator
+import com.iliatokarev.receipt_splitter_app.receipt.domain.FolderReceiptsReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreator
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreatorInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.ReceiptDataService
+import com.iliatokarev.receipt_splitter_app.receipt.domain.ReceiptDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.CreateReceiptUseCase
@@ -24,6 +28,8 @@ import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptU
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCaseInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.FolderReceiptsUseCase
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.FolderReceiptsUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
@@ -54,6 +60,8 @@ val receiptSplitterModule = module {
     factoryOf(::ReceiptService) { bind<ReceiptServiceInterface>() }
     factoryOf(::FireStoreRepository) { bind<FireStoreRepositoryInterface>() }
     factoryOf(::FirebaseUserId) { bind<FirebaseUserIdInterface>() }
+    factoryOf(::ReceiptDataService) { bind<ReceiptDataServiceInterface>() }
+    factoryOf(:: FolderReceiptsReportCreator) { bind<FolderReceiptsReportCreatorInterface>()}
 
     // Use Cases
     factoryOf(::SplitReceiptUseCase) { bind<SplitReceiptUseCaseInterface>() }
@@ -61,6 +69,7 @@ val receiptSplitterModule = module {
     factoryOf(::EditReceiptUseCase) { bind<EditReceiptUseCaseInterface>() }
     factoryOf(::CreateReceiptUseCase) { bind<CreateReceiptUseCaseInterface>() }
     factoryOf(::AllFoldersUseCase) { bind<AllFoldersUseCaseInterface>() }
+    factoryOf(::FolderReceiptsUseCase) { bind<FolderReceiptsUseCaseInterface>() }
 
     // Business Logic
     factoryOf(::OrderReportCreator) { bind<OrderReportCreatorInterface>() }
