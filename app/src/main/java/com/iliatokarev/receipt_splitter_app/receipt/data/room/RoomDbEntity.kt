@@ -1,12 +1,35 @@
-package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
+package com.iliatokarev.receipt_splitter_app.receipt.data.room
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
-@Entity(tableName = "receipt_data")
+@Entity(tableName = "folder_data")
+data class FolderEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    @ColumnInfo(name = "folder_name")
+    val folderName: String,
+    @ColumnInfo(name = "is_archived")
+    val isArchived: Boolean = false,
+    @ColumnInfo(name = "consumer_names")
+    val consumerNames: String = "",
+)
+
+@Entity(
+    tableName = "receipt_data",
+    foreignKeys = [ForeignKey(
+        entity = FolderEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["folder_id"],
+        onDelete = ForeignKey.SET_NULL,
+        )],
+    indices = [Index(value = ["folder_id"])]
+)
 data class ReceiptEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -26,8 +49,8 @@ data class ReceiptEntity(
     val tip: Float? = null,
     @ColumnInfo(name = "folder_id")
     val folderId: Long? = null,
-    @ColumnInfo(name = "is_active")
-    val isActive: Boolean = true,
+    @ColumnInfo(name = "is_shared")
+    val isShared: Boolean = false,
 )
 
 @Entity(
@@ -55,4 +78,31 @@ data class OrderEntity(
     val receiptId: Long,
     @ColumnInfo(name = "consumer_names")
     val consumerNames: String = "",
+)
+
+data class ReceiptWithOrdersEntity(
+    @Embedded val receipt: ReceiptEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "receipt_id"
+    )
+    val orders: List<OrderEntity>,
+)
+
+data class ReceiptWithFolderEntity(
+    @Embedded val receipt: ReceiptEntity,
+    @Relation(
+        parentColumn = "folder_id",
+        entityColumn = "id"
+    )
+    val folder: FolderEntity? = null,
+)
+
+data class FolderWithReceiptsEntity(
+    @Embedded val folder: FolderEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "folder_id"
+    )
+    val receipts: List<ReceiptEntity>,
 )
