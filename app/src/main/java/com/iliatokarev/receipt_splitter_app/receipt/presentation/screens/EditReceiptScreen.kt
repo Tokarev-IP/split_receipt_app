@@ -2,7 +2,6 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -16,7 +15,6 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -27,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.Receipt
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
@@ -61,7 +60,7 @@ fun EditReceiptScreen(
     var showAddNewOrderDialog by rememberSaveable { mutableStateOf(false) }
     var showEditOrderDialog by rememberSaveable { mutableStateOf(false) }
 
-    var orderId: Long = 0L
+    var orderId = 0L
 
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
@@ -102,7 +101,7 @@ fun EditReceiptScreen(
                 },
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                    imageVector = Icons.Filled.Receipt,
                     contentDescription = stringResource(R.string.go_to_split_receipt_screen_button),
                 )
             }
@@ -181,7 +180,7 @@ fun EditReceiptScreen(
             AcceptDeletionDialog(
                 infoText = stringResource(R.string.do_you_want_to_delete_this_order),
                 onDismissRequest = { showDeleteOrderDialog = false },
-                onAcceptClicked = {
+                onDeleteClicked = {
                     orderIdToDelete?.let { id ->
                         editReceiptViewModel.setEvent(EditReceiptEvent.DeleteOrder(orderId = id))
                     }

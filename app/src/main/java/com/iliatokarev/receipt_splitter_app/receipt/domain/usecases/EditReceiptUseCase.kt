@@ -15,7 +15,7 @@ class EditReceiptUseCase(
 ) : EditReceiptUseCaseInterface {
 
     override suspend fun getReceiptDataFlow(receiptId: Long): Flow<ReceiptData?> {
-        return receiptDbRepositoryInterface.getReceiptDataByIdFlow(id = receiptId)
+        return receiptDbRepositoryInterface.getReceiptsByIdFlow(id = receiptId)
             .catch { emit(null) }
     }
 

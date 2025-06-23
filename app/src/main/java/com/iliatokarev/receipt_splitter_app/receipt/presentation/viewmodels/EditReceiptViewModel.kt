@@ -34,7 +34,7 @@ class EditReceiptViewModel(
         orderDataList.value = newOrderDataList
     }
 
-    fun setIsOrderCountAtLimit(newState: Boolean) {
+    private fun setIsOrderCountAtLimit(newState: Boolean) {
         isOrderCountAtLimit.value = newState
     }
 
