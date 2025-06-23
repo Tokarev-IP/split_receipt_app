@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,16 +43,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.PersonAddIcon
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
 
 @Composable
-internal fun SetConsumerNameDialog(
+internal fun AddConsumerNameDialog(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String>,
     onDismissClick: () -> Unit,
@@ -67,7 +67,7 @@ internal fun SetConsumerNameDialog(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
         ) {
-            SetConsumerNameDialogView(
+            AddConsumerNameDialogView(
                 allConsumerNamesList = allConsumerNamesList,
                 onDismissClick = onDismissClick,
                 onSaveSelectedNamesClick = { names ->
@@ -82,7 +82,7 @@ internal fun SetConsumerNameDialog(
 }
 
 @Composable
-private fun SetConsumerNameDialogView(
+private fun AddConsumerNameDialogView(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String> = emptyList<String>(),
     onDismissClick: () -> Unit = {},
@@ -97,7 +97,7 @@ private fun SetConsumerNameDialogView(
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            SetConsumerNameView(
+            AddConsumerNameView(
                 allConsumerNamesList = allConsumerNamesList,
                 onDismissClick = onDismissClick,
                 onSaveSelectedNamesClick = { names ->
@@ -112,7 +112,7 @@ private fun SetConsumerNameDialogView(
 }
 
 @Composable
-private fun SetConsumerNameView(
+private fun AddConsumerNameView(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String>,
     onDismissClick: () -> Unit,
@@ -126,9 +126,9 @@ private fun SetConsumerNameView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
-        DialogCap(text = stringResource(R.string.select_consumer_names)) { onDismissClick() }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        DialogCapView(text = stringResource(R.string.select_consumer_names)) { onDismissClick() }
+        Spacer(modifier = Modifier.height(12.dp))
         HorizontalDivider()
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -139,8 +139,6 @@ private fun SetConsumerNameView(
                 chosenConsumerNamesList.add(name)
             }
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider()
 
         Spacer(modifier = Modifier.height(8.dp))
         if (allConsumerNamesList.size >= MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
@@ -148,7 +146,7 @@ private fun SetConsumerNameView(
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                text = stringResource(R.string.maximum_amount_of_consumer_names_is_reached)
+                text = stringResource(R.string.maximum_amount_of_names_is_reached)
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -166,9 +164,9 @@ private fun SetConsumerNameView(
                 },
                 chosenConsumerNamesList = chosenConsumerNamesList,
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider()
         Spacer(modifier = Modifier.height(16.dp))
         CancelSaveButtonView(
             onCancelClicked = { onDismissClick() },
@@ -196,7 +194,6 @@ private fun ConsumerNameTextFieldView(
                 consumerNameText = name
         },
         isError = isConsumerNameErrorState,
-        singleLine = true,
         label = { Text(text = stringResource(R.string.name)) },
         trailingIcon = {
             if (consumerNameText.isNotEmpty())
@@ -261,12 +258,14 @@ private fun ConsumerNameTextFieldView(
                         }
                     )
                     focusManager.clearFocus()
-                }
+                },
+                enabled = allConsumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
             ) {
-                Icon(Icons.Outlined.Add, stringResource(R.string.add_name_button))
+                Icon(Icons.Filled.PersonAddIcon, stringResource(R.string.add_name_button))
             }
         },
         enabled = allConsumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
+        maxLines = MAXIMUM_LINES_IS_5,
     )
 }
 
@@ -341,11 +340,12 @@ private fun ConsumerNamesGrid(
 
 private const val EMPTY_STRING = ""
 private const val MAXIMUM_LINE_IS_1 = 1
+private const val MAXIMUM_LINES_IS_5 = 5
 
 @Preview(showBackground = true)
 @Composable
 private fun SetConsumerNameDialogViewPreview() {
-    SetConsumerNameDialogView(
+    AddConsumerNameDialogView(
         allConsumerNamesList = listOf(
             "consumer1",
             "consumer2",

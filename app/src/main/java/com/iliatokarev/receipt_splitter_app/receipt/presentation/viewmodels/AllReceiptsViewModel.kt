@@ -1,13 +1,14 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
-import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCaseInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderData
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderWithReceiptsData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptWithFolderData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,37 +19,45 @@ class AllReceiptsViewModel(
     private val allFoldersUseCase: AllFoldersUseCaseInterface,
 ) : BasicSimpleViewModel<AllReceiptsEvent>() {
 
-    private val allReceiptsList = MutableStateFlow<List<ReceiptData>?>(null)
-    private val allReceiptsListState = allReceiptsList.asStateFlow()
+    private val allReceiptsWithFolderDataList = MutableStateFlow<List<ReceiptWithFolderData>?>(null)
+    private val allReceiptsWithFolderListState = allReceiptsWithFolderDataList.asStateFlow()
 
-    private val foldersListUnarchived = MutableStateFlow<List<FolderData>?>(null)
-    private val foldersListUnarchivedState = foldersListUnarchived.asStateFlow()
+    private val foldersWithReceiptsUnarchived =
+        MutableStateFlow<List<FolderWithReceiptsData>?>(null)
+    private val foldersWithReceiptsUnarchivedState = foldersWithReceiptsUnarchived.asStateFlow()
 
-    private val foldersListArchived = MutableStateFlow<List<FolderData>?>(null)
-    private val foldersListArchivedState = foldersListArchived.asStateFlow()
+    private val foldersWithReceiptsArchived = MutableStateFlow<List<FolderWithReceiptsData>?>(null)
+    private val foldersWithReceiptsArchivedState = foldersWithReceiptsArchived.asStateFlow()
 
-    private fun setAllReceiptsList(newList: List<ReceiptData>) {
-        allReceiptsList.value = newList
+    private val allFoldersNamesList = MutableStateFlow<List<String>?>(null)
+    private val allFoldersNamesListState = allFoldersNamesList.asStateFlow()
+
+    private fun setAllReceiptsWithFolder(newList: List<ReceiptWithFolderData>) {
+        allReceiptsWithFolderDataList.value = newList
     }
 
-    private fun setFoldersListUnarchived(newList: List<FolderData>) {
-        foldersListUnarchived.value = newList
+    private fun setFoldersWithReceiptsUnarchived(newList: List<FolderWithReceiptsData>) {
+        foldersWithReceiptsUnarchived.value = newList
     }
 
-    private fun setFoldersListArchived(newList: List<FolderData>) {
-        foldersListArchived.value = newList
+    private fun setFoldersWithReceiptsArchived(newList: List<FolderWithReceiptsData>) {
+        foldersWithReceiptsArchived.value = newList
     }
 
-    fun getAllReceiptsList() = allReceiptsListState
-    fun getFoldersListUnarchived() = foldersListUnarchivedState
-    fun getFoldersListArchived() = foldersListArchivedState
+    private fun setAllFoldersNamesList(newList: List<String>) {
+        allFoldersNamesList.value = newList
+    }
+
+    fun getAllReceiptsWithFolderList() = allReceiptsWithFolderListState
+    fun getFoldersWithReceiptsUnarchived() = foldersWithReceiptsUnarchivedState
+    fun getFoldersWithReceiptsArchived() = foldersWithReceiptsArchivedState
+    fun getAllFoldersNamesList() = allFoldersNamesListState
 
     override fun setEvent(newEvent: AllReceiptsEvent) {
         when (newEvent) {
             is AllReceiptsEvent.RetrieveAllData -> {
                 retrieveAllReceipts()
-                retrieveAllArchivedFolder()
-                retrieveAllUnArchivedFolder()
+                retrieveAllFoldersWithReceipts()
             }
 
             is AllReceiptsEvent.DeleteSpecificReceipt -> {
@@ -82,25 +91,28 @@ class AllReceiptsViewModel(
 
     private fun retrieveAllReceipts() {
         viewModelScope.launch(Dispatchers.IO) {
-            allReceiptsUseCase.getAllReceiptsFlow().collect { data: List<ReceiptData> ->
-                setAllReceiptsList(data.reversed())
+            allReceiptsUseCase.getAllReceiptsWithFolderFlow().collect { data ->
+                setAllReceiptsWithFolder(data)
             }
         }
     }
 
-    private fun retrieveAllArchivedFolder() {
+    private fun retrieveAllFoldersWithReceipts() {
         viewModelScope.launch(Dispatchers.IO) {
-            allFoldersUseCase.getAllArchivedFoldersFlow().collect { list: List<FolderData> ->
-                setFoldersListArchived(list.reversed())
-            }
-        }
-    }
-
-    private fun retrieveAllUnArchivedFolder() {
-        viewModelScope.launch(Dispatchers.IO) {
-            allFoldersUseCase.getAllUnarchivedFoldersFlow().collect { list: List<FolderData> ->
-                setFoldersListUnarchived(list.reversed())
-            }
+            allFoldersUseCase.getFoldersWithReceiptsFlow()
+                .collect { folders: List<FolderWithReceiptsData> ->
+                    setFoldersWithReceiptsArchived(
+                        folders
+                            .filter { it.folder.isArchived == true }
+                            .reversed()
+                    )
+                    setFoldersWithReceiptsUnarchived(
+                        folders
+                            .filter { it.folder.isArchived == false }
+                            .reversed()
+                    )
+                    getAllFoldersNamesList(foldersWithReceipts = folders)
+                }
         }
     }
 
@@ -140,6 +152,15 @@ class AllReceiptsViewModel(
     private fun unArchiveFolder(folderData: FolderData) {
         viewModelScope.launch {
             allFoldersUseCase.unArchiveFolder(folderData = folderData)
+        }
+    }
+
+    private fun getAllFoldersNamesList(
+        foldersWithReceipts: List<FolderWithReceiptsData>
+    ) {
+        viewModelScope.launch {
+            val foldersNamesList = foldersWithReceipts.map { it.folder.folderName }
+            setAllFoldersNamesList(foldersNamesList)
         }
     }
 }

@@ -38,7 +38,7 @@ import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Minus
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Plus
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun AdditionalSumDialog(
@@ -120,7 +120,7 @@ private fun AddAdditionalSumView(
         verticalArrangement = Arrangement.Center,
     ) {
         Spacer(modifier = modifier.height(12.dp))
-        DialogCap(text = stringResource(R.string.additional_sum_title)) { onDismissRequest() }
+        DialogCapView(text = stringResource(R.string.additional_sum_title)) { onDismissRequest() }
         Spacer(modifier = modifier.height(12.dp))
 
         OutlinedTextField(

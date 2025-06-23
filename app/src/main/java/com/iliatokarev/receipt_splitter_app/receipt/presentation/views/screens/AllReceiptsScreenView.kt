@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,9 +26,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,30 +38,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Archive
-import com.iliatokarev.receipt_splitter_app.main.basic.icons.CreateNewFolder
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.FileMove
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Folder
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Unarchive
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_FOLDERS
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_RECEIPTS
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderData
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderWithReceiptsData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptWithFolderData
 
 @Composable
 internal fun AllReceiptsScreenView(
     modifier: Modifier = Modifier,
-    allReceiptsList: List<ReceiptData>?,
+    allReceiptsWithFolder: List<ReceiptWithFolderData>?,
     onReceiptClicked: (receiptId: Long) -> Unit,
     onDeleteReceiptClicked: (receiptId: Long) -> Unit,
     onEditReceiptClicked: (receiptId: Long) -> Unit,
-    foldersListUnarchived: List<FolderData>?,
-    foldersListArchived: List<FolderData>?,
-    onFolderClick: (Long) -> Unit,
+    foldersWithReceiptsUnarchived: List<FolderWithReceiptsData>?,
+    foldersWithReceiptsArchived: List<FolderWithReceiptsData>?,
+    onFolderClick: (FolderData) -> Unit,
     onAddNewFolderClicked: () -> Unit,
     onMoveReceiptToClicked: (receiptId: Long) -> Unit,
     onArchiveFolderClicked: (FolderData) -> Unit,
@@ -73,9 +75,9 @@ internal fun AllReceiptsScreenView(
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
-        allReceiptsList?.let { receipt ->
+        allReceiptsWithFolder?.let { receiptsWithFolder ->
             AllReceiptsView(
-                allReceiptsList = receipt,
+                allReceiptsWithFolder = receiptsWithFolder,
                 onReceiptClicked = { receiptId ->
                     onReceiptClicked(receiptId)
                 },
@@ -85,10 +87,10 @@ internal fun AllReceiptsScreenView(
                 onEditReceiptClicked = { receiptId ->
                     onEditReceiptClicked(receiptId)
                 },
-                foldersListUnarchived = foldersListUnarchived,
-                foldersListArchived = foldersListArchived,
-                onFolderClick = { id ->
-                    onFolderClick(id)
+                foldersWithReceiptsUnarchived = foldersWithReceiptsUnarchived,
+                foldersWithReceiptsArchived = foldersWithReceiptsArchived,
+                onFolderClick = { folderData ->
+                    onFolderClick(folderData)
                 },
                 onAddNewFolderClicked = { onAddNewFolderClicked() },
                 onMoveReceiptToClicked = { receiptId ->
@@ -111,13 +113,13 @@ internal fun AllReceiptsScreenView(
 @Composable
 private fun AllReceiptsView(
     modifier: Modifier = Modifier,
-    allReceiptsList: List<ReceiptData> = emptyList(),
+    allReceiptsWithFolder: List<ReceiptWithFolderData> = emptyList(),
     onReceiptClicked: (receiptId: Long) -> Unit = {},
     onDeleteReceiptClicked: (receiptId: Long) -> Unit = {},
     onEditReceiptClicked: (receiptId: Long) -> Unit = {},
-    foldersListUnarchived: List<FolderData>? = emptyList(),
-    foldersListArchived: List<FolderData>? = emptyList(),
-    onFolderClick: (Long) -> Unit = {},
+    foldersWithReceiptsUnarchived: List<FolderWithReceiptsData>? = emptyList(),
+    foldersWithReceiptsArchived: List<FolderWithReceiptsData>? = emptyList(),
+    onFolderClick: (FolderData) -> Unit = {},
     onAddNewFolderClicked: () -> Unit = {},
     onMoveReceiptToClicked: (receiptId: Long) -> Unit = {},
     onArchiveFolderClicked: (FolderData) -> Unit = {},
@@ -131,12 +133,12 @@ private fun AllReceiptsView(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
-            if (foldersListUnarchived != null && foldersListArchived != null) {
+            if (foldersWithReceiptsUnarchived != null && foldersWithReceiptsArchived != null) {
                 AllFoldersColumnView(
-                    foldersListUnarchived = foldersListUnarchived,
-                    foldersListArchived = foldersListArchived,
-                    onFolderClick = { id ->
-                        onFolderClick(id)
+                    foldersWithReceiptsUnarchived = foldersWithReceiptsUnarchived,
+                    foldersWithReceiptsArchived = foldersWithReceiptsArchived,
+                    onFolderClick = { folderData ->
+                        onFolderClick(folderData)
                     },
                     onAddNewFolderClicked = { onAddNewFolderClicked() },
                     onArchiveFolderClicked = { folderData ->
@@ -156,7 +158,9 @@ private fun AllReceiptsView(
             }
         }
         item {
-            if (allReceiptsList.isEmpty()) {
+            AnimatedVisibility(
+                visible = allReceiptsWithFolder.isEmpty()
+            ) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.no_receipts_found),
@@ -164,13 +168,22 @@ private fun AllReceiptsView(
                     fontWeight = FontWeight.Normal,
                 )
             }
+            AnimatedVisibility(
+                visible = allReceiptsWithFolder.size >= MAXIMUM_AMOUNT_OF_RECEIPTS
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.maximum_amount_of_folders_reached),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
-        items(
-            count = allReceiptsList.size,
-            key = { index -> allReceiptsList[index].id }
-        ) { index ->
-            val receiptData = allReceiptsList[index]
-            AllReceiptViewItem(
+        items(count = allReceiptsWithFolder.size) { index ->
+            val receiptData = allReceiptsWithFolder[index].receipt
+            val folderName = allReceiptsWithFolder[index].folderName
+            ReceiptItemCardView(
                 receiptData = receiptData,
                 onReceiptClicked = { onReceiptClicked(receiptData.id) },
                 onDeleteReceiptClicked = { onDeleteReceiptClicked(receiptData.id) },
@@ -178,16 +191,21 @@ private fun AllReceiptsView(
                 onMoveReceiptToClicked = { receiptId ->
                     onMoveReceiptToClicked(receiptId)
                 },
+                folderName = folderName,
             )
             Spacer(modifier = Modifier.height(8.dp))
+        }
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun AllReceiptViewItem(
+private fun ReceiptItemCardView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData,
+    folderName: String?,
     onReceiptClicked: () -> Unit,
     onDeleteReceiptClicked: () -> Unit,
     onEditReceiptClicked: () -> Unit,
@@ -196,53 +214,126 @@ private fun AllReceiptViewItem(
     OutlinedCard(
         onClick = { onReceiptClicked() },
     ) {
-        Box {
+        ReceiptItemView(
+            modifier = modifier,
+            receiptData = receiptData,
+            onDeleteReceiptClicked = { onDeleteReceiptClicked() },
+            onEditReceiptClicked = { onEditReceiptClicked() },
+            onMoveReceiptToClicked = { receiptId ->
+                onMoveReceiptToClicked(receiptId)
+            },
+            folderName = folderName,
+        )
+    }
+}
+
+@Composable
+private fun ReceiptItemView(
+    modifier: Modifier = Modifier,
+    receiptData: ReceiptData,
+    folderName: String?,
+    onDeleteReceiptClicked: () -> Unit,
+    onEditReceiptClicked: () -> Unit,
+    onMoveReceiptToClicked: (receiptId: Long) -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp),
+    ) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = 12.dp,
-                        top = 8.dp,
-                        bottom = 8.dp,
-                        end = 12.dp,
-                    ),
+                modifier = modifier.weight(12f),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
             ) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = modifier
-                        .align(Alignment.Start)
-                        .padding(end = 40.dp),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
                     text = receiptData.receiptName,
                 )
                 receiptData.translatedReceiptName?.let { translatedReceiptName ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = translatedReceiptName)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
                     Text(
+                        text = translatedReceiptName,
                         fontSize = 16.sp,
-                        text = receiptData.date
-                    )
-                    Text(
-                        fontSize = 16.sp,
-                        text = stringResource(R.string.total_of_receipt, receiptData.total)
+                        fontWeight = FontWeight.Normal,
                     )
                 }
             }
-            ReceiptSubmenuBox(
-                modifier = Modifier.align(Alignment.TopEnd),
-                onDeleteReceiptClicked = { onDeleteReceiptClicked() },
-                onEditReceiptClicked = { onEditReceiptClicked() },
-                onMoveReceiptToClicked = { onMoveReceiptToClicked(receiptData.id) },
-                folderId = receiptData.folderId,
+            Box(
+                modifier = modifier.weight(2f),
+            ) {
+                ReceiptSubmenuBox(
+                    modifier = modifier.align(Alignment.TopEnd),
+                    onDeleteReceiptClicked = { onDeleteReceiptClicked() },
+                    onEditReceiptClicked = { onEditReceiptClicked() },
+                    onMoveReceiptToClicked = { onMoveReceiptToClicked(receiptData.id) },
+                    folderId = receiptData.folderId,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                modifier = modifier.weight(2f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                text = receiptData.date,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = MAXIMUM_LINES_IS_1,
+                textAlign = TextAlign.Start,
             )
+            Text(
+                modifier = modifier.weight(2f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                text = stringResource(R.string.total_of_receipt, receiptData.total),
+                maxLines = MAXIMUM_LINES_IS_1,
+                textAlign = TextAlign.End,
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        AnimatedVisibility(
+            visible = folderName != null
+        ) {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(end = 12.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = modifier.weight(2f),
+                ) {
+                    Icon(
+                        modifier = modifier.align(Alignment.CenterStart),
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = stringResource(R.string.folder_icon)
+                    )
+                }
+                Text(
+                    modifier = modifier.weight(14f),
+                    text = folderName ?: EMPTY_STRING,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = MAXIMUM_LINES_IS_1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -291,7 +382,7 @@ private fun ReceiptSubmenuBox(
                 },
                 onClick = {
                     expanded = false
-                    onMoveReceiptToClicked()
+                    onEditReceiptClicked()
                 },
                 leadingIcon = {
                     Icon(
@@ -307,7 +398,7 @@ private fun ReceiptSubmenuBox(
                     },
                     onClick = {
                         expanded = false
-                        onEditReceiptClicked()
+                        onMoveReceiptToClicked()
                     },
                     leadingIcon = {
                         Icon(
@@ -323,9 +414,9 @@ private fun ReceiptSubmenuBox(
 @Composable
 private fun AllFoldersColumnView(
     modifier: Modifier = Modifier,
-    foldersListUnarchived: List<FolderData>,
-    foldersListArchived: List<FolderData>,
-    onFolderClick: (Long) -> Unit,
+    foldersWithReceiptsUnarchived: List<FolderWithReceiptsData>,
+    foldersWithReceiptsArchived: List<FolderWithReceiptsData>,
+    onFolderClick: (FolderData) -> Unit,
     onAddNewFolderClicked: () -> Unit,
     onArchiveFolderClicked: (FolderData) -> Unit,
     onUnarchiveFolderClicked: (FolderData) -> Unit,
@@ -339,55 +430,57 @@ private fun AllFoldersColumnView(
             .animateContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        repeat(foldersListUnarchived.size) { index ->
+        AnimatedVisibility(
+            visible = foldersWithReceiptsArchived.size + foldersWithReceiptsUnarchived.size >= MAXIMUM_AMOUNT_OF_FOLDERS
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.maximum_amount_of_folders_reached),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        repeat(foldersWithReceiptsUnarchived.size) { index ->
             FolderItemView(
-                folderData = foldersListUnarchived[index],
-                onFolderClick = { id ->
-                    onFolderClick(id)
+                folderWithReceiptsData = foldersWithReceiptsUnarchived[index],
+                onFolderClick = { folderData ->
+                    onFolderClick(folderData)
                 },
-                onEditFolderClicked = {
-                    onEditFolderClicked(foldersListUnarchived[index].id)
+                onEditFolderClicked = { folderData ->
+                    onEditFolderClicked(folderData.id)
                 },
-                onArchiveFolderClicked = {
-                    onArchiveFolderClicked(foldersListUnarchived[index])
+                onArchiveFolderClicked = { folderData ->
+                    onArchiveFolderClicked(folderData)
                 },
-                onUnarchiveFolderClicked = {
-                    onUnarchiveFolderClicked(foldersListUnarchived[index])
+                onUnarchiveFolderClicked = { folderData ->
+                    onUnarchiveFolderClicked(folderData)
                 },
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement =
-                if (foldersListArchived.isNotEmpty()) Arrangement.SpaceBetween
+                if (foldersWithReceiptsArchived.isNotEmpty()) Arrangement.SpaceBetween
                 else Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OutlinedButton(
-                onClick = { onAddNewFolderClicked() }
+            TextButton(
+                onClick = { onAddNewFolderClicked() },
+                enabled = foldersWithReceiptsUnarchived.size + foldersWithReceiptsArchived.size < MAXIMUM_AMOUNT_OF_FOLDERS
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Outlined.CreateNewFolder,
-                        stringResource(R.string.add_new_folder_button)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.add_new_folder),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.add_new_folder),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
-            AnimatedVisibility(
-                visible = foldersListArchived.isNotEmpty()
-            ) {
+            if (foldersWithReceiptsArchived.isNotEmpty())
                 AnimatedContent(
                     targetState = archivedFoldersExpanded,
                 ) { expand ->
@@ -408,7 +501,6 @@ private fun AllFoldersColumnView(
                             )
                     }
                 }
-            }
         }
         AnimatedVisibility(
             visible = archivedFoldersExpanded
@@ -421,20 +513,27 @@ private fun AllFoldersColumnView(
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
 
-                repeat(foldersListArchived.size) { index ->
+                Text(
+                    text = stringResource(R.string.archived_folders),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                repeat(foldersWithReceiptsArchived.size) { index ->
                     FolderItemView(
-                        folderData = foldersListArchived[index],
+                        folderWithReceiptsData = foldersWithReceiptsArchived[index],
                         onFolderClick = { id ->
                             onFolderClick(id)
                         },
-                        onEditFolderClicked = {
-                            onEditFolderClicked(foldersListArchived[index].id)
+                        onEditFolderClicked = { folderData ->
+                            onEditFolderClicked(folderData.id)
                         },
-                        onArchiveFolderClicked = {
-                            onArchiveFolderClicked(foldersListArchived[index])
+                        onArchiveFolderClicked = { folderData ->
+                            onArchiveFolderClicked(folderData)
                         },
-                        onUnarchiveFolderClicked = {
-                            onUnarchiveFolderClicked(foldersListArchived[index])
+                        onUnarchiveFolderClicked = { folderData ->
+                            onUnarchiveFolderClicked(folderData)
                         },
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -447,51 +546,59 @@ private fun AllFoldersColumnView(
 @Composable
 private fun FolderItemView(
     modifier: Modifier = Modifier,
-    folderData: FolderData,
-    onFolderClick: (Long) -> Unit,
+    folderWithReceiptsData: FolderWithReceiptsData,
+    onFolderClick: (FolderData) -> Unit,
     onEditFolderClicked: (FolderData) -> Unit,
     onArchiveFolderClicked: (FolderData) -> Unit,
     onUnarchiveFolderClicked: (FolderData) -> Unit,
 ) {
     OutlinedCard(
-        onClick = { onFolderClick(folderData.id) },
-        enabled = folderData.isArchived == false,
+        modifier = modifier.fillMaxWidth(),
+        onClick = { onFolderClick(folderWithReceiptsData.folder) },
     ) {
-        Box(
+        Row(
             modifier = modifier
                 .fillMaxWidth()
-                .then(
-                    if (folderData.isArchived == true)
-                        Modifier.clickable { onFolderClick(folderData.id) }
-                    else
-                        Modifier
-                )
+                .padding(start = 12.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = modifier.weight(2f),
             ) {
-                Icon(
-                    modifier = modifier.weight(2f),
-                    imageVector = Icons.Outlined.Folder,
-                    contentDescription = null
-                )
-                Text(
-                    modifier = modifier.weight(10f),
-                    text = folderData.folderName,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = MAXIMUM_FOLDER_NAME_LINES,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = stringResource(R.string.folder_icon),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        modifier = modifier.align(Alignment.CenterHorizontally),
+                        text = folderWithReceiptsData.amountOfReceipts.toString(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
+            }
+            Text(
+                modifier = modifier.weight(12f),
+                text = folderWithReceiptsData.folder.folderName,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = MAXIMUM_FOLDER_NAME_LINES,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Box(
+                modifier = modifier.weight(2f),
+            ) {
                 FolderSubmenuBox(
-                    modifier = modifier.weight(2f),
-                    onEditReceiptClicked = { onEditFolderClicked(folderData) },
-                    onArchiveFolderClicked = { onArchiveFolderClicked(folderData) },
-                    onUnarchiveFolderClicked = { onUnarchiveFolderClicked(folderData) },
-                    isArchived = folderData.isArchived,
+                    modifier = modifier.align(Alignment.TopEnd),
+                    onEditReceiptClicked = { onEditFolderClicked(folderWithReceiptsData.folder) },
+                    onArchiveFolderClicked = { onArchiveFolderClicked(folderWithReceiptsData.folder) },
+                    onUnarchiveFolderClicked = { onUnarchiveFolderClicked(folderWithReceiptsData.folder) },
+                    isArchived = folderWithReceiptsData.folder.isArchived,
                 )
             }
         }
@@ -599,52 +706,81 @@ private fun ShimmedAllReceiptsScreenView(
 @Composable
 private fun AllReceiptScreenViewPreview() {
     AllReceiptsView(
-        allReceiptsList =
-            listOf<ReceiptData>(
-                ReceiptData(
+        allReceiptsWithFolder =
+            listOf<ReceiptWithFolderData>(
+                ReceiptWithFolderData(
+                    receipt = ReceiptData(
+                        id = 1L,
+                        receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
+                        date = "15/05/2023",
+                        total = 1000000.0f,
+                    ),
+                ),
+                ReceiptWithFolderData(
+                    receipt = ReceiptData(
+                        id = 1L,
+                        receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
+                        translatedReceiptName = "аовава авылатыв вылаь  ыватыв т ьывлаь  ыдваь ",
+                        date = "15/05/2023",
+                        total = 1000000.0f,
+                    ),
+                    folderName = "dgfdgdfg"
+                ),
+                ReceiptWithFolderData(
+                    receipt = ReceiptData(
+                        id = 1L,
+                        receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
+                        date = "15/05/2023",
+                        total = 1000000.0f,
+                    ),
+                ),
+                ReceiptWithFolderData(
+                    receipt = ReceiptData(
+                        id = 1L,
+                        receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
+                        date = "15/05/2023",
+                        total = 1000000.0f,
+                    ),
+                    folderName = "dsfoerwokvc",
+                ),
+            ),
+        foldersWithReceiptsUnarchived = listOf(
+            FolderWithReceiptsData(
+                folder = FolderData(
                     id = 1L,
-                    receiptName = "restaurant fhfghgfnvbncvnghfghfghd",
-                    date = "15/05/2023",
-                    total = 1000000.0f,
+                    folderName = "folder 123124 ",
+                    isArchived = false,
                 ),
-                ReceiptData(
-                    id = 2L,
-                    receiptName = "restaurant",
-                    date = "04/10/2022",
-                    total = 10078.0f,
-                ),
-                ReceiptData(
-                    id = 3L,
-                    receiptName = "restaurant",
-                    date = "01/01/2023",
-                    total = 57465.0f,
-                ),
+                amountOfReceipts = 100,
             ),
-        foldersListUnarchived = listOf(
-            FolderData(
-                id = 1L,
-                folderName = "folder 123124 dfgdfg  dfgdsf gdfg dfs dfg ",
-                isArchived = false,
-            ),
-            FolderData(
-                id = 3L,
-                folderName = "folder",
-                isArchived = false,
+            FolderWithReceiptsData(
+                folder = FolderData(
+                    id = 1L,
+                    folderName = "folder 123124 dfgdfg  dfgdsf gdfg dfs dfg ",
+                    isArchived = false,
+                ),
+                amountOfReceipts = 5,
             ),
         ),
-//        foldersListArchived = listOf(
-//            FolderData(
-//                id = 2L,
-//                folderName = "folder gafd gsdf er wer erewr  cvcxqe fd",
-//                isArchived = true,
-//            ),
-//            FolderData(
-//                id = 4L,
-//                folderName = "folder",
-//                isArchived = true,
-//            ),
-//        )
+        foldersWithReceiptsArchived = listOf(
+            FolderWithReceiptsData(
+                folder = FolderData(
+                    id = 1L,
+                    folderName = "folder 123124 dfgdfg  dfgdsf gdfg dfs dfg ",
+                    isArchived = true,
+                ),
+            ),
+            FolderWithReceiptsData(
+                folder = FolderData(
+                    id = 1L,
+                    folderName = "folder 123124 dfgdfg  dfgdsf gdfg dfs dfg ",
+                    isArchived = true,
+                ),
+            ),
+        ),
     )
 }
 
+private const val MAXIMUM_LINES_IS_1 = 1
 private const val MAXIMUM_FOLDER_NAME_LINES = 2
+private const val EMPTY_STRING = ""
