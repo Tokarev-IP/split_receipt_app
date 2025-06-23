@@ -32,38 +32,6 @@ class SplitReceiptUseCase(
         }
     }
 
-    override suspend fun convertOrderDataListToOrderDataSplitList(
-        orderDataList: List<OrderData>
-    ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
-        runCatching {
-            val orderDataSplitList = mutableListOf<OrderDataSplit>()
-            for (orderData in orderDataList) {
-                val consumerNames = orderData.consumersList
-                repeat(orderData.quantity) { index ->
-                    var consumerName: String? = null
-                    if (consumerNames.size > index) {
-                        consumerName =
-                            if (consumerNames[index].isEmpty() == true) null else consumerNames[index]
-                    }
-                    orderDataSplitList.add(
-                        OrderDataSplit(
-                            name = orderData.name,
-                            translatedName = orderData.translatedName,
-                            price = orderData.price,
-                            orderDataId = orderData.id,
-                            consumerNamesList = consumerName?.split(ORDER_CONSUMER_NAME_DIVIDER)
-                                ?: emptyList(),
-                            checked = false,
-                        )
-                    )
-                }
-            }
-            return@withContext orderDataSplitList
-        }.getOrElse { e: Throwable ->
-            return@withContext emptyList<OrderDataSplit>()
-        }
-    }
-
     override suspend fun saveOrderDataSplitList(
         orderDataSplitList: List<OrderDataSplit>,
         orderDataList: List<OrderData>
@@ -90,19 +58,18 @@ class SplitReceiptUseCase(
     ): OrderData {
         val newConsumerList = mutableListOf<String>()
         for (orderDataSplit in orderDataSplitList) {
-            val consumerNames = orderDataSplit.consumerNamesList.joinToString(ORDER_CONSUMER_NAME_DIVIDER)
+            val consumerNames =
+                orderDataSplit.consumerNamesList.joinToString(ORDER_CONSUMER_NAME_DIVIDER)
             if (consumerNames.isNotEmpty())
                 newConsumerList.add(consumerNames)
         }
         return orderData.copy(consumersList = newConsumerList)
     }
-
 }
 
 interface SplitReceiptUseCaseInterface {
     suspend fun retrieveReceiptData(receiptId: Long): ReceiptData?
     suspend fun retrieveOrderDataList(receiptId: Long): List<OrderData>
-    suspend fun convertOrderDataListToOrderDataSplitList(orderDataList: List<OrderData>): List<OrderDataSplit>
     suspend fun saveOrderDataSplitList(
         orderDataSplitList: List<OrderDataSplit>,
         orderDataList: List<OrderData>

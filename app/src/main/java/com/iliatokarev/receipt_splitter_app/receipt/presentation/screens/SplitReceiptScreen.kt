@@ -12,7 +12,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -47,7 +47,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.Spli
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptClearingDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AdditionalSumDialog
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.SetConsumerNameDialog
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddConsumerNameDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptForAllScreenView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptForOneScreenView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptSubmenuBox
@@ -191,7 +191,7 @@ fun SplitReceiptScreen(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Person,
+                        imageVector = Icons.Filled.Person,
                         contentDescription = stringResource(R.string.set_consumer_name_button),
                     )
                 }
@@ -305,7 +305,7 @@ fun SplitReceiptScreen(
         if (isShownClearOrderReportForOneDialog && isShowReceiptForAll == false) {
             AcceptClearingDialog(
                 onDismissRequest = { isShownClearOrderReportForOneDialog = false },
-                onAcceptClicked = {
+                onClearClicked = {
                     splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ClearOrderReport)
                     isShownClearOrderReportForOneDialog = false
                 },
@@ -314,7 +314,7 @@ fun SplitReceiptScreen(
         }
 
         if (isShownSetConsumerNameDialog && isShowReceiptForAll) {
-            SetConsumerNameDialog(
+            AddConsumerNameDialog(
                 allConsumerNamesList = allConsumerNamesList,
                 onDismissClick = { isShownSetConsumerNameDialog = false },
                 onSaveSelectedNamesClick = { names ->
@@ -334,7 +334,7 @@ fun SplitReceiptScreen(
         if (isShownClearOrderReportForAllDialog && isShowReceiptForAll) {
             AcceptClearingDialog(
                 onDismissRequest = { isShownClearOrderReportForAllDialog = false },
-                onAcceptClicked = {
+                onClearClicked = {
                     splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.ClearOrderReport)
                     isShownClearOrderReportForAllDialog = false
                 },

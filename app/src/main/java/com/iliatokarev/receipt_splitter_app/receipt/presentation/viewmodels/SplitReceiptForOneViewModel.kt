@@ -30,16 +30,16 @@ class SplitReceiptForOneViewModel(
     private val orderReportTextFlow = MutableSharedFlow<String?>()
     private val orderReportTextState = orderReportTextFlow.asSharedFlow()
 
-    fun setSplitReceiptData(data: ReceiptData?) {
+    private fun setSplitReceiptData(data: ReceiptData?) {
         splitReceiptDataFlow.value = data
     }
 
-    fun setOrderDataList(list: List<OrderData>) {
+    private fun setOrderDataList(list: List<OrderData>) {
         splitOrderDataListFlow.value = list
     }
 
 
-    fun setOrderReportText(text: String?) {
+    private fun setOrderReportText(text: String?) {
         viewModelScope.launch(Dispatchers.IO) {
             orderReportTextFlow.emit(text)
         }

@@ -49,27 +49,31 @@ class SplitReceiptForAllViewModel(
     private val checkStateExistenceFlow = MutableStateFlow(false)
     private val checkStateExistenceState = checkStateExistenceFlow.asStateFlow()
 
-    fun setSplitReceiptData(data: ReceiptData?) {
+    private fun setSplitReceiptData(data: ReceiptData?) {
         splitReceiptDataFlow.value = data
     }
 
 
-    fun setOrderDataSplitList(list: List<OrderDataSplit>) {
+    private fun setOrderDataSplitList(list: List<OrderDataSplit>) {
         splitOrderDataSplitListFlow.value = list
     }
 
-    fun setOrderReportText(text: String?) {
+    private fun setOrderReportText(text: String?) {
         viewModelScope.launch(Dispatchers.IO) {
             orderReportTextFlow.emit(text)
         }
     }
 
-    fun setAllConsumerNamesList(list: List<String>) {
+    private fun setAllConsumerNamesList(list: List<String>) {
         allConsumerNamesListFlow.value = list
     }
 
-    fun setCheckStateExistence(state: Boolean) {
+    private fun setCheckStateExistence(state: Boolean) {
         checkStateExistenceFlow.value = state
+    }
+
+    private fun setAssignedConsumerNamesList(list: List<String>) {
+        assignedConsumerNamesList = list
     }
 
     fun getSplitReceiptData() = splitReceiptDataState
@@ -94,6 +98,7 @@ class SplitReceiptForAllViewModel(
 
             is SplitReceiptForAllEvents.RetrieveReceiptData -> {
                 retrieveReceiptData(receiptId = newEvent.receiptId)
+                retrieveOrderDataSplitList(receiptId = newEvent.receiptId)
             }
 
             is SplitReceiptForAllEvents.SetCheckState -> {
@@ -145,6 +150,10 @@ class SplitReceiptForAllViewModel(
                     allConsumerNamesList = allConsumerNamesListState.value,
                 )
             }
+
+            is SplitReceiptForAllEvents.SetAssignedConsumerNamesList -> {
+                setAssignedConsumerNamesList(newEvent.assignedConsumerNamesList)
+            }
         }
     }
 
@@ -155,15 +164,18 @@ class SplitReceiptForAllViewModel(
                     setSplitReceiptData(this)
                 }
             }
-            launch {
-                splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
-                    orderDataList = this
-                    val orderDataSplitList =
-                        splitReceiptUseCase.convertOrderDataListToOrderDataSplitList(
-                            orderDataList = this
-                        )
-                    setOrderDataSplitList(orderDataSplitList)
-                }
+        }
+    }
+
+    private fun retrieveOrderDataSplitList(receiptId: Long) {
+        viewModelScope.launch {
+            splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
+                orderDataList = this
+                val orderDataSplitList =
+                    orderDataSplitService.convertOrderDataListToOrderDataSplitList(
+                        orderDataList = this
+                    )
+                setOrderDataSplitList(orderDataSplitList)
             }
         }
     }
@@ -175,7 +187,6 @@ class SplitReceiptForAllViewModel(
                     createOrderReport(
                         receiptData = receipt,
                         orderDataSplitList = orderDataSplitList,
-                        initialConsumerNamesList = assignedConsumerNamesList,
                     )
                 }
                 setAllConsumerNames(
@@ -234,17 +245,11 @@ class SplitReceiptForAllViewModel(
     private fun createOrderReport(
         receiptData: ReceiptData,
         orderDataSplitList: List<OrderDataSplit>,
-        initialConsumerNamesList: List<String>,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val currentConsumerList = orderDataSplitService.getAllConsumerNames(
-                orderDataSplitList = orderDataSplitList,
-                initialConsumerNamesList = initialConsumerNamesList,
-            )
             val response = orderReportCreator.buildOrderReportForAll(
                 receiptData = receiptData,
                 orderDataSplitList = orderDataSplitList,
-                consumerNameList = currentConsumerList,
             )
             setOrderReportText(response)
         }
@@ -364,6 +369,8 @@ sealed interface SplitReceiptForAllEvents : BasicEvent {
         SplitReceiptForAllEvents
 
     class AddNewNameForAllConsumerNames(val name: String) : SplitReceiptForAllEvents
+    class SetAssignedConsumerNamesList(val assignedConsumerNamesList: List<String>) :
+        SplitReceiptForAllEvents
 }
 
 interface SplitReceiptForAllUiState : BasicUiState {

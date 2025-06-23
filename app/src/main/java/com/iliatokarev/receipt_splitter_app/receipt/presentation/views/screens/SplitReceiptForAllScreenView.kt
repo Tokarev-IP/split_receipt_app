@@ -28,7 +28,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
@@ -66,12 +65,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.PersonAddIcon
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Swap
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
@@ -483,7 +483,7 @@ private fun EditConsumerNamesView(
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                text = stringResource(R.string.maximum_amount_of_consumer_names_is_reached)
+                text = stringResource(R.string.maximum_amount_of_names_is_reached)
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -523,9 +523,10 @@ private fun EditConsumerNamesView(
                             }
                         )
                         focusManager.clearFocus()
-                    }
+                    },
+                    enabled = allConsumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
                 ) {
-                    Icon(Icons.Outlined.Add, stringResource(R.string.add_name_button))
+                    Icon(Icons.Filled.PersonAddIcon, stringResource(R.string.add_name_button))
                 }
             },
             supportingText = {
@@ -564,8 +565,9 @@ private fun EditConsumerNamesView(
                     focusManager.clearFocus()
                 }
             ),
-            enabled = consumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
+            enabled = allConsumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
         )
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
@@ -577,10 +579,7 @@ private fun ConsumerNamesGrid(
     onChooseConsumerNameClick: (String) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
 ) {
-    FlowGridLayout(
-        horizontalSpacing = 8.dp,
-        verticalSpacing = 4.dp,
-    ) {
+    FlowGridLayout {
         repeat(allConsumerNamesList.size) { index ->
             val consumerName = allConsumerNamesList[index]
             OutlinedCard(
@@ -702,7 +701,11 @@ private fun ReceiptReportTextView(
             ) {
                 Icon(Icons.Outlined.Share, stringResource(R.string.share_order_report_button))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = stringResource(R.string.share))
+                Text(
+                    text = stringResource(R.string.share),
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 16.sp,
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
         } ?: run {
