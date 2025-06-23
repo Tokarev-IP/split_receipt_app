@@ -48,7 +48,7 @@ internal fun DeleteAccountDialog(
                 Spacer(modifier = modifier.height(20.dp))
                 CancelDeleteButtonView(
                     onCancelClicked = { onDismissRequest() },
-                    onAcceptClicked = { onAcceptClicked() }
+                    onDeleteClicked = { onAcceptClicked() }
                 )
             }
         }

@@ -42,7 +42,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_SUM
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun EditReceiptDialog(
@@ -149,7 +149,7 @@ private fun EditReceiptDialogView(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            DialogCap(text = stringResource(R.string.edit_receipt_info_title)) { onCancelButtonClicked() }
+            DialogCapView(text = stringResource(R.string.edit_receipt_info_title)) { onCancelButtonClicked() }
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -446,8 +446,7 @@ private fun EditReceiptDialogView(
                     if (isNameError || isTranslatedNameError || isDateError || isTotalSumError || isTaxError || isDiscountError || isTipError || isTipSumError)
                         return@CancelSaveButtonView
 
-                    val receiptData = ReceiptData(
-                        id = receiptData.id,
+                    val receiptData = receiptData.copy(
                         receiptName = nameText.trim(),
                         translatedReceiptName =
                             if (translatedNameText.isEmpty()) null else translatedNameText.trim(),
@@ -502,7 +501,7 @@ private fun CalendarDialog(
     }
 }
 
-private const val MAXIMUM_LINES = 5
+private const val MAXIMUM_LINES = 4
 private const val MINIMUM_is_0 = 0
 private const val EMPTY_STRING = ""
 

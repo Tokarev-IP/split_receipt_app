@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
@@ -21,22 +23,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_FOLDER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun AddNewFolderDialog(
     onDismissRequest: () -> Unit,
     onSaveButtonClicked: (FolderData) -> Unit,
-    ) {
+    allFoldersName: List<String>,
+) {
     Dialog(
         onDismissRequest = { onDismissRequest() }
     ) {
@@ -49,7 +54,8 @@ internal fun AddNewFolderDialog(
                 titleText = stringResource(R.string.add_new_folder_title),
                 onSaveButtonClicked = { folderData ->
                     onSaveButtonClicked(folderData)
-                }
+                },
+                allFoldersName = allFoldersName,
             )
         }
     }
@@ -60,6 +66,7 @@ internal fun EditFolderDialog(
     onDismissRequest: () -> Unit,
     onSaveButtonClicked: (FolderData) -> Unit,
     folderData: FolderData,
+    allFoldersName: List<String>,
 ) {
     Dialog(
         onDismissRequest = { onDismissRequest() }
@@ -73,7 +80,8 @@ internal fun EditFolderDialog(
                 onDismissRequest = { onDismissRequest() },
                 onSaveButtonClicked = { folderData ->
                     onSaveButtonClicked(folderData)
-                }
+                },
+                allFoldersName = allFoldersName,
             )
         }
     }
@@ -86,6 +94,7 @@ private fun EditFolderDialogView(
     onDismissRequest: () -> Unit = {},
     onSaveButtonClicked: (FolderData) -> Unit = {},
     folderData: FolderData,
+    allFoldersName: List<String> = emptyList(),
 ) {
     var folderNameText by rememberSaveable { mutableStateOf(folderData.folderName) }
     var isFolderNameError by rememberSaveable { mutableStateOf(false) }
@@ -98,14 +107,14 @@ private fun EditFolderDialogView(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            DialogCap(text = titleText) { onDismissRequest() }
+            DialogCapView(text = titleText) { onDismissRequest() }
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = folderNameText,
                 onValueChange = { value ->
                     isFolderNameError = false
-                    if (value.length <= MAXIMUM_TEXT_LENGTH)
+                    if (value.length <= MAXIMUM_FOLDER_NAME_TEXT_LENGTH)
                         folderNameText = value
                 },
                 maxLines = MAXIMUM_LINES,
@@ -123,45 +132,86 @@ private fun EditFolderDialogView(
                 },
                 isError = isFolderNameError,
                 supportingText = {
-                    if (isFolderNameError && folderNameText.isEmpty()) {
-                        Text(text = stringResource(R.string.field_is_empty))
+                    if (isFolderNameError) {
+                        if (folderNameText.trim().isEmpty())
+                            Text(text = stringResource(R.string.field_is_empty))
+                        else if (folderNameText.trim() in allFoldersName)
+                            Text(text = stringResource(R.string.name_is_already_existed))
+                        else if (CONSUMER_NAME_DIVIDER in folderNameText.trim()
+                            || ORDER_CONSUMER_NAME_DIVIDER in folderNameText.trim()
+                        ) Text(text = stringResource(R.string.inappropriate_symbols))
                     } else
                         Text(
                             text = stringResource(
                                 R.string.maximum_letters,
                                 folderNameText.length,
-                                MAXIMUM_TEXT_LENGTH
+                                MAXIMUM_FOLDER_NAME_TEXT_LENGTH
                             )
                         )
                 },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        isFolderNameValid(
+                            folderNameText = folderNameText.trim(),
+                            onFolderNameError = { isFolderNameError = true },
+                            onSave = {
+                                onSaveButtonClicked(
+                                    folderData.copy(folderName = folderNameText)
+                                )
+                            },
+                            allFoldersName = allFoldersName,
+                        )
+                    }
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             CancelSaveButtonView(
                 onSaveClicked = {
-                    if (folderNameText.trim().isEmpty()) {
-                        isFolderNameError = true
-                        return@CancelSaveButtonView
-                    }
-                    if (CONSUMER_NAME_DIVIDER in folderNameText.trim()
-                        || ORDER_CONSUMER_NAME_DIVIDER in folderNameText.trim()
-                    ) {
-                        isFolderNameError = true
-                        return@CancelSaveButtonView
-                    }
-                    if (folderNameText.length > MAXIMUM_TEXT_LENGTH) {
-                        isFolderNameError = true
-                        return@CancelSaveButtonView
-                    }
-
-                    onSaveButtonClicked(
-                        folderData.copy(folderName = folderNameText.trim())
+                    isFolderNameValid(
+                        folderNameText = folderNameText.trim(),
+                        onFolderNameError = { isFolderNameError = true },
+                        onSave = {
+                            onSaveButtonClicked(
+                                folderData.copy(folderName = folderNameText)
+                            )
+                        },
+                        allFoldersName = allFoldersName,
                     )
                 },
                 onCancelClicked = { onDismissRequest() }
             )
         }
     }
+}
+
+private fun isFolderNameValid(
+    folderNameText: String,
+    onFolderNameError: () -> Unit,
+    onSave: () -> Unit,
+    allFoldersName: List<String>,
+) {
+    if (folderNameText in allFoldersName) {
+        onFolderNameError()
+        return
+    }
+    if (folderNameText.isEmpty()) {
+        onFolderNameError()
+        return
+    }
+    if (CONSUMER_NAME_DIVIDER in folderNameText || ORDER_CONSUMER_NAME_DIVIDER in folderNameText) {
+        onFolderNameError()
+        return
+    }
+    if (folderNameText.length > MAXIMUM_FOLDER_NAME_TEXT_LENGTH) {
+        onFolderNameError()
+        return
+    }
+    onSave()
 }
 
 @Preview(showBackground = true)
@@ -174,4 +224,4 @@ private fun EditFolderDialogViewPreview() {
 }
 
 private const val EMPTY_STRING = ""
-private const val MAXIMUM_LINES = 1
+private const val MAXIMUM_LINES = 5

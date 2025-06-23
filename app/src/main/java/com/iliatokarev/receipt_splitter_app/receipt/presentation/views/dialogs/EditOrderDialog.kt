@@ -22,6 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.ImeOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +35,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun AddNewOrderDialog(
@@ -124,7 +127,7 @@ private fun EditOrderDialogView(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            DialogCap(text = titleText) { onCancelButtonClicked() }
+            DialogCapView(text = titleText) { onCancelButtonClicked() }
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -160,6 +163,10 @@ private fun EditOrderDialogView(
                             )
                         )
                 },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -188,7 +195,11 @@ private fun EditOrderDialogView(
                                 MAXIMUM_TEXT_LENGTH
                             )
                         )
-                }
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -212,7 +223,6 @@ private fun EditOrderDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = isQuantityError,
                 supportingText = {
                     if (isQuantityError && quantityText.isEmpty()) {
@@ -226,6 +236,11 @@ private fun EditOrderDialogView(
                             )
                         )
                 },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -249,7 +264,6 @@ private fun EditOrderDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = isPriceError,
                 supportingText = {
                     if (isPriceError && priceText.isEmpty()) {
@@ -263,6 +277,11 @@ private fun EditOrderDialogView(
                             )
                         )
                 },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -300,7 +319,7 @@ private fun EditOrderDialogView(
     }
 }
 
-private const val MINIMUM_QUANTITY = 0
+private const val MINIMUM_QUANTITY = 1
 private const val MINIMUM_PRICE = 0
 private const val EMPTY_STRING = ""
 private const val MAXIMUM_LINES = 5
