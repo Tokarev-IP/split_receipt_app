@@ -4,6 +4,9 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.FolderEntity
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.FolderWithReceiptsEntity
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderWithReceiptsData
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,8 +24,12 @@ interface FolderDao {
     suspend fun getFolderById(id: Long): FolderEntity?
 
     @Transaction
-    @Query("SELECT * FROM folder_data WHERE is_archived = :isArchived")
-    fun getFoldersByArchived(isArchived: Boolean): Flow<List<FolderEntity>>
+    @Query("SELECT * FROM folder_data WHERE id = :id")
+    fun getFolderByIdFlow(id: Long): Flow<FolderEntity?>
+
+    @Transaction
+    @Query("SELECT * FROM folder_data")
+    fun getFoldersWithReceipts(): Flow<List<FolderWithReceiptsEntity>>
 
     @Transaction
     @Query("DELETE FROM folder_data WHERE id = :id")

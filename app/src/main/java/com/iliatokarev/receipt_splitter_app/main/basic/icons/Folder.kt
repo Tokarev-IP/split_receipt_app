@@ -40,6 +40,59 @@ private var _outlined_folder: ImageVector? = null
 
 
 
+
+public val Icons.Outlined.FolderBigger: ImageVector
+    get() {
+        if (_outlined_folder_bigger != null) {
+            return _outlined_folder_bigger!!
+        }
+        _outlined_folder_bigger = materialIcon(name = "Outlined.Folder") {
+            materialPath {
+                moveTo(11.004f, 7.2f)
+                lineToRelative(2.4f, 2.4f)
+                horizontalLineTo(24.0f)
+                verticalLineToRelative(12.0f)
+                horizontalLineTo(4.8f)
+                verticalLineTo(7.2f)
+                horizontalLineToRelative(6.204f)
+                moveTo(12.0f, 4.8f)
+                horizontalLineTo(4.8f)
+                curveToRelative(
+                    -1.32f, 0.0f,
+                    -2.388f, 1.08f,
+                    -2.388f, 2.4f
+                )
+                lineTo(2.4f, 21.6f)
+                curveToRelative(
+                    0.0f, 1.32f,
+                    1.08f, 2.4f,
+                    2.4f, 2.4f
+                )
+                horizontalLineToRelative(19.2f)
+                curveToRelative(
+                    1.32f, 0.0f,
+                    2.4f, -1.08f,
+                    2.4f, -2.4f
+                )
+                verticalLineTo(9.6f)
+                curveToRelative(
+                    0.0f, -1.32f,
+                    -1.08f, -2.4f,
+                    -2.4f, -2.4f
+                )
+                horizontalLineToRelative(-9.6f)
+                lineToRelative(-2.4f, -2.4f)
+                close()
+            }
+        }
+        return _outlined_folder_bigger!!
+    }
+
+private var _outlined_folder_bigger: ImageVector? = null
+
+
+
+
 public val Icons.Filled.Folder: ImageVector
     get() {
         if (_filled_folder != null) {

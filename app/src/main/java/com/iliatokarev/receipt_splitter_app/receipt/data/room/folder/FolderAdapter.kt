@@ -1,5 +1,6 @@
 package com.iliatokarev.receipt_splitter_app.receipt.data.room.folder
 
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.FolderEntity
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderData
 
@@ -12,7 +13,9 @@ class FolderAdapter() : FolderAdapterInterface {
             id = folderEntity.id,
             folderName = folderEntity.folderName,
             isArchived = folderEntity.isArchived,
-            consumersList = folderEntity.consumerNames.split(CONSUMER_NAME_DIVIDER)
+            consumerNamesList = folderEntity.consumerNames
+                .split(CONSUMER_NAME_DIVIDER)
+                .filter { it.isNotEmpty() }
         )
     }
 
@@ -24,7 +27,9 @@ class FolderAdapter() : FolderAdapterInterface {
                 id = it.id,
                 folderName = it.folderName,
                 isArchived = it.isArchived,
-                consumersList = it.consumerNames.split(CONSUMER_NAME_DIVIDER)
+                consumerNamesList = it.consumerNames
+                    .split(CONSUMER_NAME_DIVIDER)
+                    .filter { it.isNotEmpty() }
             )
         }
     }
@@ -37,7 +42,7 @@ class FolderAdapter() : FolderAdapterInterface {
                 id = it.id,
                 folderName = it.folderName,
                 isArchived = it.isArchived,
-                consumerNames = it.consumersList.joinToString(CONSUMER_NAME_DIVIDER)
+                consumerNames = it.consumerNamesList.joinToString(CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -49,7 +54,7 @@ class FolderAdapter() : FolderAdapterInterface {
             id = folderData.id,
             folderName = folderData.folderName,
             isArchived = folderData.isArchived,
-            consumerNames = folderData.consumersList.joinToString(CONSUMER_NAME_DIVIDER)
+            consumerNames = folderData.consumerNamesList.joinToString(CONSUMER_NAME_DIVIDER)
         )
     }
 
@@ -59,7 +64,7 @@ class FolderAdapter() : FolderAdapterInterface {
         return FolderEntity(
             folderName = folderData.folderName,
             isArchived = folderData.isArchived,
-            consumerNames = folderData.consumersList.joinToString(CONSUMER_NAME_DIVIDER)
+            consumerNames = folderData.consumerNamesList.joinToString(CONSUMER_NAME_DIVIDER)
         )
     }
 
