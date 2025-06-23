@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 fun FlowGridLayout(
     modifier: Modifier = Modifier,
     horizontalSpacing: Dp = 8.dp,
-    verticalSpacing: Dp = 8.dp,
+    verticalSpacing: Dp = 4.dp,
     content: @Composable () -> Unit,
 ) {
     Layout(
