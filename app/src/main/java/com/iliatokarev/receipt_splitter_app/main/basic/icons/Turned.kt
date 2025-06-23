@@ -5,12 +5,12 @@ import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
 import androidx.compose.ui.graphics.vector.ImageVector
 
-public val Icons.Filled.TurnedIn: ImageVector
+public val Icons.Filled.TurnedInLabel: ImageVector
     get() {
-        if (_turnedIn != null) {
-            return _turnedIn!!
+        if (_filled_turnedIn != null) {
+            return _filled_turnedIn!!
         }
-        _turnedIn = materialIcon(name = "Filled.TurnedIn") {
+        _filled_turnedIn = materialIcon(name = "Filled.TurnedIn") {
             materialPath {
                 moveTo(17.0f, 3.0f)
                 horizontalLineTo(7.0f)
@@ -23,17 +23,17 @@ public val Icons.Filled.TurnedIn: ImageVector
                 close()
             }
         }
-        return _turnedIn!!
+        return _filled_turnedIn!!
     }
 
-private var _turnedIn: ImageVector? = null
+private var _filled_turnedIn: ImageVector? = null
 
-public val Icons.Filled.TurnedInNot: ImageVector
+public val Icons.Filled.TurnedInNotLabel: ImageVector
     get() {
-        if (_turnedInNot != null) {
-            return _turnedInNot!!
+        if (_filled_turnedInNot != null) {
+            return _filled_turnedInNot!!
         }
-        _turnedInNot = materialIcon(name = "Filled.TurnedInNot") {
+        _filled_turnedInNot = materialIcon(name = "Filled.TurnedInNot") {
             materialPath {
                 moveTo(17.0f, 3.0f)
                 lineTo(7.0f, 3.0f)
@@ -53,7 +53,7 @@ public val Icons.Filled.TurnedInNot: ImageVector
                 close()
             }
         }
-        return _turnedInNot!!
+        return _filled_turnedInNot!!
     }
 
-private var _turnedInNot: ImageVector? = null
+private var _filled_turnedInNot: ImageVector? = null
