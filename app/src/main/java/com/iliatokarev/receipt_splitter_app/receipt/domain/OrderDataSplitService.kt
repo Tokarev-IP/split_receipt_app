@@ -1,6 +1,8 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain
 
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -152,6 +154,37 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
             return@withContext orderDataSplitList
         }
     }
+
+    override suspend fun convertOrderDataListToOrderDataSplitList(
+        orderDataList: List<OrderData>
+    ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
+        runCatching {
+            val orderDataSplitList = mutableListOf<OrderDataSplit>()
+            for (orderData in orderDataList) {
+                val consumerNames = orderData.consumersList
+                repeat(orderData.quantity) { index ->
+                    var consumerName: String? = null
+                    if (consumerNames.size > index) {
+                        consumerName = consumerNames[index]
+                    }
+                    orderDataSplitList.add(
+                        OrderDataSplit(
+                            name = orderData.name,
+                            translatedName = orderData.translatedName,
+                            price = orderData.price,
+                            orderDataId = orderData.id,
+                            consumerNamesList = consumerName?.split(ORDER_CONSUMER_NAME_DIVIDER)
+                                ?: emptyList(),
+                            checked = false,
+                        )
+                    )
+                }
+            }
+            return@withContext orderDataSplitList
+        }.getOrElse { e: Throwable ->
+            return@withContext emptyList<OrderDataSplit>()
+        }
+    }
 }
 
 interface OrderDataSplitServiceInterface {
@@ -194,5 +227,9 @@ interface OrderDataSplitServiceInterface {
         orderDataSplitList: List<OrderDataSplit>,
         position: Int,
         name: String,
+    ): List<OrderDataSplit>
+
+    suspend fun convertOrderDataListToOrderDataSplitList(
+        orderDataList: List<OrderData>
     ): List<OrderDataSplit>
 }
