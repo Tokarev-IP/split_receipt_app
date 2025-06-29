@@ -17,9 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,6 +29,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -50,8 +56,6 @@ internal fun SplitReceiptForOneScreenView(
     orderReportText: String?,
     onSubtractOneQuantityClicked: (orderId: Long) -> Unit,
     onAddOneQuantityClicked: (orderId: Long) -> Unit,
-    onEditReportClicked: () -> Unit,
-    onClearReportClicked: () -> Unit,
     onShareReportClicked: () -> Unit,
 ) {
     Box(
@@ -68,8 +72,6 @@ internal fun SplitReceiptForOneScreenView(
                 onAddOneQuantityClicked = { orderId ->
                     onAddOneQuantityClicked(orderId)
                 },
-                onEditReportClicked = { onEditReportClicked() },
-                onClearReportClicked = { onClearReportClicked() },
                 onShareReportClicked = { onShareReportClicked() },
             )
         } ?: ShimmedSplitReceiptScreenView()
@@ -84,8 +86,6 @@ private fun SplitReceiptForOneView(
     orderReportText: String? = null,
     onSubtractOneQuantityClicked: (orderId: Long) -> Unit = {},
     onAddOneQuantityClicked: (orderId: Long) -> Unit = {},
-    onEditReportClicked: () -> Unit = {},
-    onClearReportClicked: () -> Unit = {},
     onShareReportClicked: () -> Unit = {},
 ) {
     LazyColumn(
@@ -111,8 +111,6 @@ private fun SplitReceiptForOneView(
             Spacer(modifier = Modifier.height(8.dp))
             ReportBottomSheetView(
                 orderReportText = orderReportText,
-                onEditReportClicked = { onEditReportClicked() },
-                onClearReportClicked = { onClearReportClicked() },
                 onShareReportClicked = { onShareReportClicked() },
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -277,8 +275,6 @@ private fun SubtractAddQuantityView(
 private fun ReportBottomSheetView(
     modifier: Modifier = Modifier,
     orderReportText: String?,
-    onEditReportClicked: () -> Unit,
-    onClearReportClicked: () -> Unit,
     onShareReportClicked: () -> Unit,
 ) {
     Column(
@@ -288,58 +284,48 @@ private fun ReportBottomSheetView(
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
 
-        orderReportText?.let { orderReport ->
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        AnimatedContent(
+            targetState = orderReportText == null
+        ) { reportIsEmpty ->
+            if (reportIsEmpty){
                 Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center,
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    IconButton(
-                        onClick = { onEditReportClicked() }
-                    ) {
-                        Icon(Icons.Outlined.Edit, stringResource(R.string.edit_order_report_button))
-                    }
+                    Text(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Normal,
+                        text = stringResource(R.string.order_report_is_empty),
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-                    IconButton(
-                        onClick = { onClearReportClicked() }
+                    HorizontalDivider()
+                }
+            } else {
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Left,
+                        text = orderReportText ?: EMPTY_STRING,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { onShareReportClicked() }
                     ) {
                         Icon(
-                            Icons.Outlined.Clear,
-                            stringResource(R.string.clear_order_report_button)
+                            Icons.Outlined.Share,
+                            stringResource(R.string.share_order_report_button)
                         )
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Left,
-                    text = orderReport,
-                )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = { onShareReportClicked() }
-            ) {
-                Icon(Icons.Outlined.Share, stringResource(R.string.share_order_report_button))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        } ?: run {
-            Text(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-                text = stringResource(R.string.order_report_is_empty),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
         }
     }
 }
@@ -374,6 +360,63 @@ private fun ShimmedSplitReceiptScreenView(
         }
     }
 }
+
+@Composable
+internal fun TopAppBarSplitReceiptForOneSubmenuBox(
+    modifier: Modifier = Modifier,
+    onEditReceiptClick: () -> Unit,
+    onClearReportClick: () -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        IconButton(
+            onClick = { expanded = !expanded },
+        ) {
+            Icon(
+                Icons.Outlined.MoreVert,
+                contentDescription = stringResource(R.string.receipt_view_submenu_button)
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(text = stringResource(R.string.edit))
+                },
+                onClick = {
+                    expanded = false
+                    onEditReceiptClick()
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.edit_receipt_button)
+                    )
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(text = stringResource(R.string.clear_report))
+                },
+                onClick = {
+                    expanded = false
+                    onClearReportClick()
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.clear_report_button)
+                    )
+                }
+            )
+        }
+    }
+}
+
+private const val EMPTY_STRING = ""
 
 @Composable
 @Preview(showBackground = true)

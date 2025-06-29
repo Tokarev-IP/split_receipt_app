@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreatorInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.OrderReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCase
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
@@ -71,26 +71,6 @@ class SplitReceiptForOneViewModel(
 
             is SplitReceiptForOneEvent.ActivateOrderReportCreator -> {
                 monitorOrderData()
-            }
-
-            is SplitReceiptForOneEvent.AddAdditionalSum -> {
-                splitReceiptDataFlow.value?.let { receiptData ->
-                    addAdditionalSum(
-                        receiptData = receiptData,
-                        additionalSum = newEvent.pair,
-                        orderList = splitOrderDataListState.value,
-                    )
-                }
-            }
-
-            is SplitReceiptForOneEvent.RemoveAdditionalSum -> {
-                splitReceiptDataFlow.value?.let { receiptData ->
-                    removeSpecificAdditionalSum(
-                        receiptData = receiptData,
-                        additionalSum = newEvent.pair,
-                        orderList = splitOrderDataListState.value,
-                    )
-                }
             }
 
             is SplitReceiptForOneEvent.ClearOrderReport -> {
@@ -168,38 +148,6 @@ class SplitReceiptForOneViewModel(
         }
     }
 
-    private fun addAdditionalSum(
-        receiptData: ReceiptData,
-        additionalSum: Pair<String, Float>,
-        orderList: List<OrderData>,
-    ) {
-        val newList = receiptData.additionalSumList.toMutableList().apply { add(additionalSum) }
-        val newReceipt = receiptData.copy(
-            additionalSumList = newList
-        )
-        setSplitReceiptData(newReceipt)
-        createOrderReport(
-            receiptData = newReceipt,
-            orderDataList = orderList,
-        )
-    }
-
-    private fun removeSpecificAdditionalSum(
-        receiptData: ReceiptData,
-        additionalSum: Pair<String, Float>,
-        orderList: List<OrderData>,
-    ) {
-        val newList = receiptData.additionalSumList.toMutableList().apply { remove(additionalSum) }
-        val newReceipt = receiptData.copy(
-            additionalSumList = newList
-        )
-        setSplitReceiptData(newReceipt)
-        createOrderReport(
-            receiptData = newReceipt,
-            orderDataList = orderList,
-        )
-    }
-
     private fun clearQuantityToSpecificOrder(
         orderDataList: List<OrderData>,
     ) {
@@ -217,7 +165,5 @@ sealed interface SplitReceiptForOneEvent : BasicEvent {
     class AddOneQuantityToSpecificOrder(val orderId: Long) : SplitReceiptForOneEvent
     class RemoveOneQuantityToSpecificOrder(val orderId: Long) : SplitReceiptForOneEvent
     object ActivateOrderReportCreator : SplitReceiptForOneEvent
-    class RemoveAdditionalSum(val pair: Pair<String, Float>) : SplitReceiptForOneEvent
-    class AddAdditionalSum(val pair: Pair<String, Float>) : SplitReceiptForOneEvent
     object ClearOrderReport : SplitReceiptForOneEvent
 }
