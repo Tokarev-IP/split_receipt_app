@@ -34,7 +34,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllR
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddNewFolderDialog
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.ChooseFolderNameBottomSheet
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.sheets.ChooseFolderNameBottomSheet
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.EditFolderDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.AllReceiptsScreenView
 
@@ -43,26 +43,28 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.A
 fun AllReceiptsScreen(
     modifier: Modifier = Modifier,
     receiptViewModel: ReceiptViewModel,
-    allReceiptViewModel: AllReceiptsViewModel,
+    allReceiptsViewModel: AllReceiptsViewModel,
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
 ) {
     var showAcceptDeletionReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var showAddNewFolderDialog by rememberSaveable { mutableStateOf(false) }
     var showEditFolderDialog by rememberSaveable { mutableStateOf(false) }
     var showChooseFolderNameBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showAcceptDeletionFolderDialog by rememberSaveable { mutableStateOf(false) }
 
-    val allReceiptsWithFolderList by allReceiptViewModel.getAllReceiptsWithFolderList()
+    val allReceiptsWithFolderList by allReceiptsViewModel.getAllReceiptsWithFolderList()
         .collectAsStateWithLifecycle()
-    val foldersWithReceiptsUnarchived by allReceiptViewModel.getFoldersWithReceiptsUnarchived()
+    val foldersWithReceiptsUnarchived by allReceiptsViewModel.getFoldersWithReceiptsUnarchived()
         .collectAsStateWithLifecycle()
-    val foldersWithReceiptsArchived by allReceiptViewModel.getFoldersWithReceiptsArchived()
+    val foldersWithReceiptsArchived by allReceiptsViewModel.getFoldersWithReceiptsArchived()
         .collectAsStateWithLifecycle()
-    val allFoldersNamesList by allReceiptViewModel.getAllFoldersNamesList()
+    val allFoldersNamesList by allReceiptsViewModel.getAllFoldersNamesList()
         .collectAsStateWithLifecycle()
 
     var chosenReceiptIdToDelete: Long? = null
     var chosenFolderIdToEdit: Long? = null
     var chosenReceiptIdToMove: Long? = null
+    var chosenFolderIdToDelete: Long? = null
 
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
@@ -110,7 +112,7 @@ fun AllReceiptsScreen(
             allReceiptsWithFolder = allReceiptsWithFolderList,
             onReceiptClicked = { receiptId ->
                 receiptViewModel.setEvent(
-                    ReceiptEvent.OpenSplitReceiptScreen(receiptId = receiptId)
+                    ReceiptEvent.OpenSplitReceiptForAllScreen(receiptId = receiptId)
                 )
             },
             onDeleteReceiptClicked = { receiptId ->
@@ -132,10 +134,10 @@ fun AllReceiptsScreen(
                 showEditFolderDialog = true
             },
             onArchiveFolderClicked = { folderData ->
-                allReceiptViewModel.setEvent(AllReceiptsEvent.ArchiveFolder(folderData = folderData))
+                allReceiptsViewModel.setEvent(AllReceiptsEvent.ArchiveFolder(folderData = folderData))
             },
             onUnarchiveFolderClicked = { folderData ->
-                allReceiptViewModel.setEvent(AllReceiptsEvent.UnArchiveFolder(folderData = folderData))
+                allReceiptsViewModel.setEvent(AllReceiptsEvent.UnArchiveFolder(folderData = folderData))
             },
             onFolderClick = { folderData ->
                 receiptViewModel.setEvent(
@@ -149,6 +151,10 @@ fun AllReceiptsScreen(
                 chosenReceiptIdToMove = receiptId
                 showChooseFolderNameBottomSheet = true
             },
+            onDeleteFolderClicked = { folderId ->
+                chosenFolderIdToDelete = folderId
+                showAcceptDeletionFolderDialog = true
+            },
         )
 
         if (showAcceptDeletionReceiptDialog)
@@ -157,7 +163,7 @@ fun AllReceiptsScreen(
                     infoText = stringResource(R.string.do_you_want_to_delete_this_receipt),
                     onDismissRequest = { showAcceptDeletionReceiptDialog = false },
                     onDeleteClicked = {
-                        allReceiptViewModel.setEvent(
+                        allReceiptsViewModel.setEvent(
                             AllReceiptsEvent.DeleteSpecificReceipt(
                                 receiptId
                             )
@@ -175,10 +181,13 @@ fun AllReceiptsScreen(
 
                 folderData?.let { data ->
                     EditFolderDialog(
-                        onDismissRequest = { showEditFolderDialog = false },
+                        onDismissRequest = {
+                            showEditFolderDialog = false
+                            chosenFolderIdToEdit = null
+                        },
                         folderData = data.folder,
                         onSaveButtonClicked = { folderData ->
-                            allReceiptViewModel.setEvent(
+                            allReceiptsViewModel.setEvent(
                                 AllReceiptsEvent.SaveFolder(folderData = folderData)
                             )
                             chosenFolderIdToEdit = null
@@ -194,7 +203,7 @@ fun AllReceiptsScreen(
             AddNewFolderDialog(
                 onDismissRequest = { showAddNewFolderDialog = false },
                 onSaveButtonClicked = { folderData ->
-                    allReceiptViewModel.setEvent(
+                    allReceiptsViewModel.setEvent(
                         AllReceiptsEvent.SaveFolder(folderData = folderData)
                     )
                     showAddNewFolderDialog = false
@@ -208,13 +217,15 @@ fun AllReceiptsScreen(
                 val receiptData = allReceiptsWithFolderList?.find { it.receipt.id == receiptId }
                 receiptData?.let {
                     ChooseFolderNameBottomSheet(
-                        onDismissRequest = { showChooseFolderNameBottomSheet = false },
-                        unarchivedFoldersWithReceipts = foldersWithReceiptsUnarchived
-                            ?: emptyList(),
+                        onDismissRequest = {
+                            showChooseFolderNameBottomSheet = false
+                            chosenReceiptIdToMove = null
+                        },
+                        unarchivedFoldersWithReceipts = foldersWithReceiptsUnarchived ?: emptyList(),
                         onFolderIsChosen = { folderId ->
                             chosenReceiptIdToMove = null
                             showChooseFolderNameBottomSheet = false
-                            allReceiptViewModel.setEvent(
+                            allReceiptsViewModel.setEvent(
                                 AllReceiptsEvent.MoveReceiptInFolder(
                                     receiptData = receiptData.receipt,
                                     folderId = folderId
@@ -224,6 +235,25 @@ fun AllReceiptsScreen(
                     )
                 } ?: run { showChooseFolderNameBottomSheet = false }
             }
+        }
+
+        if (showAcceptDeletionFolderDialog) {
+            chosenFolderIdToDelete?.let { folderId ->
+                AcceptDeletionDialog(
+                    onDismissRequest = {
+                        showAcceptDeletionFolderDialog = false
+                        chosenFolderIdToDelete = null
+                    },
+                    onDeleteClicked = {
+                        allReceiptsViewModel.setEvent(
+                            AllReceiptsEvent.DeleteSpecificFolder(folderId = folderId)
+                        )
+                        showAcceptDeletionFolderDialog = false
+                        chosenFolderIdToDelete = null
+                    },
+                    infoText = stringResource(R.string.do_you_want_to_delete_this_folder)
+                )
+            } ?: run { showAcceptDeletionFolderDialog = false }
         }
     }
 }

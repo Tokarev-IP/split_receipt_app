@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -47,6 +48,7 @@ import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Archive
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.FileMove
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Folder
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.FolderDelete
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Unarchive
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_FOLDERS
@@ -71,6 +73,7 @@ internal fun AllReceiptsScreenView(
     onArchiveFolderClicked: (FolderData) -> Unit,
     onUnarchiveFolderClicked: (FolderData) -> Unit,
     onEditFolderClicked: (Long) -> Unit,
+    onDeleteFolderClicked: (Long) -> Unit,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -105,6 +108,9 @@ internal fun AllReceiptsScreenView(
                 onEditFolderClicked = { folderId ->
                     onEditFolderClicked(folderId)
                 },
+                onDeleteFolderClicked = { folderId ->
+                    onDeleteFolderClicked(folderId)
+                },
             )
         } ?: ShimmedAllReceiptsScreenView()
     }
@@ -125,6 +131,7 @@ private fun AllReceiptsView(
     onArchiveFolderClicked: (FolderData) -> Unit = {},
     onUnarchiveFolderClicked: (FolderData) -> Unit = {},
     onEditFolderClicked: (folderId: Long) -> Unit = {},
+    onDeleteFolderClicked: (folderId: Long) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
@@ -149,6 +156,9 @@ private fun AllReceiptsView(
                     },
                     onEditFolderClicked = { folderId ->
                         onEditFolderClicked(folderId)
+                    },
+                    onDeleteFolderClicked = { folderId ->
+                        onDeleteFolderClicked(folderId)
                     },
                 )
 
@@ -213,6 +223,7 @@ private fun ReceiptItemCardView(
 ) {
     OutlinedCard(
         onClick = { onReceiptClicked() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         ReceiptItemView(
             modifier = modifier,
@@ -421,8 +432,10 @@ private fun AllFoldersColumnView(
     onArchiveFolderClicked: (FolderData) -> Unit,
     onUnarchiveFolderClicked: (FolderData) -> Unit,
     onEditFolderClicked: (folderId: Long) -> Unit,
+    onDeleteFolderClicked: (folderId: Long) -> Unit,
 ) {
     var archivedFoldersExpanded by rememberSaveable { mutableStateOf(false) }
+    val sumOfFolders = foldersWithReceiptsUnarchived.size + foldersWithReceiptsArchived.size
 
     Column(
         modifier = modifier
@@ -431,7 +444,7 @@ private fun AllFoldersColumnView(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedVisibility(
-            visible = foldersWithReceiptsArchived.size + foldersWithReceiptsUnarchived.size >= MAXIMUM_AMOUNT_OF_FOLDERS
+            visible = sumOfFolders >= MAXIMUM_AMOUNT_OF_FOLDERS
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -448,14 +461,17 @@ private fun AllFoldersColumnView(
                 onFolderClick = { folderData ->
                     onFolderClick(folderData)
                 },
-                onEditFolderClicked = { folderData ->
-                    onEditFolderClicked(folderData.id)
+                onEditFolderClicked = { folderId ->
+                    onEditFolderClicked(folderId)
                 },
                 onArchiveFolderClicked = { folderData ->
                     onArchiveFolderClicked(folderData)
                 },
                 onUnarchiveFolderClicked = { folderData ->
                     onUnarchiveFolderClicked(folderData)
+                },
+                onDeletedFolderClicked = { folderId ->
+                  onDeleteFolderClicked(folderId)
                 },
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -470,7 +486,7 @@ private fun AllFoldersColumnView(
         ) {
             TextButton(
                 onClick = { onAddNewFolderClicked() },
-                enabled = foldersWithReceiptsUnarchived.size + foldersWithReceiptsArchived.size < MAXIMUM_AMOUNT_OF_FOLDERS
+                enabled = sumOfFolders < MAXIMUM_AMOUNT_OF_FOLDERS
             ) {
                 Text(
                     text = stringResource(R.string.add_new_folder),
@@ -503,7 +519,7 @@ private fun AllFoldersColumnView(
                 }
         }
         AnimatedVisibility(
-            visible = archivedFoldersExpanded
+            visible = archivedFoldersExpanded && foldersWithReceiptsArchived.isNotEmpty()
         ) {
             Column(
                 modifier = modifier.fillMaxWidth(),
@@ -526,14 +542,17 @@ private fun AllFoldersColumnView(
                         onFolderClick = { id ->
                             onFolderClick(id)
                         },
-                        onEditFolderClicked = { folderData ->
-                            onEditFolderClicked(folderData.id)
+                        onEditFolderClicked = { folderId ->
+                            onEditFolderClicked(folderId)
                         },
                         onArchiveFolderClicked = { folderData ->
                             onArchiveFolderClicked(folderData)
                         },
                         onUnarchiveFolderClicked = { folderData ->
                             onUnarchiveFolderClicked(folderData)
+                        },
+                        onDeletedFolderClicked = { folderId ->
+                            onDeleteFolderClicked(folderId)
                         },
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -548,9 +567,10 @@ private fun FolderItemView(
     modifier: Modifier = Modifier,
     folderWithReceiptsData: FolderWithReceiptsData,
     onFolderClick: (FolderData) -> Unit,
-    onEditFolderClicked: (FolderData) -> Unit,
+    onEditFolderClicked: (folderId: Long) -> Unit,
     onArchiveFolderClicked: (FolderData) -> Unit,
     onUnarchiveFolderClicked: (FolderData) -> Unit,
+    onDeletedFolderClicked: (folderId: Long) -> Unit,
 ) {
     OutlinedCard(
         modifier = modifier.fillMaxWidth(),
@@ -595,10 +615,11 @@ private fun FolderItemView(
             ) {
                 FolderSubmenuBox(
                     modifier = modifier.align(Alignment.TopEnd),
-                    onEditReceiptClicked = { onEditFolderClicked(folderWithReceiptsData.folder) },
+                    onEditReceiptClicked = { onEditFolderClicked(folderWithReceiptsData.folder.id) },
                     onArchiveFolderClicked = { onArchiveFolderClicked(folderWithReceiptsData.folder) },
                     onUnarchiveFolderClicked = { onUnarchiveFolderClicked(folderWithReceiptsData.folder) },
                     isArchived = folderWithReceiptsData.folder.isArchived,
+                    onDeleteFolderClicked = { onDeletedFolderClicked(folderWithReceiptsData.folder.id) },
                 )
             }
         }
@@ -611,6 +632,7 @@ private fun FolderSubmenuBox(
     onEditReceiptClicked: () -> Unit,
     onArchiveFolderClicked: () -> Unit,
     onUnarchiveFolderClicked: () -> Unit,
+    onDeleteFolderClicked: () -> Unit,
     isArchived: Boolean,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -672,6 +694,21 @@ private fun FolderSubmenuBox(
                     Icon(
                         Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.edit_folder_button)
+                    )
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(text = stringResource(R.string.delete))
+                },
+                onClick = {
+                    expanded = false
+                    onDeleteFolderClicked()
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.FolderDelete,
+                        contentDescription = stringResource(R.string.delete)
                     )
                 }
             )

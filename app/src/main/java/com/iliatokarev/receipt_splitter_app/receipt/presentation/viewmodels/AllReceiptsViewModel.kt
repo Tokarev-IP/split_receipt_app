@@ -86,6 +86,10 @@ class AllReceiptsViewModel(
             is AllReceiptsEvent.UnArchiveFolder -> {
                 unArchiveFolder(folderData = newEvent.folderData)
             }
+
+            is AllReceiptsEvent.DeleteSpecificFolder -> {
+                deleteFolderById(folderId = newEvent.folderId)
+            }
         }
     }
 
@@ -163,6 +167,12 @@ class AllReceiptsViewModel(
             setAllFoldersNamesList(foldersNamesList)
         }
     }
+
+    private fun deleteFolderById(folderId: Long) {
+        viewModelScope.launch {
+            allFoldersUseCase.deleteFolderById(folderId = folderId)
+        }
+    }
 }
 
 sealed interface AllReceiptsEvent : BasicEvent {
@@ -173,4 +183,5 @@ sealed interface AllReceiptsEvent : BasicEvent {
     class UnArchiveFolder(val folderData: FolderData) : AllReceiptsEvent
     class MoveReceiptInFolder(val receiptData: ReceiptData, val folderId: Long) : AllReceiptsEvent
     class MoveReceiptOutFolder(val receiptData: ReceiptData) : AllReceiptsEvent
+    class DeleteSpecificFolder(val folderId: Long) : AllReceiptsEvent
 }

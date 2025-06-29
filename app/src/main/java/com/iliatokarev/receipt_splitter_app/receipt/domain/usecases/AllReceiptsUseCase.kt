@@ -87,7 +87,7 @@ class AllReceiptsUseCase(
         }
     }
 
-    override suspend fun changeSharedStateForReceipt(
+    override suspend fun changeIsSharedStateForReceipt(
         receiptData: ReceiptData
     ): BasicFunResponse {
         return withContext(Dispatchers.IO) {
@@ -104,6 +104,26 @@ class AllReceiptsUseCase(
             )
         }
     }
+
+    override suspend fun changeIsSharedStateForAllReceipts(
+        receiptDataList: List<ReceiptData>
+    ): BasicFunResponse = withContext(Dispatchers.IO) {
+        runCatching {
+            for (receiptData in receiptDataList) {
+                if (receiptData.isChecked) {
+                    val newReceiptData = receiptData.copy(isShared = true)
+                    receiptDbRepository.insertReceiptData(receiptData = newReceiptData)
+                }
+            }
+        }.fold(
+            onSuccess = { BasicFunResponse.Success },
+            onFailure = { e ->
+                BasicFunResponse.Error(
+                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
+                )
+            }
+        )
+    }
 }
 
 interface AllReceiptsUseCaseInterface {
@@ -113,5 +133,6 @@ interface AllReceiptsUseCaseInterface {
     suspend fun deleteReceiptData(receiptId: Long): BasicFunResponse
     suspend fun moveReceiptInFolder(receiptData: ReceiptData, folderId: Long): BasicFunResponse
     suspend fun moveReceiptOutFolder(receiptData: ReceiptData): BasicFunResponse
-    suspend fun changeSharedStateForReceipt(receiptData: ReceiptData): BasicFunResponse
+    suspend fun changeIsSharedStateForReceipt(receiptData: ReceiptData): BasicFunResponse
+    suspend fun changeIsSharedStateForAllReceipts(receiptDataList: List<ReceiptData>): BasicFunResponse
 }
