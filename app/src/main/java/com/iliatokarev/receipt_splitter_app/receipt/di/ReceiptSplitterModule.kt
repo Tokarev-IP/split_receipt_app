@@ -4,20 +4,20 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverter
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverterInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKit
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKitInterface
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptService
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptJsonService
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptJsonServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepository
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserId
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.FolderReceiptsReportCreator
-import com.iliatokarev.receipt_splitter_app.receipt.domain.FolderReceiptsReportCreatorInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.FolderReceiptsReportCreator
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.FolderReceiptsReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreator
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderReportCreatorInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.OrderReportCreator
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.OrderReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.ReceiptDataService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.ReceiptDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCase
@@ -57,10 +57,9 @@ val receiptSplitterModule = module {
     // Services & Utilities
     factoryOf(::ImageConverter) { bind<ImageConverterInterface>() }
     factoryOf(::ImageLabelingKit) { bind<ImageLabelingKitInterface>() }
-    factoryOf(::ReceiptService) { bind<ReceiptServiceInterface>() }
+    factoryOf(::ReceiptJsonService) { bind<ReceiptJsonServiceInterface>() }
     factoryOf(::FireStoreRepository) { bind<FireStoreRepositoryInterface>() }
     factoryOf(::FirebaseUserId) { bind<FirebaseUserIdInterface>() }
-    factoryOf(::ReceiptDataService) { bind<ReceiptDataServiceInterface>() }
     factoryOf(:: FolderReceiptsReportCreator) { bind<FolderReceiptsReportCreatorInterface>()}
 
     // Use Cases
@@ -75,4 +74,5 @@ val receiptSplitterModule = module {
     factoryOf(::OrderReportCreator) { bind<OrderReportCreatorInterface>() }
     factoryOf(::OrderDataService) { bind<OrderDataServiceInterface>() }
     factoryOf(::OrderDataSplitService) { bind<OrderDataSplitServiceInterface>() }
+    factoryOf(::ReceiptDataService) { bind<ReceiptDataServiceInterface>() }
 }

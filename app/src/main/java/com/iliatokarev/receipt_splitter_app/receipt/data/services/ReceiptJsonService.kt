@@ -13,12 +13,12 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.receiptSchemaObjectTranslated
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUiMessage
 
-class ReceiptService() : ReceiptServiceInterface {
+class ReceiptJsonService() : ReceiptJsonServiceInterface {
 
     private companion object {
-        private const val ONE_IMAGE = 1
-        private const val TWO_IMAGES = 2
-        private const val THREE_IMAGES = 3
+        const val ONE_IMAGE = 1
+        const val TWO_IMAGES = 2
+        const val THREE_IMAGES = 3
     }
 
     private fun getPrompt(listOfBitmaps: List<Bitmap>, requestText: String): Content {
@@ -135,7 +135,7 @@ class ReceiptService() : ReceiptServiceInterface {
     }
 }
 
-interface ReceiptServiceInterface {
+interface ReceiptJsonServiceInterface {
     suspend fun getReceiptJsonFromImages(
         listOfBitmaps: List<Bitmap>,
         requestText: String,

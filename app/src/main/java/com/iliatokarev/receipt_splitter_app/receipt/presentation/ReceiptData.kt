@@ -45,7 +45,6 @@ data class ReceiptData(
     val tax: Float? = null,
     val discount: Float? = null,
     val tip: Float? = null,
-    val additionalSumList: List<Pair<String, Float>> = emptyList(),
     val folderId: Long? = null,
     val isShared: Boolean = false,
     val isChecked: Boolean = false,
