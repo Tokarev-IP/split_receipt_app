@@ -1,5 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
+import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -8,7 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -18,11 +19,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,10 +39,12 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsEvent
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsIntent
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsUiMessageIntent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddFolderConsumerNameDialog
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.ReceiptReportBottomSheet
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.FolderReceiptsScreenView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,23 +55,56 @@ internal fun FolderReceiptScreen(
     folderReceiptsViewModel: FolderReceiptsViewModel,
     folderId: Long,
     folderName: String,
+    localContext: Context = LocalContext.current,
 ) {
+    val internalErrorText = stringResource(R.string.internal_error)
+
     val receiptDataList by folderReceiptsViewModel.getAllReceiptsList()
         .collectAsStateWithLifecycle()
-    val isReportGenerationPending by folderReceiptsViewModel.getIsReportGenerationPendingState()
+    val isReportCreatingPending by folderReceiptsViewModel.getIsReportCreatingPendingState()
         .collectAsStateWithLifecycle()
     val folderData by folderReceiptsViewModel.getFolderDataState().collectAsStateWithLifecycle()
-    val allReceiptsReport =
-        folderReceiptsViewModel.getReceiptReportState().collectAsStateWithLifecycle()
 
     var isSplitMode by rememberSaveable { mutableStateOf(false) }
     var showAddFolderConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
-    var showReceiptReportBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showDeleteReceiptDialog by rememberSaveable { mutableStateOf(false) }
 
     var consumerNameToDelete: String? = null
+    var receiptIdToDelete: Long? = null
 
-    BackHandler(enabled = isSplitMode) { isSplitMode = false }
+    BackHandler(enabled = isSplitMode) {
+        isSplitMode = false
+        folderReceiptsViewModel.setEvent(
+            FolderReceiptsEvent.TurnOffCheckStateForAllReceipts
+        )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        folderReceiptsViewModel.getIntentFlow().collect { intent ->
+            when (intent) {
+                is FolderReceiptsIntent.ReceiptReportsWereCreated -> {
+                    receiptViewModel.setEvent(
+                        ReceiptEvent.OpenShowReportsScreen(intent.receiptReports)
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        folderReceiptsViewModel.getUiMessageIntentFlow().collect { uiIntent ->
+            when (uiIntent) {
+                is FolderReceiptsUiMessageIntent.InternalError -> {
+                    Toast.makeText(
+                        localContext,
+                        internalErrorText,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -80,14 +118,7 @@ internal fun FolderReceiptScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.ArrowBack,
-                            stringResource(R.string.go_back_button)
-                        )
-                    }
+                    BackNavigationButton { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                 },
                 actions = {
                     AnimatedVisibility(
@@ -128,7 +159,7 @@ internal fun FolderReceiptScreen(
             AnimatedVisibility(
                 enter = fadeIn(),
                 exit = fadeOut(),
-                visible = isSplitMode && isReportGenerationPending
+                visible = isSplitMode && isReportCreatingPending
             ) {
                 FloatingActionButton(
                     modifier = modifier.padding(12.dp),
@@ -136,7 +167,10 @@ internal fun FolderReceiptScreen(
                         folderReceiptsViewModel.setEvent(
                             FolderReceiptsEvent.CreateFullOrdersReport
                         )
-                        showReceiptReportBottomSheet = true
+                        folderReceiptsViewModel.setEvent(
+                            FolderReceiptsEvent.SetIsSharedStateForCheckedReceipts
+                        )
+                        isSplitMode = false
                     },
                 ) {
                     Icon(
@@ -173,7 +207,7 @@ internal fun FolderReceiptScreen(
             isSplitMode = isSplitMode,
             onReceiptClicked = { receiptId ->
                 receiptViewModel.setEvent(
-                    ReceiptEvent.OpenSplitReceiptScreen(
+                    ReceiptEvent.OpenSplitReceiptForAllScreen(
                         receiptId = receiptId,
                         assignedConsumerNamesList = folderData?.consumerNamesList ?: emptyList()
                     )
@@ -198,7 +232,8 @@ internal fun FolderReceiptScreen(
                 receiptViewModel.setEvent(ReceiptEvent.OpenEditReceiptsScreen(receiptId = receiptData))
             },
             onDeleteReceiptClicked = { receiptId ->
-                //todo
+                receiptIdToDelete = receiptId
+                showDeleteReceiptDialog = true
             },
             folderData = folderData,
             onAddNewConsumerNameClick = { showAddFolderConsumerNameDialog = true },
@@ -240,15 +275,23 @@ internal fun FolderReceiptScreen(
             }
         }
 
-        if (showReceiptReportBottomSheet) {
-            allReceiptsReport
-            ReceiptReportBottomSheet(
-                onDismissRequest = { showReceiptReportBottomSheet = false },
-                allReceiptsReport = allReceiptsReport.value,
-                onShareReport = { report ->
-
-                },
-            )
+        if (showDeleteReceiptDialog) {
+            receiptIdToDelete?.let { id ->
+                AcceptDeletionDialog(
+                    onDismissRequest = {
+                        showDeleteReceiptDialog = false
+                        receiptIdToDelete = null
+                    },
+                    onDeleteClicked = {
+                        folderReceiptsViewModel.setEvent(
+                            FolderReceiptsEvent.DeleteSpecificReceipt(receiptId = id)
+                        )
+                        showDeleteReceiptDialog = false
+                        receiptIdToDelete = null
+                    },
+                    infoText = stringResource(R.string.do_you_want_to_delete_this_receipt)
+                )
+            }
         }
     }
 }

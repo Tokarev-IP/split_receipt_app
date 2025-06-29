@@ -10,54 +10,51 @@ import com.iliatokarev.receipt_splitter_app.receipt.domain.ReceiptDataServiceInt
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllFoldersUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.AllReceiptsUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.FolderReceiptsUseCaseInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.ReportsUseCaseResponse
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.FolderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 class FolderReceiptsViewModel(
     private val allReceiptsUseCase: AllReceiptsUseCaseInterface,
     private val receiptDataService: ReceiptDataServiceInterface,
     private val allFoldersUseCase: AllFoldersUseCaseInterface,
     private val folderReceiptsUseCase: FolderReceiptsUseCaseInterface,
-) : BasicViewModel<FolderReceiptsUiState, FolderReceiptsIntent, FolderReceiptsEvent, FolderReceiptsUiMessageIntent>(
+) : BasicViewModel<
+        FolderReceiptsUiState,
+        FolderReceiptsIntent,
+        FolderReceiptsEvent,
+        FolderReceiptsUiMessageIntent
+        >(
     FolderReceiptsUiState.Show
-
 ) {
+
     private val allReceiptsList = MutableStateFlow<List<ReceiptData>?>(null)
     private val allReceiptsListState = allReceiptsList.asStateFlow()
 
-    private val isReportGenerationPending = MutableStateFlow(false)
-    private val isReportGenerationPendingState = isReportGenerationPending.asStateFlow()
+    private val isReportCreatingPending = MutableStateFlow(false)
+    private val isReportCreatingPendingState = isReportCreatingPending.asStateFlow()
 
     private val folderData = MutableStateFlow<FolderData?>(null)
     private val folderDataState = folderData.asStateFlow()
-
-    private val receiptReport = MutableStateFlow<ReceiptReports?>(null)
-    private val receiptReportState = receiptReport.asStateFlow()
 
     private fun setAllReceiptsList(newList: List<ReceiptData>) {
         allReceiptsList.value = newList
     }
 
-    private fun setIsReportGenerationPending(newBoolean: Boolean) {
-        isReportGenerationPending.value = newBoolean
+    private fun setIsReportCreatingPending(newBoolean: Boolean) {
+        isReportCreatingPending.value = newBoolean
     }
 
     private fun setFolderData(newFolderData: FolderData?) {
         folderData.value = newFolderData
     }
 
-    private fun setReceiptReports(newReports: ReceiptReports?) {
-        receiptReport.value = newReports
-    }
-
     fun getAllReceiptsList() = allReceiptsListState
-    fun getIsReportGenerationPendingState() = isReportGenerationPendingState
+    fun getIsReportCreatingPendingState() = isReportCreatingPendingState
     fun getFolderDataState() = folderDataState
-    fun getReceiptReportState() = receiptReportState
 
     override fun setEvent(newEvent: FolderReceiptsEvent) {
         when (newEvent) {
@@ -116,6 +113,16 @@ class FolderReceiptsViewModel(
                     )
                 }
             }
+
+            is FolderReceiptsEvent.DeleteSpecificReceipt -> {
+                deleteReceiptById(receiptId = newEvent.receiptId)
+            }
+
+            is FolderReceiptsEvent.SetIsSharedStateForCheckedReceipts -> {
+                allReceiptsList.value?.let { receiptsList ->
+                    setIsSharedStateForCheckedReceipts(receiptsList)
+                }
+            }
         }
     }
 
@@ -165,7 +172,7 @@ class FolderReceiptsViewModel(
         receiptData: ReceiptData,
     ) {
         viewModelScope.launch {
-            allReceiptsUseCase.changeSharedStateForReceipt(receiptData = receiptData)
+            allReceiptsUseCase.changeIsSharedStateForReceipt(receiptData = receiptData)
         }
     }
 
@@ -194,7 +201,7 @@ class FolderReceiptsViewModel(
         viewModelScope.launch {
             val booleanResponse =
                 receiptDataService.checkIfReportGenerationIsPending(receiptDataList = receiptDataLists)
-            setIsReportGenerationPending(newBoolean = booleanResponse)
+            setIsReportCreatingPending(newBoolean = booleanResponse)
         }
     }
 
@@ -227,25 +234,36 @@ class FolderReceiptsViewModel(
     ) {
         viewModelScope.launch {
             val response = folderReceiptsUseCase.createAllReports(allReceiptsList = allReceiptsList)
-            when (response) {
-                is ReportsUseCaseResponse.Reports -> {
-                    setReceiptReports(
-                        ReceiptReports(
+            response?.let {
+                setIntent(
+                    FolderReceiptsIntent.ReceiptReportsWereCreated(
+                        receiptReports = ReceiptReports(
                             shortReport = response.shortReport,
                             longReport = response.longReport,
                             basicReport = response.basicReport,
                         )
                     )
-                }
+                )
+            } ?: setUiMessageIntent(FolderReceiptsUiMessageIntent.InternalError)
+        }
+    }
 
-                is ReportsUseCaseResponse.Error -> {
+    private fun deleteReceiptById(receiptId: Long) {
+        viewModelScope.launch {
+            allReceiptsUseCase.deleteReceiptData(receiptId = receiptId)
+        }
+    }
 
-                }
-            }
+    private fun setIsSharedStateForCheckedReceipts(
+        allReceiptsList: List<ReceiptData>,
+    ) {
+        viewModelScope.launch {
+            allReceiptsUseCase.changeIsSharedStateForAllReceipts(allReceiptsList)
         }
     }
 }
 
+@Serializable
 class ReceiptReports(
     val shortReport: String,
     val longReport: String,
@@ -257,7 +275,9 @@ interface FolderReceiptsUiState : BasicUiState {
     object Loading : FolderReceiptsUiState
 }
 
-interface FolderReceiptsIntent : BasicIntent
+interface FolderReceiptsIntent : BasicIntent {
+    class ReceiptReportsWereCreated(val receiptReports: ReceiptReports) : FolderReceiptsIntent
+}
 
 sealed interface FolderReceiptsEvent : BasicEvent {
     class RetrieveAllReceiptsForSpecificFolder(val folderId: Long) : FolderReceiptsEvent
@@ -269,6 +289,10 @@ sealed interface FolderReceiptsEvent : BasicEvent {
     class AddConsumerNameToFolder(val consumerName: String) : FolderReceiptsEvent
     class RetrieveFolderData(val folderId: Long) : FolderReceiptsEvent
     class DeleteConsumerNameFromFolder(val consumerName: String) : FolderReceiptsEvent
+    class DeleteSpecificReceipt(val receiptId: Long) : FolderReceiptsEvent
+    object SetIsSharedStateForCheckedReceipts : FolderReceiptsEvent
 }
 
-interface FolderReceiptsUiMessageIntent : BasicUiMessageIntent
+interface FolderReceiptsUiMessageIntent : BasicUiMessageIntent {
+    object InternalError : FolderReceiptsUiMessageIntent
+}

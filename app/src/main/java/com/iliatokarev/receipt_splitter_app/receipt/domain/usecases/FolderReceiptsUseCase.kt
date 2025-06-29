@@ -1,11 +1,11 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain.usecases
 
 import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepository
-import com.iliatokarev.receipt_splitter_app.receipt.domain.FolderReceiptsReportCreator
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.FolderReceiptsReportCreator
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitService
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUiMessage
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptWithOrdersDataSplit
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.ReceiptReports
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -18,13 +18,11 @@ class FolderReceiptsUseCase(
 
     override suspend fun createAllReports(
         allReceiptsList: List<ReceiptData>
-    ): ReportsUseCaseResponse =
+    ): ReceiptReports? =
         withContext(Dispatchers.Default) {
             val receiptWithOrdersDataSplitList = createDataForReport(allReceiptsList)
             if (receiptWithOrdersDataSplitList == null)
-                return@withContext ReportsUseCaseResponse.Error(
-                    message = ReceiptUiMessage.INTERNAL_ERROR.msg
-                )
+                return@withContext null
             else {
                 val shortReportAsync = async {
                     folderReceiptsReportCreator.createShortReport(
@@ -50,11 +48,9 @@ class FolderReceiptsUseCase(
                 val basicReport = basicReportAsync.await()
 
                 if (shortReport == null || longReport == null || basicReport == null)
-                    return@withContext ReportsUseCaseResponse.Error(
-                        message = ReceiptUiMessage.INTERNAL_ERROR.msg
-                    )
+                    return@withContext null
                 else
-                    return@withContext ReportsUseCaseResponse.Reports(
+                    return@withContext ReceiptReports(
                         shortReport = shortReport,
                         longReport = longReport,
                         basicReport = basicReport,
@@ -103,16 +99,6 @@ class DataForReport(
     val consumerNamesList: List<String>,
 )
 
-interface ReportsUseCaseResponse {
-    class Reports(
-        val shortReport: String,
-        val longReport: String,
-        val basicReport: String,
-    ) : ReportsUseCaseResponse
-
-    class Error(val message: String) : ReportsUseCaseResponse
-}
-
 interface FolderReceiptsUseCaseInterface {
-    suspend fun createAllReports(allReceiptsList: List<ReceiptData>): ReportsUseCaseResponse
+    suspend fun createAllReports(allReceiptsList: List<ReceiptData>): ReceiptReports?
 }
