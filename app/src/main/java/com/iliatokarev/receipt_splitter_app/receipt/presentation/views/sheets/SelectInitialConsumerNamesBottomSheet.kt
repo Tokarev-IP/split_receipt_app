@@ -1,4 +1,4 @@
-package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs
+package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.sheets
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -10,18 +10,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -41,53 +42,44 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.PersonAddIcon
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_CONSUMER_NAMES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_CONSUMER_NAME_TEXT_LENGTH
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ORDER_CONSUMER_NAME_DIVIDER
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.FlowGridLayout
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AddConsumerNameDialog(
+internal fun SelectInitialConsumerNamesBottomSheet(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String>,
     onDismissClick: () -> Unit,
-    onSaveSelectedNamesClick: (List<String>) -> Unit,
-    onAddNewConsumerNameClick: (String) -> Unit,
+    onSetSelectedNamesClick: (List<String>) -> Unit,
 ) {
-    Dialog(
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+    ModalBottomSheet(
+        modifier = modifier.fillMaxWidth(),
         onDismissRequest = { onDismissClick() },
+        sheetState = sheetState,
     ) {
-        Surface(
-            modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            AddConsumerNameDialogView(
-                allConsumerNamesList = allConsumerNamesList,
-                onDismissClick = onDismissClick,
-                onSaveSelectedNamesClick = { names ->
-                    onSaveSelectedNamesClick(names)
-                },
-                onAddNewConsumerNameClick = { name ->
-                    onAddNewConsumerNameClick(name)
-                }
-            )
-        }
+        SelectInitialConsumerNamesBottomView(
+            allConsumerNamesList = allConsumerNamesList,
+            onSetSelectedNamesClick = { names ->
+                onSetSelectedNamesClick(names)
+            },
+        )
     }
 }
 
 @Composable
-private fun AddConsumerNameDialogView(
+private fun SelectInitialConsumerNamesBottomView(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String> = emptyList<String>(),
-    onDismissClick: () -> Unit = {},
-    onSaveSelectedNamesClick: (List<String>) -> Unit = {},
-    onAddNewConsumerNameClick: (String) -> Unit = {},
+    onSetSelectedNamesClick: (List<String>) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
@@ -97,14 +89,10 @@ private fun AddConsumerNameDialogView(
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            AddConsumerNameView(
+            SelectInitialConsumerNamesView(
                 allConsumerNamesList = allConsumerNamesList,
-                onDismissClick = onDismissClick,
-                onSaveSelectedNamesClick = { names ->
-                    onSaveSelectedNamesClick(names)
-                },
-                onAddNewConsumerNameClick = { name ->
-                    onAddNewConsumerNameClick(name)
+                onSetSelectedNamesClick = { names ->
+                    onSetSelectedNamesClick(names)
                 },
             )
         }
@@ -112,12 +100,10 @@ private fun AddConsumerNameDialogView(
 }
 
 @Composable
-private fun AddConsumerNameView(
+private fun SelectInitialConsumerNamesView(
     modifier: Modifier = Modifier,
     allConsumerNamesList: List<String>,
-    onDismissClick: () -> Unit,
-    onAddNewConsumerNameClick: (String) -> Unit,
-    onSaveSelectedNamesClick: (List<String>) -> Unit,
+    onSetSelectedNamesClick: (List<String>) -> Unit,
 ) {
     val chosenConsumerNamesList = remember { mutableStateListOf<String>() }
 
@@ -127,20 +113,16 @@ private fun AddConsumerNameView(
         verticalArrangement = Arrangement.Center,
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        DialogCapView(text = stringResource(R.string.select_consumer_names)) { onDismissClick() }
-        Spacer(modifier = Modifier.height(12.dp))
-        HorizontalDivider()
-
-        Spacer(modifier = Modifier.height(12.dp))
-        ConsumerNameTextFieldView(
-            allConsumerNamesList = allConsumerNamesList,
-            onAddNewConsumerNameClick = { name ->
-                onAddNewConsumerNameClick(name)
-                chosenConsumerNamesList.add(name)
-            }
+        Text(
+            text = stringResource(R.string.select_consumer_names),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Normal,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(8.dp))
+
         if (allConsumerNamesList.size >= MAXIMUM_AMOUNT_OF_CONSUMER_NAMES) {
             Text(
                 textAlign = TextAlign.Center,
@@ -155,9 +137,10 @@ private fun AddConsumerNameView(
             visible = allConsumerNamesList.isNotEmpty()
         ) {
             ConsumerNamesGrid(
-                allConsumerNamesList = allConsumerNamesList.reversed(),
+                allConsumerNamesList = allConsumerNamesList,
                 onChooseConsumerNameClick = { name ->
                     chosenConsumerNamesList.add(name)
+                    onSetSelectedNamesClick(chosenConsumerNamesList)
                 },
                 onRemoveConsumerNameClick = { name ->
                     chosenConsumerNamesList.remove(name)
@@ -165,15 +148,16 @@ private fun AddConsumerNameView(
                 chosenConsumerNamesList = chosenConsumerNamesList,
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(16.dp))
-        CancelSaveButtonView(
-            onCancelClicked = { onDismissClick() },
-            onSaveClicked = {
-                onSaveSelectedNamesClick(chosenConsumerNamesList)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ConsumerNameTextFieldView(
+            allConsumerNamesList = allConsumerNamesList,
+            onAddNewConsumerNameClick = { name ->
+                chosenConsumerNamesList.add(name)
+                onSetSelectedNamesClick(chosenConsumerNamesList)
             }
         )
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
@@ -265,7 +249,7 @@ private fun ConsumerNameTextFieldView(
             }
         },
         enabled = allConsumerNamesList.size < MAXIMUM_AMOUNT_OF_CONSUMER_NAMES,
-        maxLines = MAXIMUM_LINES_IS_5,
+        singleLine = true,
     )
 }
 
@@ -340,12 +324,11 @@ private fun ConsumerNamesGrid(
 
 private const val EMPTY_STRING = ""
 private const val MAXIMUM_LINE_IS_1 = 1
-private const val MAXIMUM_LINES_IS_5 = 5
 
 @Preview(showBackground = true)
 @Composable
-private fun SetConsumerNameDialogViewPreview() {
-    AddConsumerNameDialogView(
+private fun SetInitialConsumerNameBottomSheetViewPreview() {
+    SelectInitialConsumerNamesBottomView(
         allConsumerNamesList = listOf(
             "consumer1",
             "consumer2",
