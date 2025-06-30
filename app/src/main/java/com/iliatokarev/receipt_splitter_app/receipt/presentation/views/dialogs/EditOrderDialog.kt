@@ -1,5 +1,6 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,19 +24,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.ImeOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.Minus
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.Plus
+import com.iliatokarev.receipt_splitter_app.main.basic.isPositive
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISH_QUANTITY
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_SUM
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MINIMUM_ORDER_PRICE
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
+import kotlin.math.absoluteValue
 
 @Composable
 internal fun AddNewOrderDialog(
@@ -55,6 +60,8 @@ internal fun AddNewOrderDialog(
                     name = EMPTY_STRING,
                     translatedName = EMPTY_STRING,
                     receiptId = receiptId,
+                    quantity = 0,
+                    price = 0F,
                 ),
                 onCancelButtonClicked = {
                     onCancelButtonClicked()
@@ -112,12 +119,15 @@ private fun EditOrderDialogView(
         mutableStateOf(if (orderData.quantity == 0) EMPTY_STRING else orderData.quantity.toString())
     }
     var priceText by rememberSaveable {
-        mutableStateOf(orderData.price.toString())
+        mutableStateOf(if (orderData.price == 0F) EMPTY_STRING else orderData.price.toString())
     }
 
     var isNameError by rememberSaveable { mutableStateOf(false) }
     var isQuantityError by rememberSaveable { mutableStateOf(false) }
     var isPriceError by rememberSaveable { mutableStateOf(false) }
+
+    var isPricePositive by rememberSaveable { mutableStateOf(orderData.price.isPositive()) }
+
 
     LazyColumn(
         modifier = modifier
@@ -247,9 +257,16 @@ private fun EditOrderDialogView(
             OutlinedTextField(
                 value = priceText,
                 onValueChange = { value ->
-                    isPriceError = false
-                    if (value.length <= MAXIMUM_TEXT_LENGTH)
-                        priceText = value.trim()
+                    if (value.isEmpty())
+                        priceText = value
+                    else
+                        value.toFloatOrNull()?.let { price ->
+                            isPriceError = false
+                            isPricePositive = price.isPositive()
+
+                            if (value.length <= MAXIMUM_TEXT_LENGTH)
+                                priceText = value.trim()
+                        } ?: run { isPriceError = true }
                 },
                 singleLine = true,
                 label = { Text(text = stringResource(R.string.price)) },
@@ -268,11 +285,13 @@ private fun EditOrderDialogView(
                 supportingText = {
                     if (isPriceError && priceText.isEmpty()) {
                         Text(text = stringResource(R.string.field_is_empty))
-                    } else
+                    } else if (isPriceError && priceText.toFloatOrNull() == null)
+                        Text(text = stringResource(R.string.inappropriate_symbols))
+                    else
                         Text(
                             text = stringResource(
                                 R.string.must_be_from_to,
-                                MINIMUM_PRICE,
+                                MINIMUM_ORDER_PRICE,
                                 MAXIMUM_SUM
                             )
                         )
@@ -282,6 +301,35 @@ private fun EditOrderDialogView(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Done,
                 ),
+                leadingIcon = {
+                    AnimatedContent(
+                        targetState = isPricePositive,
+                    ) { isPositive ->
+                        if (isPositive) {
+                            IconButton(
+                                onClick = {
+                                    priceText.toFloatOrNull()?.let { price ->
+                                        priceText = price.absoluteValue.times(-1).toString()
+                                        isPricePositive = false
+                                    } ?: run { isPriceError = true }
+                                }
+                            ) {
+                                Icon(Icons.Filled.Minus, stringResource(R.string.minus_button))
+                            }
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    priceText.toFloatOrNull()?.let { price ->
+                                        priceText = price.absoluteValue.toString()
+                                        isPricePositive = true
+                                    } ?: run { isPriceError = true }
+                                }
+                            ) {
+                                Icon(Icons.Filled.Plus, stringResource(R.string.plus_button))
+                            }
+                        }
+                    }
+                },
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -300,7 +348,7 @@ private fun EditOrderDialogView(
                             isQuantityError = true
                     } ?: run { isQuantityError = true }
                     priceText.toFloatOrNull()?.let { price ->
-                        if (price < MINIMUM_PRICE || price > MAXIMUM_SUM)
+                        if (price < MINIMUM_ORDER_PRICE || price > MAXIMUM_SUM)
                             isPriceError = true
                     } ?: run { isPriceError = true }
                     if (isNameError || isQuantityError || isPriceError)
@@ -320,7 +368,6 @@ private fun EditOrderDialogView(
 }
 
 private const val MINIMUM_QUANTITY = 1
-private const val MINIMUM_PRICE = 0
 private const val EMPTY_STRING = ""
 private const val MAXIMUM_LINES = 5
 

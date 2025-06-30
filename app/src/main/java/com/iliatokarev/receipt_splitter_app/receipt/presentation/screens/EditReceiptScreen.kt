@@ -2,11 +2,9 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,6 +30,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConsta
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddNewOrderDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.EditOrderDialog
@@ -78,14 +77,7 @@ fun EditReceiptScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.ArrowBack,
-                            stringResource(R.string.go_back_button)
-                        )
-                    }
+                    BackNavigationButton { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                 },
             )
         },
@@ -95,7 +87,7 @@ fun EditReceiptScreen(
                 onClick = {
                     receiptData?.id?.let { id ->
                         receiptViewModel.setEvent(
-                            ReceiptEvent.OpenSplitReceiptScreen(receiptId = id)
+                            ReceiptEvent.OpenSplitReceiptForAllScreen(receiptId = id)
                         )
                     }
                 },
