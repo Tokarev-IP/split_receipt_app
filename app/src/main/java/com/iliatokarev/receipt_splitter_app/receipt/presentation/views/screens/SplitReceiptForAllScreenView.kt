@@ -28,7 +28,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -48,6 +47,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,13 +84,10 @@ internal fun SplitReceiptForAllScreenView(
     orderDataSplitList: List<OrderDataSplit>,
     orderReportText: String?,
     onShareOrderReportClick: () -> Unit,
-    onClearOrderReportClick: () -> Unit,
     onCheckStateChange: (Boolean, Int) -> Unit,
     onRemoveConsumerNameClick: (Int, String) -> Unit,
-    onSaveOrderDataSplitClick: () -> Unit,
-    isSavedState: Boolean,
     onClearAllConsumerNamesClick: (Int) -> Unit,
-    onAddConsumerNameClick: (Int, String) -> Unit,
+    onAddConsumerNameForSpecificOrderClick: (Int, String) -> Unit,
     allConsumerNamesList: List<String>,
 ) {
     Box(
@@ -102,24 +99,21 @@ internal fun SplitReceiptForAllScreenView(
                 orderDataSplitList = orderDataSplitList,
                 orderReportText = orderReportText,
                 onShareOrderReportClick = { onShareOrderReportClick() },
-                onClearOrderReportClick = { onClearOrderReportClick() },
                 onCheckStateChange = { state, position ->
                     onCheckStateChange(state, position)
                 },
                 onRemoveConsumerNameClick = { position, consumerName ->
                     onRemoveConsumerNameClick(position, consumerName)
                 },
-                onSaveOrderDataSplitClick = { onSaveOrderDataSplitClick() },
-                isSavedState = isSavedState,
                 onClearAllConsumerNamesClick = { position ->
                     onClearAllConsumerNamesClick(position)
                 },
-                onAddConsumerNameClick = { position, name ->
-                    onAddConsumerNameClick(position, name)
+                onAddConsumerNameForSpecificOrderClick = { position, name ->
+                    onAddConsumerNameForSpecificOrderClick(position, name)
                 },
                 allConsumerNamesList = allConsumerNamesList,
             )
-        } ?: ShimmedSplitReceiptForAllScreenView()
+        } ?: ShimmedShowReportsScreenView()
     }
 }
 
@@ -130,13 +124,10 @@ private fun SplitReceiptForAllView(
     orderDataSplitList: List<OrderDataSplit>,
     orderReportText: String?,
     onShareOrderReportClick: () -> Unit = {},
-    onClearOrderReportClick: () -> Unit = {},
     onCheckStateChange: (Boolean, Int) -> Unit = { _, _ -> },
     onRemoveConsumerNameClick: (Int, String) -> Unit = { _, _ -> },
-    onSaveOrderDataSplitClick: () -> Unit = {},
-    isSavedState: Boolean = false,
     onClearAllConsumerNamesClick: (Int) -> Unit = {},
-    onAddConsumerNameClick: (Int, String) -> Unit = { _, _ -> },
+    onAddConsumerNameForSpecificOrderClick: (Int, String) -> Unit = { _, _ -> },
     allConsumerNamesList: List<String> = emptyList(),
 ) {
     LazyColumn(
@@ -160,8 +151,8 @@ private fun SplitReceiptForAllView(
                     onRemoveConsumerNameClick(index, consumerName)
                 },
                 onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick(index) },
-                onAddConsumerNameClick = { name ->
-                    onAddConsumerNameClick(index, name)
+                onAddConsumerForSpecificOrderNameClick = { name ->
+                    onAddConsumerNameForSpecificOrderClick(index, name)
                 },
                 allConsumerNamesList = allConsumerNamesList,
             )
@@ -171,9 +162,6 @@ private fun SplitReceiptForAllView(
             ReceiptReportTextView(
                 receiptReportText = orderReportText,
                 onShareOrderReportClick = { onShareOrderReportClick() },
-                onClearOrderReportClick = { onClearOrderReportClick() },
-                onSaveOrderDataSplitClick = { onSaveOrderDataSplitClick() },
-                isSavedState = isSavedState,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -188,7 +176,7 @@ private fun OrderDataCheckCardItem(
     onCheckedChange: (Boolean) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
     onClearAllConsumerNamesClick: () -> Unit,
-    onAddConsumerNameClick: (String) -> Unit,
+    onAddConsumerForSpecificOrderNameClick: (String) -> Unit,
     allConsumerNamesList: List<String>,
 ) {
     ElevatedCard(
@@ -212,8 +200,8 @@ private fun OrderDataCheckCardItem(
                     onRemoveConsumerNameClick(consumerName)
                 },
                 onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() },
-                onAddConsumerNameClick = { name ->
-                    onAddConsumerNameClick(name)
+                onAddConsumerNameForSpecificOrderClick = { name ->
+                    onAddConsumerForSpecificOrderNameClick(name)
                 },
                 allConsumerNamesList = allConsumerNamesList,
             )
@@ -228,10 +216,15 @@ private fun OrderDataSplitItem(
     onCheckedChange: (Boolean) -> Unit,
     onRemoveConsumerNameClick: (String) -> Unit,
     onClearAllConsumerNamesClick: () -> Unit,
-    onAddConsumerNameClick: (String) -> Unit,
+    onAddConsumerNameForSpecificOrderClick: (String) -> Unit,
     allConsumerNamesList: List<String>,
 ) {
     var expandConsumerNames by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = orderDataSplit.consumerNamesList) {
+        if (orderDataSplit.consumerNamesList.isEmpty())
+            expandConsumerNames = false
+    }
 
     Row(
         modifier = modifier
@@ -239,16 +232,20 @@ private fun OrderDataSplitItem(
             .padding(end = 12.dp, bottom = 8.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (orderDataSplit.consumerNamesList.isEmpty())
-            Checkbox(
-                modifier = modifier.weight(2f),
-                checked = orderDataSplit.checked,
-                onCheckedChange = { checked ->
-                    onCheckedChange(checked)
-                },
-            )
-        if (orderDataSplit.consumerNamesList.isNotEmpty())
-            Spacer(modifier = Modifier.width(12.dp))
+        AnimatedContent(
+            targetState = orderDataSplit.consumerNamesList.isEmpty(),
+        ) { isEmpty ->
+            if (isEmpty)
+                Checkbox(
+                    modifier = modifier.weight(2f),
+                    checked = orderDataSplit.checked,
+                    onCheckedChange = { checked ->
+                        onCheckedChange(checked)
+                    },
+                )
+            else
+                Spacer(modifier = Modifier.width(12.dp))
+        }
 
         Column(
             modifier = modifier
@@ -269,7 +266,7 @@ private fun OrderDataSplitItem(
                 },
                 onClearAllConsumerNamesClick = { onClearAllConsumerNamesClick() },
                 onAddConsumerNameClick = { name ->
-                    onAddConsumerNameClick(name)
+                    onAddConsumerNameForSpecificOrderClick(name)
                 },
                 allConsumerNamesList = allConsumerNamesList,
             )
@@ -351,16 +348,14 @@ private fun OrderConsumerNameView(
                     modifier = modifier.weight(12f),
                 ) { showNames ->
                     if (showNames)
-                        ConsumerNamesRowView(
-                            consumerNamesList = consumerNamesList.reversed(),
-                        )
+                        ConsumerNamesRowView(consumerNamesList = consumerNamesList)
                     else
                         Box {
                             TextButton(
                                 modifier = modifier.align(Alignment.Center),
                                 onClick = { onClearAllConsumerNamesClick() }
                             ) {
-                                Text(text = stringResource(R.string.clear_all_consumer_names_button))
+                                Text(text = stringResource(R.string.clear_all_names))
                             }
                         }
                 }
@@ -404,7 +399,7 @@ private fun OrderConsumerNameView(
                     onAddConsumerNameClick = { name ->
                         onAddConsumerNameClick(name)
                     },
-                    allConsumerNamesList = allConsumerNamesList.reversed(),
+                    allConsumerNamesList = allConsumerNamesList,
                 )
             }
         }
@@ -420,9 +415,7 @@ private fun ConsumerNamesRowView(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         item {
-            if (consumerNamesList.joinToString(SEPARATOR).length
-                > INFO_DISPLAY_CHAR_COUNT
-            ) {
+            if (consumerNamesList.joinToString(SEPARATOR).length > INFO_DISPLAY_CHAR_COUNT) {
                 Text(
                     text = consumerNamesList.size.toString(),
                     fontSize = 12.sp,
@@ -504,9 +497,7 @@ private fun EditConsumerNamesView(
                             consumerNameText = EMPTY_STRING
                             isConsumerNameErrorState = false
                         }
-                    ) {
-                        Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
-                    }
+                    ) { Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button)) }
             },
             leadingIcon = {
                 IconButton(
@@ -643,87 +634,71 @@ private fun ReceiptReportTextView(
     modifier: Modifier = Modifier,
     receiptReportText: String?,
     onShareOrderReportClick: () -> Unit,
-    onClearOrderReportClick: () -> Unit,
-    onSaveOrderDataSplitClick: () -> Unit,
-    isSavedState: Boolean,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        OutlinedButton(
-            onClick = { onSaveOrderDataSplitClick() },
-            enabled = isSavedState == false,
-        ) {
-            AnimatedContent(
-                targetState = isSavedState,
-            ) { isSaved ->
-                if (isSaved)
-                    Row {
-                        Icon(Icons.Outlined.Check, stringResource(R.string.data_was_saved))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = stringResource(R.string.saved))
-                    }
-                else
-                    Text(text = stringResource(R.string.save))
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
-        receiptReportText?.let { orderReport ->
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = { onClearOrderReportClick() }
+
+        AnimatedContent(
+            targetState = receiptReportText == null
+        ) { reportIsNull ->
+            if (reportIsNull){
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(
-                        Icons.Outlined.Clear,
-                        stringResource(R.string.clear_order_report_button)
+                    Text(
+                        modifier = modifier.fillMaxWidth(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        text = stringResource(R.string.order_report_is_empty),
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
                 }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Left,
-                    text = orderReport,
-                )
+            } else {
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        modifier = modifier.fillMaxWidth(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Justify,
+                        text = receiptReportText ?: EMPTY_STRING,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { onShareOrderReportClick() }
+                    ) {
+                        Icon(
+                            Icons.Outlined.Share,
+                            stringResource(R.string.share_order_report_button)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.share),
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 16.sp,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = { onShareOrderReportClick() }
-            ) {
-                Icon(Icons.Outlined.Share, stringResource(R.string.share_order_report_button))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.share),
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        } ?: run {
-            Text(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Left,
-                text = stringResource(R.string.order_report_is_empty),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
         }
     }
 }
 
 
 @Composable
-private fun ShimmedSplitReceiptForAllScreenView(
+private fun ShimmedShowReportsScreenView(
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -754,10 +729,11 @@ private fun ShimmedSplitReceiptForAllScreenView(
 }
 
 @Composable
-internal fun SplitReceiptSubmenuBox(
+internal fun TopAppBarSplitReceipt(
     modifier: Modifier = Modifier,
     onEditReceiptClick: () -> Unit,
     onSwapUiModesClick: () -> Unit,
+    onClearReportClick: () -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -776,7 +752,7 @@ internal fun SplitReceiptSubmenuBox(
         ) {
             DropdownMenuItem(
                 text = {
-                    Text(text = stringResource(R.string.swap))
+                    Text(text = stringResource(R.string.swap_split_mode))
                 },
                 onClick = {
                     expanded = false
@@ -789,7 +765,6 @@ internal fun SplitReceiptSubmenuBox(
                     )
                 }
             )
-
             DropdownMenuItem(
                 text = {
                     Text(text = stringResource(R.string.edit))
@@ -802,6 +777,21 @@ internal fun SplitReceiptSubmenuBox(
                     Icon(
                         Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.edit_receipt_button)
+                    )
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(text = stringResource(R.string.clear_report))
+                },
+                onClick = {
+                    expanded = false
+                    onClearReportClick()
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Outlined.Clear,
+                        contentDescription = stringResource(R.string.clear_report_button)
                     )
                 }
             )
@@ -879,7 +869,6 @@ private fun SplitReceiptForAllViewPreview() {
 
 private const val MAXIMUM_AMOUNT_OF_LINES_IS_1 = 1
 private const val MAXIMUM_AMOUNT_OF_LINES_IS_2 = 2
-private const val MAXIMUM_AMOUNT_OF_LINES_IS_3 = 3
 private const val EMPTY_STRING = ""
 private const val SEPARATOR = "__"
 private const val INFO_DISPLAY_CHAR_COUNT = 20
