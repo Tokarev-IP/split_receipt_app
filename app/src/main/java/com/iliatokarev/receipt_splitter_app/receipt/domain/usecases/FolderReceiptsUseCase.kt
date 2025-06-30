@@ -1,8 +1,8 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain.usecases
 
-import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepository
-import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.FolderReceiptsReportCreator
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitService
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepositoryInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataSplitServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.FolderReceiptsReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptWithOrdersDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.ReceiptReports
@@ -11,9 +11,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 class FolderReceiptsUseCase(
-    private val receiptDbRepository: ReceiptDbRepository,
-    private val orderDataSplitService: OrderDataSplitService,
-    private val folderReceiptsReportCreator: FolderReceiptsReportCreator,
+    private val receiptDbRepository: ReceiptDbRepositoryInterface,
+    private val orderDataSplitService: OrderDataSplitServiceInterface,
+    private val folderReceiptsReportCreator: FolderReceiptsReportCreatorInterface,
 ) : FolderReceiptsUseCaseInterface {
 
     override suspend fun createAllReports(

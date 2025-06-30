@@ -207,10 +207,7 @@ internal fun FolderReceiptScreen(
             isSplitMode = isSplitMode,
             onReceiptClicked = { receiptId ->
                 receiptViewModel.setEvent(
-                    ReceiptEvent.OpenSplitReceiptForAllScreen(
-                        receiptId = receiptId,
-                        assignedConsumerNamesList = folderData?.consumerNamesList ?: emptyList()
-                    )
+                    ReceiptEvent.OpenSplitReceiptForAllScreen(receiptId = receiptId)
                 )
             },
             onCheckStateChanged = { receiptId ->
