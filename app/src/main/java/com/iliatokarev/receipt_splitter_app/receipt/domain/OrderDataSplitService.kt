@@ -27,19 +27,15 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
         }
     }
 
-    override suspend fun addNewConsumerNamesForCheckedOrders(
+    override suspend fun setInitialConsumerNamesForCheckedOrders(
         orderDataSplitList: List<OrderDataSplit>,
         consumerNamesList: List<String>,
     ): List<OrderDataSplit> = withContext(Dispatchers.Default) {
         runCatching {
             return@withContext orderDataSplitList.map { orderDataSplit ->
                 if (orderDataSplit.checked) {
-                    val newConsumerNamesList = orderDataSplit.consumerNamesList
-                        .toMutableSet()
-                        .apply { addAll(consumerNamesList) }
-                        .toList()
                     orderDataSplit.copy(
-                        consumerNamesList = newConsumerNamesList,
+                        consumerNamesList = consumerNamesList,
                         checked = false
                     )
                 } else
@@ -73,16 +69,16 @@ class OrderDataSplitService() : OrderDataSplitServiceInterface {
 
     override suspend fun getAllConsumerNames(
         orderDataSplitList: List<OrderDataSplit>,
-        initialConsumerNamesList: List<String>,
+        assignedConsumerNamesList: List<String>,
     ): List<String> = withContext(Dispatchers.Default) {
         runCatching {
             val consumerNamesSet = mutableSetOf<String>()
-            consumerNamesSet.addAll(initialConsumerNamesList)
+            consumerNamesSet.addAll(assignedConsumerNamesList)
             for (orderDataCheck in orderDataSplitList) {
                 if (orderDataCheck.consumerNamesList.isNotEmpty())
                     consumerNamesSet.addAll(orderDataCheck.consumerNamesList)
             }
-            val consumerNamesList = consumerNamesSet.toList()
+            val consumerNamesList = consumerNamesSet.sorted().toList()
             return@withContext consumerNamesList
         }.getOrElse { e: Throwable ->
             return@withContext emptyList<String>()
@@ -194,7 +190,7 @@ interface OrderDataSplitServiceInterface {
         state: Boolean,
     ): List<OrderDataSplit>
 
-    suspend fun addNewConsumerNamesForCheckedOrders(
+    suspend fun setInitialConsumerNamesForCheckedOrders(
         orderDataSplitList: List<OrderDataSplit>,
         consumerNamesList: List<String>,
     ): List<OrderDataSplit>
@@ -207,7 +203,7 @@ interface OrderDataSplitServiceInterface {
 
     suspend fun getAllConsumerNames(
         orderDataSplitList: List<OrderDataSplit>,
-        initialConsumerNamesList: List<String>,
+        assignedConsumerNamesList: List<String>,
     ): List<String>
 
     suspend fun clearOrderDataSplits(

@@ -1,6 +1,7 @@
-package com.iliatokarev.receipt_splitter_app.receipt.domain
+package com.iliatokarev.receipt_splitter_app.receipt.domain.reports
 
 import com.iliatokarev.receipt_splitter_app.main.basic.isMoreThanOne
+import com.iliatokarev.receipt_splitter_app.main.basic.isPositive
 import com.iliatokarev.receipt_splitter_app.main.basic.isNotZero
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
@@ -16,6 +17,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
         const val START_STRING = "·"
         const val LONG_DIVIDER_STRING = "---------------"
         const val SHORT_DIVIDER_STRING = "------"
+        const val EQUAL_STRING = "="
     }
 
     override suspend fun buildOrderReportForOne(
@@ -26,6 +28,7 @@ class OrderReportCreator() : OrderReportCreatorInterface {
             runCatching {
                 val orderReport = StringBuilder()
                 var finalPrice = 0f
+                var index = 1
 
                 if (receiptData.receiptName.isNotEmpty())
                     orderReport.append("${receiptData.receiptName}\n")
@@ -33,52 +36,45 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     orderReport.append("${receiptData.date}\n")
 
                 if (orderDataList.isNotEmpty())
-                    orderReport.append("$LONG_DIVIDER_STRING\n")
+                    orderReport.append("$SHORT_DIVIDER_STRING\n")
 
-                for (splitReceiptData in orderDataList) {
-                    if (splitReceiptData.selectedQuantity.isNotZero()) {
-                        val sumPrice = splitReceiptData.selectedQuantity * splitReceiptData.price
+                for (orderData in orderDataList) {
+                    if (orderData.selectedQuantity.isPositive()) {
+                        val sumPrice = orderData.selectedQuantity * orderData.price
                         finalPrice += sumPrice
-                        orderReport.append("$START_STRING ${splitReceiptData.name} ${splitReceiptData.translatedName ?: EMPTY_STRING}   ${splitReceiptData.selectedQuantity} x ${splitReceiptData.price.roundToTwoDecimalPlaces()}  =  ${sumPrice.roundToTwoDecimalPlaces()}\n")
+                        if (orderData.selectedQuantity.isMoreThanOne())
+                            orderReport.append(" $index. ${orderData.name} ${orderData.translatedName ?: EMPTY_STRING} $EQUAL_STRING ${orderData.selectedQuantity} x ${orderData.price.roundToTwoDecimalPlaces()} $EQUAL_STRING ${sumPrice.roundToTwoDecimalPlaces()}\n")
+                        else
+                            orderReport.append(" $index. ${orderData.name} ${orderData.translatedName ?: EMPTY_STRING} $EQUAL_STRING ${sumPrice.roundToTwoDecimalPlaces()}\n")
+                        index++
                     }
                 }
 
-                if (receiptData.discount != null
-                    || receiptData.tip != null
-                    || receiptData.tax != null
+                if ((receiptData.discount != null
+                            || receiptData.tip != null
+                            || receiptData.tax != null)
+                    && finalPrice.isNotZero()
                 ) {
-                    orderReport.append("= ${finalPrice.roundToTwoDecimalPlaces()}\n")
+                    orderReport.append(" $EQUAL_STRING ${finalPrice.roundToTwoDecimalPlaces()}")
 
                     receiptData.discount?.let { discount ->
                         finalPrice -= (finalPrice * discount) / 100
-                        orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %\n")
+                        orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %")
                     }
                     receiptData.tip?.let { tip ->
                         finalPrice += (finalPrice * tip) / 100
-                        orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %\n")
+                        orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %")
                     }
                     receiptData.tax?.let { tax ->
                         finalPrice += (finalPrice * tax) / 100
-                        orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %\n")
+                        orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %")
                     }
-                    orderReport.append("= ${finalPrice.roundToTwoDecimalPlaces()}\n")
+                    orderReport.append(" $EQUAL_STRING ${finalPrice.roundToTwoDecimalPlaces()}\n")
                 }
 
-                if (receiptData.additionalSumList.isNotEmpty()) {
-                    orderReport.append("$SHORT_DIVIDER_STRING\n")
-                    for (additionalSum in receiptData.additionalSumList) {
-                        orderReport.append("${additionalSum.first}     ${additionalSum.second}\n")
-                        finalPrice += additionalSum.second
-                    }
-                    orderReport.append("= ${finalPrice.roundToTwoDecimalPlaces()}\n")
-                }
+                orderReport.append("$EQUAL_STRING ${finalPrice.roundToTwoDecimalPlaces()}")
 
-                if (finalPrice.isNotZero())
-                    orderReport.append("$LONG_DIVIDER_STRING\n")
-
-                orderReport.append("${finalPrice.roundToTwoDecimalPlaces()}")
-
-                return@withContext orderReport.toString()
+                return@withContext orderReport.toString().trim()
             }.getOrElse { e ->
                 return@withContext null
             }
@@ -103,50 +99,54 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     orderReport.append("${receiptData.date}\n")
 
                 if (consumerNameList.isNotEmpty())
-                    orderReport.append("$LONG_DIVIDER_STRING\n")
+                    orderReport.append("$SHORT_DIVIDER_STRING\n")
+
                 for (consumerName in consumerNameList) {
+                    var index = 1
                     var consumerFinalPrice = 0F
                     val newOrderDataSplitList =
                         orderDataSplitList.filter { consumerName in it.consumerNamesList }
 
-                    orderReport.append("${consumerName}\n")
+                    orderReport.append("$START_STRING ${consumerName}\n")
 
                     for (orderDataSplit in newOrderDataSplitList) {
                         if (orderDataSplit.consumerNamesList.size.isMoreThanOne()) {
                             val newPrice =
                                 (orderDataSplit.price / orderDataSplit.consumerNamesList.size).roundToTwoDecimalPlaces()
-                            orderReport.append("$START_STRING ${orderDataSplit.name} ${orderDataSplit.translatedName ?: EMPTY_STRING} 1/${orderDataSplit.consumerNamesList.size} x ${orderDataSplit.price.roundToTwoDecimalPlaces()} = ${newPrice.roundToTwoDecimalPlaces()}\n")
+                            orderReport.append("  $index. ${orderDataSplit.name} ${orderDataSplit.translatedName ?: EMPTY_STRING} $EQUAL_STRING 1/${orderDataSplit.consumerNamesList.size} x ${orderDataSplit.price.roundToTwoDecimalPlaces()} $EQUAL_STRING ${newPrice.roundToTwoDecimalPlaces()}\n")
                             consumerFinalPrice += newPrice
                         } else {
-                            orderReport.append("$START_STRING ${orderDataSplit.name} ${orderDataSplit.translatedName ?: EMPTY_STRING}   ${orderDataSplit.price.roundToTwoDecimalPlaces()}\n")
+                            orderReport.append("  $index. ${orderDataSplit.name} ${orderDataSplit.translatedName ?: EMPTY_STRING} $EQUAL_STRING ${orderDataSplit.price.roundToTwoDecimalPlaces()}\n")
                             consumerFinalPrice += orderDataSplit.price.roundToTwoDecimalPlaces()
                         }
+                        index++
                     }
 
-                    if (receiptData.discount != null
-                        || receiptData.tip != null
-                        || receiptData.tax != null
+                    if ((receiptData.discount != null
+                                || receiptData.tip != null
+                                || receiptData.tax != null)
+                        && consumerFinalPrice.isNotZero()
                     ) {
-                        orderReport.append("= ${consumerFinalPrice.roundToTwoDecimalPlaces()}\n")
+                        orderReport.append("  $EQUAL_STRING ${consumerFinalPrice.roundToTwoDecimalPlaces()}")
 
                         receiptData.discount?.let { discount ->
                             consumerFinalPrice -= (consumerFinalPrice * discount) / 100
-                            orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %\n")
+                            orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %")
                         }
                         receiptData.tip?.let { tip ->
                             consumerFinalPrice += (consumerFinalPrice * tip) / 100
-                            orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %\n")
+                            orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %")
                         }
                         receiptData.tax?.let { tax ->
                             consumerFinalPrice += (consumerFinalPrice * tax) / 100
-                            orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %\n")
+                            orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %")
                         }
+                        orderReport.append(" $EQUAL_STRING ${consumerFinalPrice.roundToTwoDecimalPlaces()}\n")
                     }
-
-                    orderReport.append("= ${consumerFinalPrice.roundToTwoDecimalPlaces()}\n")
+                    orderReport.append("$EQUAL_STRING ${consumerFinalPrice.roundToTwoDecimalPlaces()}\n")
                     orderReport.append("$LONG_DIVIDER_STRING\n")
                 }
-                return@withContext orderReport.toString()
+                return@withContext orderReport.toString().trim()
             }.getOrElse { e ->
                 return@withContext null
             }
