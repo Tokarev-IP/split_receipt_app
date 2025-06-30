@@ -306,9 +306,10 @@ private fun ReportBottomSheetView(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
+                        modifier = modifier.fillMaxWidth(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Left,
+                        textAlign = TextAlign.Justify,
                         text = orderReportText ?: EMPTY_STRING,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -357,61 +358,6 @@ private fun ShimmedSplitReceiptScreenView(
                     .background(brush = shimmerBrush(), shape = RoundedCornerShape(16.dp))
             )
             Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-internal fun TopAppBarSplitReceiptForOneSubmenuBox(
-    modifier: Modifier = Modifier,
-    onEditReceiptClick: () -> Unit,
-    onClearReportClick: () -> Unit,
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-
-    Box(modifier = modifier) {
-        IconButton(
-            onClick = { expanded = !expanded },
-        ) {
-            Icon(
-                Icons.Outlined.MoreVert,
-                contentDescription = stringResource(R.string.receipt_view_submenu_button)
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Text(text = stringResource(R.string.edit))
-                },
-                onClick = {
-                    expanded = false
-                    onEditReceiptClick()
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Outlined.Edit,
-                        contentDescription = stringResource(R.string.edit_receipt_button)
-                    )
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(text = stringResource(R.string.clear_report))
-                },
-                onClick = {
-                    expanded = false
-                    onClearReportClick()
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Outlined.Edit,
-                        contentDescription = stringResource(R.string.clear_report_button)
-                    )
-                }
-            )
         }
     }
 }

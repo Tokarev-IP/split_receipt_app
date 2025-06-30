@@ -31,7 +31,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.Spli
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptClearingDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.SplitReceiptForOneScreenView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.TopAppBarSplitReceiptForOneSubmenuBox
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.TopAppBarSplitReceipt
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 
@@ -48,7 +48,6 @@ internal fun SplitReceiptForOneScreen(
     val orderDataList by splitReceiptForOneViewModel.getOrderDataList()
         .collectAsStateWithLifecycle()
     var orderReportText by rememberSaveable { mutableStateOf<String?>(null) }
-    var isShownAdditionalSumDialog by rememberSaveable { mutableStateOf(false) }
     var isShownClearOrderReportDialog by rememberSaveable { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -82,7 +81,7 @@ internal fun SplitReceiptForOneScreen(
                     BackNavigationButton { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                 },
                 actions = {
-                    TopAppBarSplitReceiptForOneSubmenuBox(
+                    TopAppBarSplitReceipt(
                         onEditReceiptClick = {
                             receiptData?.id?.let { id ->
                                 receiptViewModel.setEvent(
@@ -92,7 +91,8 @@ internal fun SplitReceiptForOneScreen(
                                 )
                             }
                         },
-                        onClearReportClick = { isShownClearOrderReportDialog = true }
+                        onClearReportClick = { isShownClearOrderReportDialog = true },
+                        onSwapUiModesClick = { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                     )
                 },
             )

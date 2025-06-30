@@ -4,8 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
+import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.OrderReportCreatorInterface
-import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCase
+import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +18,8 @@ import kotlinx.coroutines.launch
 
 class SplitReceiptForOneViewModel(
     private val orderReportCreator: OrderReportCreatorInterface,
-    private val splitReceiptUseCase: SplitReceiptUseCase,
-    private val orderDataService: OrderDataService,
+    private val splitReceiptUseCase: SplitReceiptUseCaseInterface,
+    private val orderDataService: OrderDataServiceInterface,
 ) : BasicSimpleViewModel<SplitReceiptForOneEvent>() {
 
     private val splitReceiptDataFlow = MutableStateFlow<ReceiptData?>(null)
