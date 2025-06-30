@@ -12,7 +12,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ONE_ATTEMPT
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverterInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKitInterface
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptJsonServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptDataJson
@@ -27,7 +27,7 @@ import kotlinx.serialization.json.Json
 class CreateReceiptUseCase(
     private val imageLabelingKit: ImageLabelingKitInterface,
     private val imageConverter: ImageConverterInterface,
-    private val receiptService: ReceiptServiceInterface,
+    private val receiptService: ReceiptJsonServiceInterface,
     private val receiptDbRepository: ReceiptDbRepositoryInterface,
     private val firestoreRepository: FireStoreRepositoryInterface,
     private val firebaseUserId: FirebaseUserIdInterface,

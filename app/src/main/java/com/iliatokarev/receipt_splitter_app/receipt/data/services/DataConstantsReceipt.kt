@@ -82,6 +82,7 @@ object DataConstantsReceipt {
     const val MAXIMUM_AMOUNT_OF_FOLDERS = 1000
     const val MAXIMUM_AMOUNT_OF_RECEIPTS_IN_FOLDER = 1000
     const val MAXIMUM_TEXT_LENGTH = 60
+    const val MINIMUM_ORDER_PRICE = -999_999
     const val MAXIMUM_SUM = 999_999
     const val MAXIMUM_PERCENT = 100
 
