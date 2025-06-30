@@ -16,6 +16,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataSplit
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -100,8 +101,7 @@ class SplitReceiptForAllViewModel(
             }
 
             is SplitReceiptForAllEvents.RetrieveReceiptData -> {
-                retrieveReceiptData(receiptId = newEvent.receiptId)
-                retrieveOrderDataSplitList(receiptId = newEvent.receiptId)
+                retrieveAllData(receiptId = newEvent.receiptId)
             }
 
             is SplitReceiptForAllEvents.SetCheckState -> {
@@ -153,35 +153,36 @@ class SplitReceiptForAllViewModel(
         }
     }
 
-    private fun retrieveReceiptData(receiptId: Long) {
+    private fun retrieveAllData(receiptId: Long) {
         viewModelScope.launch {
-            splitReceiptUseCase.retrieveReceiptData(receiptId = receiptId).run {
-                this?.folderId?.let { folderId ->
-                    retrieveFolderData(folderId)
-                }
-                setSplitReceiptData(this)
-            }
+            async { retrieveReceiptData(receiptId = receiptId) }.await()
+            retrieveOrderDataSplitList(receiptId = receiptId)
         }
     }
 
-    private fun retrieveFolderData(folderId: Long) {
-        viewModelScope.launch {
-            allFolderUseCase.getFolderById(folderId = folderId).run {
-                setAssignedConsumerNamesList(this?.consumerNamesList ?: emptyList())
+    private suspend fun retrieveReceiptData(receiptId: Long) {
+        splitReceiptUseCase.retrieveReceiptData(receiptId = receiptId).run {
+            this?.folderId?.let { folderId ->
+                retrieveFolderData(folderId)
             }
+            setSplitReceiptData(this)
         }
     }
 
-    private fun retrieveOrderDataSplitList(receiptId: Long) {
-        viewModelScope.launch {
-            splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
-                orderDataList = this
-                val orderDataSplitList =
-                    orderDataSplitService.convertOrderDataListToOrderDataSplitList(
-                        orderDataList = this
-                    )
-                setOrderDataSplitList(orderDataSplitList)
-            }
+    private suspend fun retrieveFolderData(folderId: Long) {
+        allFolderUseCase.getFolderById(folderId = folderId).run {
+            setAssignedConsumerNamesList(this?.consumerNamesList ?: emptyList())
+        }
+    }
+
+    private suspend fun retrieveOrderDataSplitList(receiptId: Long) {
+        splitReceiptUseCase.retrieveOrderDataList(receiptId = receiptId).run {
+            orderDataList = this
+            val orderDataSplitList =
+                orderDataSplitService.convertOrderDataListToOrderDataSplitList(
+                    orderDataList = this
+                )
+            setOrderDataSplitList(orderDataSplitList)
         }
     }
 
