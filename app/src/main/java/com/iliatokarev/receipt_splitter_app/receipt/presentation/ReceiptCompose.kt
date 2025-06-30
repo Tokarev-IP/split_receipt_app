@@ -103,11 +103,6 @@ fun ReceiptCompose(
                 backStackEntry.toRoute<ReceiptNavHostDestinations.SplitReceiptForAllScreenNav>()
             LaunchedEffect(key1 = Unit) {
                 splitReceiptForAllViewModel.setEvent(
-                    SplitReceiptForAllEvents.SetAssignedConsumerNamesList(
-                        assignedConsumerNamesList = data.assignedConsumerNamesList
-                    )
-                )
-                splitReceiptForAllViewModel.setEvent(
                     SplitReceiptForAllEvents.RetrieveReceiptData(
                         data.receiptId
                     )
@@ -192,10 +187,7 @@ private fun handleReceiptIntent(
     when (intent) {
         is ReceiptIntent.GoToSplitReceiptForAllScreen -> {
             navHostController.navigate(
-                ReceiptNavHostDestinations.SplitReceiptForAllScreenNav(
-                    receiptId = intent.receiptId,
-                    assignedConsumerNamesList = intent.assignedConsumerNamesList,
-                )
+                ReceiptNavHostDestinations.SplitReceiptForAllScreenNav(receiptId = intent.receiptId)
             ) {
                 popUpTo<ReceiptNavHostDestinations.EditReceiptScreenNav> {
                     inclusive = true
@@ -286,10 +278,7 @@ sealed interface ReceiptNavHostDestinations {
     object AllReceiptsScreenNav : ReceiptNavHostDestinations
 
     @Serializable
-    class SplitReceiptForAllScreenNav(
-        val receiptId: Long,
-        val assignedConsumerNamesList: List<String>,
-    ) : ReceiptNavHostDestinations
+    class SplitReceiptForAllScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
 
     @Serializable
     class SplitReceiptForOneScreenNav(val receiptId: Long) : ReceiptNavHostDestinations

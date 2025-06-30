@@ -30,12 +30,7 @@ class ReceiptViewModel() : BasicViewModel<
     override fun setEvent(newEvent: ReceiptEvent) {
         when (newEvent) {
             is ReceiptEvent.OpenSplitReceiptForAllScreen -> {
-                setIntent(
-                    GoToSplitReceiptForAllScreen(
-                        receiptId = newEvent.receiptId,
-                        assignedConsumerNamesList = newEvent.assignedConsumerNamesList,
-                    )
-                )
+                setIntent(GoToSplitReceiptForAllScreen(receiptId = newEvent.receiptId))
             }
 
             is ReceiptEvent.OpenCreateReceiptScreen -> {
@@ -95,11 +90,7 @@ interface ReceiptUiState : BasicUiState {
 }
 
 sealed interface ReceiptEvent : BasicEvent {
-    class OpenSplitReceiptForAllScreen(
-        val receiptId: Long,
-        val assignedConsumerNamesList: List<String> = emptyList<String>(),
-    ) : ReceiptEvent
-
+    class OpenSplitReceiptForAllScreen(val receiptId: Long) : ReceiptEvent
     class OpenSplitReceiptForOneScreen(val receiptId: Long) : ReceiptEvent
     object OpenCreateReceiptScreen : ReceiptEvent
     class OpenEditReceiptsScreen(val receiptId: Long) : ReceiptEvent
@@ -115,11 +106,7 @@ sealed interface ReceiptEvent : BasicEvent {
 }
 
 interface ReceiptIntent : BasicIntent {
-    class GoToSplitReceiptForAllScreen(
-        val receiptId: Long,
-        val assignedConsumerNamesList: List<String>,
-    ) : ReceiptIntent
-
+    class GoToSplitReceiptForAllScreen(val receiptId: Long) : ReceiptIntent
     class GoToSplitReceiptForOneScreen(val receiptId: Long) : ReceiptIntent
     object GoToCreateReceiptScreen : ReceiptIntent
     class GoToEditReceiptsScreen(val receiptId: Long) : ReceiptIntent

@@ -55,7 +55,7 @@ data class OrderData(
     val name: String = "no name",
     val translatedName: String? = null,
     val selectedQuantity: Int = 0,
-    val quantity: Int = 1,
+    val quantity: Int = 0,
     val price: Float = 0f,
     val receiptId: Long,
     val consumersList: List<String> = emptyList(),
