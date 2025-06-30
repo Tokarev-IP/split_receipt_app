@@ -1,4 +1,4 @@
-package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs
+package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.sheets
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth

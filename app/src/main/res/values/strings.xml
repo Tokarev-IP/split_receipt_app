@@ -33,6 +33,7 @@
     <string name="delete_receipt_button">Delete receipt button</string>
     <string name="edit_receipt_button">Edit receipt button</string>
     <string name="edit_folder_button">Edit folder button</string>
+    <string name="delete_folder_button">Delete folder button</string>
     <string name="swap_ui_modes_receipt_button">Swap UI modes receipt button</string>
     <string name="delete_order_button">Delete order button</string>
     <string name="settings_button">Settings button</string>
@@ -136,7 +137,7 @@
     <string name="expand_receipt_info_button">Expand receipt info button</string>
     <string name="narrow_down_receipt_info_button">Narrow down receipt info button</string>
     <string name="there_is_limited_attempts">Mind that the attempts are limited</string>
-    <string name="clear_order_report_text">Do you really want to clear the order report?</string>
+    <string name="clear_report_text">Do you want to clear the report?</string>
     <string name="go_to_split_receipt_screen_button">Go to split receipt screen button</string>
     <string name="set_consumer_name">Set name</string>
     <string name="set_consumer_name_button">Set consumer name button</string>
@@ -149,7 +150,7 @@
     <string name="expand_consumer_names_button">Expand consumer names button</string>
     <string name="narrow_down_consumer_names_button">Narrow down consumer names button</string>
     <string name="clear_consumer_name_button">Clear consumer name button</string>
-    <string name="clear_all_consumer_names_button">Clear all</string>
+    <string name="clear_all_consumer_names_button">Clear all consumer names button</string>
     <string name="add_name_button">Add name button</string>
     <string name="sum_of_consumer_names">Names: %s</string>
     <string name="name_is_already_existed">This name is already existed</string>
@@ -160,7 +161,6 @@
     <string name="narrow_down_archive_folders_button">Narrow down archive folders button</string>
     <string name="archive_folder_button">Archive folder button</string>
     <string name="unarchive_folder_button">Unarchive folder button</string>
-    <string name="delete_folder_button">Delete folder button</string>
     <string name="archive">Archive</string>
     <string name="unarchive">Unarchive</string>
     <string name="add_new_folder_button">Add new folder button</string>
@@ -195,6 +195,11 @@
     <string name="names_are_empty">Names are empty. Add the first one</string>
     <string name="delete_consumer_name_text">Do you really want to delete this name?</string>
     <string name="archived_folders">Archived folders</string>
+    <string name="do_you_want_to_delete_this_folder">Do you really want to delete this folder? All the receipts in this folder will NOT be deleted</string>
+    <string name="swap_split_mode">Swap split mode</string>
+    <string name="clear_report_button">Clear report button</string>
+    <string name="clear_report">Clear report</string>
+    <string name="clear_all_names">Clear all names</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>
