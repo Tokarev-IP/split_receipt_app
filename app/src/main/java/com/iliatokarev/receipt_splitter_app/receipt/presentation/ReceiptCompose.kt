@@ -18,16 +18,23 @@ import com.iliatokarev.receipt_splitter_app.main.presentation.MainViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.AllReceiptsScreen
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.CreateReceiptScreen
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.EditReceiptScreen
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.SplitReceiptScreen
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.FolderReceiptScreen
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.ShowReportsScreen
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.SplitReceiptForAllScreen
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.screens.SplitReceiptForOneScreen
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsEvent
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.ReceiptReports
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllEvents
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
+import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,36 +76,32 @@ fun ReceiptCompose(
         navController = navHostController,
         startDestination = startDestination,
     ) {
-        composable<ReceiptNavHostDestinations.CreateReceiptScreenNav> {
+        composable<ReceiptNavHostDestinations.CreateReceiptScreenNav> { backStackEntry ->
             val createReceiptViewModel: CreateReceiptViewModel = koinViewModel()
+            val data = backStackEntry.toRoute<ReceiptNavHostDestinations.CreateReceiptScreenNav>()
             CreateReceiptScreen(
                 receiptViewModel = receiptViewModel,
-                createReceiptViewModel = createReceiptViewModel
+                createReceiptViewModel = createReceiptViewModel,
+                folderId = data.folderId,
             )
         }
 
         composable<ReceiptNavHostDestinations.AllReceiptsScreenNav> {
             val allReceiptsViewModel: AllReceiptsViewModel = koinViewModel()
             LaunchedEffect(key1 = Unit) {
-                allReceiptsViewModel.setEvent(AllReceiptsEvent.RetrieveAllReceipts)
+                allReceiptsViewModel.setEvent(AllReceiptsEvent.RetrieveAllData)
             }
             AllReceiptsScreen(
                 receiptViewModel = receiptViewModel,
-                allReceiptViewModel = allReceiptsViewModel,
+                allReceiptsViewModel = allReceiptsViewModel,
             )
         }
 
-        composable<ReceiptNavHostDestinations.SplitReceiptScreenNav> { backStackEntry ->
-            val splitReceiptForOneViewModel: SplitReceiptForOneViewModel = koinViewModel()
+        composable<ReceiptNavHostDestinations.SplitReceiptForAllScreenNav> { backStackEntry ->
             val splitReceiptForAllViewModel: SplitReceiptForAllViewModel = koinViewModel()
-            val data = backStackEntry.toRoute<ReceiptNavHostDestinations.EditReceiptScreenNav>()
+            val data =
+                backStackEntry.toRoute<ReceiptNavHostDestinations.SplitReceiptForAllScreenNav>()
             LaunchedEffect(key1 = Unit) {
-                splitReceiptForOneViewModel.setEvent(
-                    SplitReceiptForOneEvent.RetrieveReceiptData(
-                        data.receiptId
-                    )
-                )
-                splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ActivateOrderReportCreator)
                 splitReceiptForAllViewModel.setEvent(
                     SplitReceiptForAllEvents.RetrieveReceiptData(
                         data.receiptId
@@ -106,9 +109,8 @@ fun ReceiptCompose(
                 )
                 splitReceiptForAllViewModel.setEvent(SplitReceiptForAllEvents.ActivateOrderReportCreator)
             }
-            SplitReceiptScreen(
+            SplitReceiptForAllScreen(
                 receiptViewModel = receiptViewModel,
-                splitReceiptForOneViewModel = splitReceiptForOneViewModel,
                 splitReceiptForAllViewModel = splitReceiptForAllViewModel,
             )
         }
@@ -124,6 +126,56 @@ fun ReceiptCompose(
                 editReceiptViewModel = editReceiptViewModel,
             )
         }
+
+        composable<ReceiptNavHostDestinations.FolderReceiptsScreenNav> { backStackEntry ->
+            val folderReceiptsViewModel: FolderReceiptsViewModel = koinViewModel()
+            val data = backStackEntry.toRoute<ReceiptNavHostDestinations.FolderReceiptsScreenNav>()
+            LaunchedEffect(key1 = data.folderId) {
+                folderReceiptsViewModel.setEvent(
+                    FolderReceiptsEvent.RetrieveAllReceiptsForSpecificFolder(data.folderId)
+                )
+                folderReceiptsViewModel.setEvent(
+                    FolderReceiptsEvent.RetrieveFolderData(data.folderId)
+                )
+            }
+            FolderReceiptScreen(
+                receiptViewModel = receiptViewModel,
+                folderReceiptsViewModel = folderReceiptsViewModel,
+                folderId = data.folderId,
+                folderName = data.folderName,
+            )
+        }
+
+        composable<ReceiptNavHostDestinations.ShowReportsScreenNav> { backStackEntry ->
+            val data =
+                backStackEntry.toRoute<ReceiptNavHostDestinations.ShowReportsScreenNav>()
+            ShowReportsScreen(
+                receiptViewModel = receiptViewModel,
+                receiptReports = ReceiptReports(
+                    shortReport = data.shortReport,
+                    longReport = data.longReport,
+                    basicReport = data.basicReport,
+                ),
+            )
+        }
+
+        composable<ReceiptNavHostDestinations.SplitReceiptForOneScreenNav> { backStackEntry ->
+            val splitReceiptForOneViewModel: SplitReceiptForOneViewModel = koinViewModel()
+            val data =
+                backStackEntry.toRoute<ReceiptNavHostDestinations.SplitReceiptForOneScreenNav>()
+
+            splitReceiptForOneViewModel.setEvent(
+                SplitReceiptForOneEvent.RetrieveReceiptData(
+                    data.receiptId
+                )
+            )
+            splitReceiptForOneViewModel.setEvent(SplitReceiptForOneEvent.ActivateOrderReportCreator)
+
+            SplitReceiptForOneScreen(
+                receiptViewModel = receiptViewModel,
+                splitReceiptForOneViewModel = splitReceiptForOneViewModel,
+            )
+        }
     }
 }
 
@@ -133,9 +185,9 @@ private fun handleReceiptIntent(
     mainViewModel: MainViewModel,
 ) {
     when (intent) {
-        is ReceiptIntent.GoToSplitReceiptScreen -> {
+        is ReceiptIntent.GoToSplitReceiptForAllScreen -> {
             navHostController.navigate(
-                ReceiptNavHostDestinations.SplitReceiptScreenNav(receiptId = intent.receiptId)
+                ReceiptNavHostDestinations.SplitReceiptForAllScreenNav(receiptId = intent.receiptId)
             ) {
                 popUpTo<ReceiptNavHostDestinations.EditReceiptScreenNav> {
                     inclusive = true
@@ -143,15 +195,23 @@ private fun handleReceiptIntent(
             }
         }
 
+        is ReceiptIntent.GoToSplitReceiptForOneScreen -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.SplitReceiptForOneScreenNav(
+                    receiptId = intent.receiptId,
+                )
+            )
+        }
+
         is ReceiptIntent.GoToCreateReceiptScreen -> {
-            navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav)
+            navHostController.navigate(ReceiptNavHostDestinations.CreateReceiptScreenNav(folderId = null))
         }
 
         is ReceiptIntent.GoToEditReceiptsScreen -> {
             navHostController.navigate(
                 ReceiptNavHostDestinations.EditReceiptScreenNav(receiptId = intent.receiptId)
             ) {
-                popUpTo<ReceiptNavHostDestinations.SplitReceiptScreenNav> {
+                popUpTo<ReceiptNavHostDestinations.SplitReceiptForAllScreenNav> {
                     inclusive = true
                 }
             }
@@ -182,5 +242,58 @@ private fun handleReceiptIntent(
         is ReceiptIntent.UserIsEmpty -> {
             mainViewModel.setEvent(MainEvent.UserIsSignedOut)
         }
+
+        is ReceiptIntent.GoToCreateReceiptScreenFromFolder -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.CreateReceiptScreenNav(folderId = intent.folderId)
+            )
+        }
+
+        is ReceiptIntent.GoToFolderReceiptsScreen -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.FolderReceiptsScreenNav(
+                    folderId = intent.folderId,
+                    folderName = intent.folderName,
+                )
+            )
+        }
+
+        is ReceiptIntent.GoToShowReportsScreen -> {
+            navHostController.navigate(
+                ReceiptNavHostDestinations.ShowReportsScreenNav(
+                    shortReport = intent.receiptReports.shortReport,
+                    longReport = intent.receiptReports.longReport,
+                    basicReport = intent.receiptReports.basicReport,
+                )
+            )
+        }
     }
+}
+
+sealed interface ReceiptNavHostDestinations {
+    @Serializable
+    class CreateReceiptScreenNav(val folderId: Long?) : ReceiptNavHostDestinations
+
+    @Serializable
+    object AllReceiptsScreenNav : ReceiptNavHostDestinations
+
+    @Serializable
+    class SplitReceiptForAllScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
+
+    @Serializable
+    class SplitReceiptForOneScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
+
+    @Serializable
+    class EditReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
+
+    @Serializable
+    class FolderReceiptsScreenNav(val folderId: Long, val folderName: String) :
+        ReceiptNavHostDestinations
+
+    @Serializable
+    class ShowReportsScreenNav(
+        val shortReport: String,
+        val longReport: String,
+        val basicReport: String,
+    ) : ReceiptNavHostDestinations
 }

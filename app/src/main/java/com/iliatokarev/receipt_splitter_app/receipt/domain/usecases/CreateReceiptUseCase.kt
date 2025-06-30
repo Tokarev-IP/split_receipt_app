@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import com.google.mlkit.vision.label.ImageLabel
 import com.iliatokarev.receipt_splitter_app.main.basic.convertMillisToMinutes
-import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptDbRepositoryInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES
@@ -12,7 +12,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ONE_ATTEMPT
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverterInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKitInterface
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptServiceInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptJsonServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FireStoreRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.store.FirebaseUserIdInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptDataJson
@@ -27,7 +27,7 @@ import kotlinx.serialization.json.Json
 class CreateReceiptUseCase(
     private val imageLabelingKit: ImageLabelingKitInterface,
     private val imageConverter: ImageConverterInterface,
-    private val receiptService: ReceiptServiceInterface,
+    private val receiptService: ReceiptJsonServiceInterface,
     private val receiptDbRepository: ReceiptDbRepositoryInterface,
     private val firestoreRepository: FireStoreRepositoryInterface,
     private val firebaseUserId: FirebaseUserIdInterface,
@@ -40,10 +40,12 @@ class CreateReceiptUseCase(
     override suspend fun createReceiptFromUriImage(
         listOfImages: List<Uri>,
         translateTo: String?,
+        folderId: Long?,
     ): ReceiptCreationResult {
         return convertReceiptFromImageImpl(
             listOfImages = listOfImages,
             translateTo = translateTo,
+            folderId = folderId,
         )
     }
 
@@ -62,6 +64,7 @@ class CreateReceiptUseCase(
     private suspend fun convertReceiptFromImageImpl(
         listOfImages: List<Uri>,
         translateTo: String?,
+        folderId: Long?,
     ): ReceiptCreationResult = withContext(Dispatchers.IO) {
         runCatching {
             val listOfBitmaps = listOfImages.map { image ->
@@ -99,7 +102,11 @@ class CreateReceiptUseCase(
                 return@withContext ReceiptCreationResult.ReceiptIsTooBig
             if (correctedReceiptDataJson.orders.isEmpty())
                 return@withContext ReceiptCreationResult.ImageIsInappropriate
-            val receiptId: Long = receiptDbRepository.insertReceiptDataJson(correctedReceiptDataJson)
+            val receiptId: Long = receiptDbRepository
+                .insertReceiptDataJson(
+                    receiptDataJson = correctedReceiptDataJson,
+                    folderId = folderId,
+                )
             return@withContext ReceiptCreationResult.Success(
                 receiptId = receiptId,
                 remainingAttempts = remainingAttempts,
@@ -230,6 +237,7 @@ interface CreateReceiptUseCaseInterface {
     suspend fun createReceiptFromUriImage(
         listOfImages: List<Uri>,
         translateTo: String?,
+        folderId: Long?,
     ): ReceiptCreationResult
 
     suspend fun haveImagesGotNotAppropriateImages(listOfImages: List<Uri>): Boolean

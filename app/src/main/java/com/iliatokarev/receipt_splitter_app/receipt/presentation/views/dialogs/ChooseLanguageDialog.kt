@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun ChooseLanguageDialog(
@@ -88,7 +88,7 @@ private fun ChooseLanguageDialogView(
     ) {
         item {
             Spacer(modifier = modifier.padding(4.dp))
-            DialogCap(text = stringResource(R.string.choose_language_title)) { onDismissRequest() }
+            DialogCapView(text = stringResource(R.string.choose_language_title)) { onDismissRequest() }
             Spacer(modifier = modifier.padding(4.dp))
             RadioButtonView(
                 selectedOption = { selectedOption },

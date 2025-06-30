@@ -1,6 +1,9 @@
-package com.iliatokarev.receipt_splitter_app.receipt.data.room
+package com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt
 
 import com.iliatokarev.receipt_splitter_app.main.basic.roundToTwoDecimalPlaces
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.OrderEntity
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptEntity
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.CONSUMER_NAME_DIVIDER
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderDataJson
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
@@ -21,11 +24,13 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 tax = receiptEntity.tax?.roundToTwoDecimalPlaces(),
                 discount = receiptEntity.discount?.roundToTwoDecimalPlaces(),
                 tip = receiptEntity.tip?.roundToTwoDecimalPlaces(),
+                folderId = receiptEntity.folderId,
+                isShared = receiptEntity.isShared,
             )
         }
     }
 
-    override suspend fun transformReceiptEntityToReceiptDate(
+    override suspend fun transformReceiptEntityToReceiptData(
         receiptEntity: ReceiptEntity
     ): ReceiptData {
         return receiptEntity.run {
@@ -38,22 +43,28 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 tax = tax?.roundToTwoDecimalPlaces(),
                 discount = discount?.roundToTwoDecimalPlaces(),
                 tip = tip?.roundToTwoDecimalPlaces(),
+                folderId = folderId,
+                isShared = isShared
             )
         }
     }
 
     override suspend fun transformReceiptDataJsonToReceiptEntity(
-        receiptDataJson: ReceiptDataJson
+        receiptDataJson: ReceiptDataJson,
+        folderId: Long?,
     ): ReceiptEntity {
-        return ReceiptEntity(
-            receiptName = receiptDataJson.receiptName,
-            translatedReceiptName = receiptDataJson.translatedReceiptName,
-            date = receiptDataJson.date,
-            total = receiptDataJson.total.roundToTwoDecimalPlaces(),
-            tax = receiptDataJson.tax?.roundToTwoDecimalPlaces(),
-            discount = receiptDataJson.discount?.roundToTwoDecimalPlaces(),
-            tip = receiptDataJson.tip?.roundToTwoDecimalPlaces(),
-        )
+        return receiptDataJson.run {
+            ReceiptEntity(
+                receiptName = receiptName,
+                translatedReceiptName = translatedReceiptName,
+                date = date,
+                total = total.roundToTwoDecimalPlaces(),
+                tax = tax?.roundToTwoDecimalPlaces(),
+                discount = discount?.roundToTwoDecimalPlaces(),
+                tip = tip?.roundToTwoDecimalPlaces(),
+                folderId = folderId,
+            )
+        }
     }
 
     override suspend fun transformOrderDataJsonListToOrderEntityList(
@@ -62,7 +73,7 @@ class ReceiptAdapter : ReceiptAdapterInterface {
     ): List<OrderEntity> {
         return orderDataJsonList.map { orderDataJson ->
             OrderEntity(
-                name = orderDataJson.name,
+                orderName = orderDataJson.name,
                 translatedName = orderDataJson.translatedName,
                 quantity = orderDataJson.quantity,
                 price = orderDataJson.price.roundToTwoDecimalPlaces(),
@@ -77,12 +88,14 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return orderEntityList.map { orderEntity ->
             OrderData(
                 id = orderEntity.id,
-                name = orderEntity.name,
+                name = orderEntity.orderName,
                 translatedName = orderEntity.translatedName,
                 quantity = orderEntity.quantity,
                 price = orderEntity.price.roundToTwoDecimalPlaces(),
                 receiptId = orderEntity.receiptId,
-                consumerNames = orderEntity.consumerNames.split("_"),
+                consumersList = orderEntity.consumerNames
+                    .split(CONSUMER_NAME_DIVIDER)
+                    .filter { it.isNotEmpty() },
             )
         }
     }
@@ -90,28 +103,32 @@ class ReceiptAdapter : ReceiptAdapterInterface {
     override suspend fun transformReceiptDataToReceiptEntity(
         receiptData: ReceiptData
     ): ReceiptEntity {
-        return ReceiptEntity(
-            id = receiptData.id,
-            receiptName = receiptData.receiptName,
-            translatedReceiptName = receiptData.translatedReceiptName,
-            date = receiptData.date,
-            total = receiptData.total.roundToTwoDecimalPlaces(),
-            tax = receiptData.tax?.roundToTwoDecimalPlaces(),
-            discount = receiptData.discount?.roundToTwoDecimalPlaces(),
-            tip = receiptData.tip?.roundToTwoDecimalPlaces(),
-        )
+        return receiptData.run {
+            ReceiptEntity(
+                id = id,
+                receiptName = receiptName,
+                translatedReceiptName = translatedReceiptName,
+                date = date,
+                total = total.roundToTwoDecimalPlaces(),
+                tax = tax?.roundToTwoDecimalPlaces(),
+                discount = discount?.roundToTwoDecimalPlaces(),
+                tip = tip?.roundToTwoDecimalPlaces(),
+                folderId = folderId,
+                isShared = isShared,
+            )
+        }
     }
 
     override suspend fun transformOrderDataToOrderEntity(orderData: OrderData): OrderEntity {
         return orderData.run {
             OrderEntity(
                 id = id,
-                name = name,
+                orderName = name,
                 translatedName = translatedName,
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
-                consumerNames = consumerNames.joinToString("_")
+                consumerNames = consumersList.joinToString(CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -119,12 +136,12 @@ class ReceiptAdapter : ReceiptAdapterInterface {
     override suspend fun transformOrderDataToNewOrderEntity(orderData: OrderData): OrderEntity {
         return orderData.run {
             OrderEntity(
-                name = name,
+                orderName = name,
                 translatedName = translatedName,
                 quantity = quantity,
                 price = price.roundToTwoDecimalPlaces(),
                 receiptId = receiptId,
-                consumerNames = consumerNames.joinToString("_")
+                consumerNames = consumersList.joinToString(CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -135,12 +152,12 @@ class ReceiptAdapter : ReceiptAdapterInterface {
         return orderDataList.map { orderData ->
             OrderEntity(
                 id = orderData.id,
-                name = orderData.name,
+                orderName = orderData.name,
                 translatedName = orderData.translatedName,
                 quantity = orderData.quantity,
                 price = orderData.price.roundToTwoDecimalPlaces(),
                 receiptId = orderData.receiptId,
-                consumerNames = orderData.consumerNames.joinToString("_")
+                consumerNames = orderData.consumersList.joinToString(CONSUMER_NAME_DIVIDER)
             )
         }
     }
@@ -151,12 +168,13 @@ interface ReceiptAdapterInterface {
         receiptEntityList: List<ReceiptEntity>,
     ): List<ReceiptData>
 
-    suspend fun transformReceiptEntityToReceiptDate(
+    suspend fun transformReceiptEntityToReceiptData(
         receiptEntity: ReceiptEntity,
     ): ReceiptData
 
     suspend fun transformReceiptDataJsonToReceiptEntity(
-        receiptDataJson: ReceiptDataJson
+        receiptDataJson: ReceiptDataJson,
+        folderId: Long?,
     ): ReceiptEntity
 
     suspend fun transformOrderDataJsonListToOrderEntityList(

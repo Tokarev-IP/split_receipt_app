@@ -12,11 +12,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,6 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_BASE
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicCircularLoadingUi
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
@@ -40,13 +41,9 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.Crea
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptUiMessageIntent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptUiState
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.CreateReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.ChooseLanguageDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.CreateReceiptScreenView
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
-import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.SCANNER_MODE_BASE
-import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
-import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +53,7 @@ fun CreateReceiptScreen(
     receiptViewModel: ReceiptViewModel,
     createReceiptViewModel: CreateReceiptViewModel,
     currentActivity: Activity? = LocalActivity.current,
+    folderId: Long?,
 ) {
     val messageUiMap = mapOf<String, String>(
         CreateReceiptUiMessage.NETWORK_ERROR.message to stringResource(R.string.no_internet_connection),
@@ -114,7 +112,9 @@ fun CreateReceiptScreen(
                 GmsDocumentScanningResult.fromActivityResultIntent(result.data)
             result?.pages?.let { pages ->
                 val newListOfImages = pages.map { it.imageUri }
-                createReceiptViewModel.setEvent(CreateReceiptEvent.PutImages(listOfImages = newListOfImages))
+                createReceiptViewModel.setEvent(
+                    CreateReceiptEvent.PutImages(listOfImages = newListOfImages)
+                )
             }
         }
     }
@@ -125,14 +125,7 @@ fun CreateReceiptScreen(
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.select_receipt_photo)) },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.ArrowBack,
-                            stringResource(R.string.go_back_button)
-                        )
-                    }
+                    BackNavigationButton { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                 },
             )
         }
@@ -162,7 +155,10 @@ fun CreateReceiptScreen(
                     },
                     onGetReceiptFromImageClicked = {
                         createReceiptViewModel.setEvent(
-                            CreateReceiptEvent.CreateReceipt(selectedLanguage)
+                            CreateReceiptEvent.CreateReceipt(
+                                translateTo = selectedLanguage,
+                                folderId = folderId,
+                            )
                         )
                     },
                     onMakePhotoClicked = {

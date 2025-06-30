@@ -41,7 +41,7 @@ internal fun CancelSaveButtonView(
 internal fun CancelDeleteButtonView(
     modifier: Modifier = Modifier,
     onCancelClicked: () -> Unit = {},
-    onAcceptClicked: () -> Unit = {},
+    onDeleteClicked: () -> Unit = {},
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -55,7 +55,7 @@ internal fun CancelDeleteButtonView(
         }
 
         Button(
-            onClick = { onAcceptClicked() },
+            onClick = { onDeleteClicked() },
         ) {
             Text(text = stringResource(R.string.delete))
         }
@@ -66,7 +66,7 @@ internal fun CancelDeleteButtonView(
 internal fun CancelClearButtonView(
     modifier: Modifier = Modifier,
     onCancelClicked: () -> Unit = {},
-    onAcceptClicked: () -> Unit = {},
+    onClearClicked: () -> Unit = {},
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -80,9 +80,34 @@ internal fun CancelClearButtonView(
         }
 
         Button(
-            onClick = { onAcceptClicked() },
+            onClick = { onClearClicked() },
         ) {
-            Text(text = stringResource(R.string.delete))
+            Text(text = stringResource(R.string.clear))
+        }
+    }
+}
+
+@Composable
+internal fun CancelAddButtonView(
+    modifier: Modifier = Modifier,
+    onCancelClicked: () -> Unit = {},
+    onAddClicked: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedButton(
+            onClick = { onCancelClicked() },
+        ) {
+            Text(text = stringResource(R.string.cancel))
+        }
+
+        Button(
+            onClick = { onAddClicked() },
+        ) {
+            Text(text = stringResource(R.string.add))
         }
     }
 }

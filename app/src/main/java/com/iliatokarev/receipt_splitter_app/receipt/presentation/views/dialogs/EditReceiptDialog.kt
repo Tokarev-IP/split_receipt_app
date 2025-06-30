@@ -29,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,7 +44,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_SUM
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelSaveButtonView
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCap
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.DialogCapView
 
 @Composable
 internal fun EditReceiptDialog(
@@ -149,7 +151,7 @@ private fun EditReceiptDialogView(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            DialogCap(text = stringResource(R.string.edit_receipt_info_title)) { onCancelButtonClicked() }
+            DialogCapView(text = stringResource(R.string.edit_receipt_info_title)) { onCancelButtonClicked() }
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -185,6 +187,10 @@ private fun EditReceiptDialogView(
                         )
                 },
                 isError = isNameError,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -221,6 +227,10 @@ private fun EditReceiptDialogView(
                         )
                 },
                 isError = isTranslatedNameError,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -267,6 +277,10 @@ private fun EditReceiptDialogView(
                         )
                 },
                 isError = isDateError,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -290,10 +304,11 @@ private fun EditReceiptDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 supportingText = {
                     if (isTotalSumError && totalSumText.isEmpty())
                         Text(text = stringResource(R.string.field_is_empty))
+                    else if (isTotalSumError && totalSumText.toFloatOrNull() == null)
+                        Text(text = stringResource(R.string.inappropriate_symbols))
                     else
                         Text(
                             text = stringResource(
@@ -304,6 +319,11 @@ private fun EditReceiptDialogView(
                         )
                 },
                 isError = isTotalSumError,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -327,7 +347,6 @@ private fun EditReceiptDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 supportingText = {
                     if (taxText.isNotEmpty())
                         Text(
@@ -337,9 +356,17 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
-                    else Text(text = stringResource(R.string.keep_this_field_empty))
+                    else if (isTaxError && taxText.toFloatOrNull() == null)
+                        Text(text = stringResource(R.string.inappropriate_symbols))
+                    else
+                        Text(text = stringResource(R.string.keep_this_field_empty))
                 },
                 isError = isTaxError,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -363,7 +390,6 @@ private fun EditReceiptDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 supportingText = {
                     if (discountText.isNotEmpty())
                         Text(
@@ -373,9 +399,17 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
-                    else Text(text = stringResource(R.string.keep_this_field_empty))
+                    else if (isDiscountError && discountText.toFloatOrNull() == null)
+                        Text(text = stringResource(R.string.inappropriate_symbols))
+                    else
+                        Text(text = stringResource(R.string.keep_this_field_empty))
                 },
                 isError = isDiscountError,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -398,7 +432,6 @@ private fun EditReceiptDialogView(
                             Icon(Icons.Filled.Clear, stringResource(R.string.clear_text_button))
                         }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 supportingText = {
                     if (tipText.isNotEmpty())
@@ -409,9 +442,17 @@ private fun EditReceiptDialogView(
                                 MAXIMUM_PERCENT,
                             )
                         )
-                    else Text(text = stringResource(R.string.keep_this_field_empty))
+                    else if (isTipError && tipText.toFloatOrNull() == null)
+                        Text(text = stringResource(R.string.inappropriate_symbols))
+                    else
+                        Text(text = stringResource(R.string.keep_this_field_empty))
                 },
                 isError = isTipError,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -425,7 +466,8 @@ private fun EditReceiptDialogView(
 
                     isNameError = nameText.trim().isEmpty()
                     isTranslatedNameError = translatedNameText.length > MAXIMUM_TEXT_LENGTH
-                    isDateError = dateText().trim().isEmpty() || dateText().length > MAXIMUM_TEXT_LENGTH
+                    isDateError =
+                        dateText().trim().isEmpty() || dateText().length > MAXIMUM_TEXT_LENGTH
                     totalSumText.toFloatOrNull()?.let { totalSum ->
                         if (totalSum < MINIMUM_is_0 || totalSum > MAXIMUM_SUM)
                             isTotalSumError = true
@@ -433,21 +475,29 @@ private fun EditReceiptDialogView(
                     taxText.toFloatOrNull()?.let { tax ->
                         if (tax < MINIMUM_is_0 || tax > MAXIMUM_PERCENT)
                             isTaxError = true
+                    } ?: run {
+                        if (taxText.isNotEmpty())
+                            isTaxError = true
                     }
                     discountText.toFloatOrNull()?.let { discount ->
                         if (discount < MINIMUM_is_0 || discount > MAXIMUM_PERCENT)
                             isDiscountError = true
+                    } ?: run {
+                        if (discountText.isNotEmpty())
+                            isDiscountError = true
                     }
                     tipText.toFloatOrNull()?.let { tip ->
                         if (tip < MINIMUM_is_0 || tip > MAXIMUM_PERCENT)
+                            isTipError = true
+                    } ?: run {
+                        if (tipText.isNotEmpty())
                             isTipError = true
                     }
 
                     if (isNameError || isTranslatedNameError || isDateError || isTotalSumError || isTaxError || isDiscountError || isTipError || isTipSumError)
                         return@CancelSaveButtonView
 
-                    val receiptData = ReceiptData(
-                        id = receiptData.id,
+                    val receiptData = receiptData.copy(
                         receiptName = nameText.trim(),
                         translatedReceiptName =
                             if (translatedNameText.isEmpty()) null else translatedNameText.trim(),
@@ -502,7 +552,7 @@ private fun CalendarDialog(
     }
 }
 
-private const val MAXIMUM_LINES = 5
+private const val MAXIMUM_LINES = 4
 private const val MINIMUM_is_0 = 0
 private const val EMPTY_STRING = ""
 

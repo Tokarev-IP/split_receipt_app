@@ -24,7 +24,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.Can
 internal fun AcceptDeletionDialog(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
-    onAcceptClicked: () -> Unit,
+    onDeleteClicked: () -> Unit,
     infoText: String,
 ) {
     BasicAlertDialog(
@@ -48,7 +48,7 @@ internal fun AcceptDeletionDialog(
                 Spacer(modifier = modifier.height(20.dp))
                 CancelDeleteButtonView(
                     onCancelClicked = { onDismissRequest() },
-                    onAcceptClicked = { onAcceptClicked() }
+                    onDeleteClicked = { onDeleteClicked() }
                 )
             }
         }
@@ -60,7 +60,7 @@ internal fun AcceptDeletionDialog(
 internal fun AcceptClearingDialog(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
-    onAcceptClicked: () -> Unit,
+    onClearClicked: () -> Unit,
     infoText: String,
 ) {
     BasicAlertDialog(
@@ -84,7 +84,7 @@ internal fun AcceptClearingDialog(
                 Spacer(modifier = modifier.height(20.dp))
                 CancelClearButtonView(
                     onCancelClicked = { onDismissRequest() },
-                    onAcceptClicked = { onAcceptClicked() }
+                    onClearClicked = { onClearClicked() }
                 )
             }
         }

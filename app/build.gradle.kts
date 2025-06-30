@@ -16,8 +16,8 @@ android {
         applicationId = "com.iliatokarev.receipt_splitter_app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "0.11"
+        versionCode = 12
+        versionName = "0.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.compose)
@@ -75,7 +76,7 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.mlkit.document.scanner)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.crashlytics)
+//    implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.appcheck.debug)
     implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.play.integrity)

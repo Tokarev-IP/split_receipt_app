@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 
 @Composable
-internal fun DialogCap(
+internal fun DialogCapView(
     modifier: Modifier = Modifier,
     text: String,
     onDismissClick: () -> Unit,

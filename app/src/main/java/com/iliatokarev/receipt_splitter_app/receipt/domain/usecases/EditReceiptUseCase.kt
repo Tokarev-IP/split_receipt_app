@@ -1,7 +1,7 @@
 package com.iliatokarev.receipt_splitter_app.receipt.domain.usecases
 
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicFunResponse
-import com.iliatokarev.receipt_splitter_app.receipt.data.room.ReceiptDbRepositoryInterface
+import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDbRepositoryInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUiMessage
@@ -15,7 +15,7 @@ class EditReceiptUseCase(
 ) : EditReceiptUseCaseInterface {
 
     override suspend fun getReceiptDataFlow(receiptId: Long): Flow<ReceiptData?> {
-        return receiptDbRepositoryInterface.getReceiptDataByIdFlow(id = receiptId)
+        return receiptDbRepositoryInterface.getReceiptsByIdFlow(id = receiptId)
             .catch { emit(null) }
     }
 

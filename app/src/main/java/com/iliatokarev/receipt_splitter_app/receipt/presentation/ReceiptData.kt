@@ -45,7 +45,9 @@ data class ReceiptData(
     val tax: Float? = null,
     val discount: Float? = null,
     val tip: Float? = null,
-    val additionalSumList: List<Pair<String, Float>> = emptyList(),
+    val folderId: Long? = null,
+    val isShared: Boolean = false,
+    val isChecked: Boolean = false,
 )
 
 data class OrderData(
@@ -56,16 +58,38 @@ data class OrderData(
     val quantity: Int = 1,
     val price: Float = 0f,
     val receiptId: Long,
-    val consumerNames: List<String> = emptyList(),
+    val consumersList: List<String> = emptyList(),
 )
 
 data class OrderDataSplit(
     val name: String = "no name",
     val translatedName: String? = null,
     val price: Float = 0f,
-    val consumerName: String? = null,
+    val consumerNamesList: List<String> = emptyList(),
     val checked: Boolean = false,
     val orderDataId: Long,
+)
+
+data class FolderData(
+    val id: Long,
+    val folderName: String = "no name",
+    val consumerNamesList: List<String> = emptyList(),
+    val isArchived: Boolean = false,
+)
+
+class ReceiptWithOrdersDataSplit(
+    val receipt: ReceiptData,
+    val orders: List<OrderDataSplit>,
+)
+
+class ReceiptWithFolderData(
+    val receipt: ReceiptData,
+    val folderName: String? = null,
+)
+
+class FolderWithReceiptsData(
+    val folder: FolderData,
+    val amountOfReceipts: Int = 0,
 )
 
 @Serializable
@@ -87,20 +111,6 @@ class ReceiptVertexData(
     @PropertyName("aiModel")
     val aiModel: String = "",
 )
-
-sealed interface ReceiptNavHostDestinations {
-    @Serializable
-    object CreateReceiptScreenNav : ReceiptNavHostDestinations
-
-    @Serializable
-    object AllReceiptsScreenNav : ReceiptNavHostDestinations
-
-    @Serializable
-    class SplitReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
-
-    @Serializable
-    class EditReceiptScreenNav(val receiptId: Long) : ReceiptNavHostDestinations
-}
 
 object ReceiptUIConstants {
     const val ONE_LINE = 1

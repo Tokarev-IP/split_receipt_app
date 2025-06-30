@@ -38,11 +38,11 @@ fun shimmerBrush(): Brush {
 
     return Brush.linearGradient(
         colors = listOf(
-            Color.LightGray.copy(alpha = 0.6f),
-            Color.Gray.copy(alpha = 0.2f),
-            Color.LightGray.copy(alpha = 0.6f)
+            Color.LightGray.copy(alpha = 0.5f),
+            Color.Gray.copy(alpha = 0.4f),
+            Color.LightGray.copy(alpha = 0.5f)
         ),
         start = Offset(translateAnim, translateAnim),
-        end = Offset(translateAnim + 200f, translateAnim + 200f)
+        end = Offset(translateAnim + 400f, translateAnim + 400f)
     )
 }

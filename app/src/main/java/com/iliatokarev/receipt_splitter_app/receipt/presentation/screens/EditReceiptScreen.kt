@@ -2,11 +2,9 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -15,7 +13,6 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -33,6 +30,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConsta
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddNewOrderDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.EditOrderDialog
@@ -60,7 +58,8 @@ fun EditReceiptScreen(
     var showEditReceiptDialog by rememberSaveable { mutableStateOf(false) }
     var showAddNewOrderDialog by rememberSaveable { mutableStateOf(false) }
     var showEditOrderDialog by rememberSaveable { mutableStateOf(false) }
-    var orderId by rememberSaveable { mutableLongStateOf(0L) }
+
+    var orderId = 0L
 
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
@@ -78,14 +77,7 @@ fun EditReceiptScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.ArrowBack,
-                            stringResource(R.string.go_back_button)
-                        )
-                    }
+                    BackNavigationButton { receiptViewModel.setEvent(ReceiptEvent.GoBack) }
                 },
             )
         },
@@ -95,7 +87,7 @@ fun EditReceiptScreen(
                 onClick = {
                     receiptData?.id?.let { id ->
                         receiptViewModel.setEvent(
-                            ReceiptEvent.OpenSplitReceiptScreen(receiptId = id)
+                            ReceiptEvent.OpenSplitReceiptForAllScreen(receiptId = id)
                         )
                     }
                 },
@@ -180,7 +172,7 @@ fun EditReceiptScreen(
             AcceptDeletionDialog(
                 infoText = stringResource(R.string.do_you_want_to_delete_this_order),
                 onDismissRequest = { showDeleteOrderDialog = false },
-                onAcceptClicked = {
+                onDeleteClicked = {
                     orderIdToDelete?.let { id ->
                         editReceiptViewModel.setEvent(EditReceiptEvent.DeleteOrder(orderId = id))
                     }
