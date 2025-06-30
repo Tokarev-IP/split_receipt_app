@@ -206,7 +206,7 @@ private fun AllReceiptsView(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
