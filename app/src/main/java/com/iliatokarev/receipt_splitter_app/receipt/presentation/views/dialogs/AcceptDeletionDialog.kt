@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelClearButtonView
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelDeleteButtonView
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.CancelRemoveButtonView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +86,42 @@ internal fun AcceptClearingDialog(
                 CancelClearButtonView(
                     onCancelClicked = { onDismissRequest() },
                     onClearClicked = { onClearClicked() }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AcceptRemovingDialog(
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+    onRemoveClicked: () -> Unit,
+    infoText: String,
+) {
+    BasicAlertDialog(
+        modifier = modifier.fillMaxWidth(),
+        onDismissRequest = { onDismissRequest() },
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = infoText,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                )
+                Spacer(modifier = modifier.height(20.dp))
+                CancelRemoveButtonView(
+                    onCancelClicked = { onDismissRequest() },
+                    onRemoveClicked = { onRemoveClicked() }
                 )
             }
         }

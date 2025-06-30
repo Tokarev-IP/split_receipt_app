@@ -36,6 +36,7 @@ import com.iliatokarev.receipt_splitter_app.main.basic.icons.ChecklistIcon
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.ReceiptLong
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.TwoLinesIcon
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_RECEIPTS_IN_FOLDER
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsEvent
@@ -44,6 +45,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.Fold
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.FolderReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.BackNavigationButton
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptRemovingDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddFolderConsumerNameDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.FolderReceiptsScreenView
 
@@ -69,9 +71,11 @@ internal fun FolderReceiptScreen(
     var showAddFolderConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteConsumerNameDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteReceiptDialog by rememberSaveable { mutableStateOf(false) }
+    var showRemovingReceiptFromFolderDialog by rememberSaveable { mutableStateOf(false) }
 
     var consumerNameToDelete: String? = null
     var receiptIdToDelete: Long? = null
+    var receiptToRemoveFromFolder: ReceiptData? = null
 
     BackHandler(enabled = isSplitMode) {
         isSplitMode = false
@@ -221,9 +225,8 @@ internal fun FolderReceiptScreen(
                 )
             },
             onRemoveReceiptFromFolderClicked = { receiptData ->
-                folderReceiptsViewModel.setEvent(
-                    FolderReceiptsEvent.MoveReceiptOutOfFolder(receiptData = receiptData)
-                )
+                receiptToRemoveFromFolder = receiptData
+                showRemovingReceiptFromFolderDialog = true
             },
             onEditReceiptClicked = { receiptData ->
                 receiptViewModel.setEvent(ReceiptEvent.OpenEditReceiptsScreen(receiptId = receiptData))
@@ -287,6 +290,25 @@ internal fun FolderReceiptScreen(
                         receiptIdToDelete = null
                     },
                     infoText = stringResource(R.string.do_you_want_to_delete_this_receipt)
+                )
+            }
+        }
+
+        if (showRemovingReceiptFromFolderDialog) {
+            receiptToRemoveFromFolder?.let { receiptData ->
+                AcceptRemovingDialog(
+                    onDismissRequest = {
+                        showRemovingReceiptFromFolderDialog = false
+                        receiptToRemoveFromFolder = null
+                    },
+                    onRemoveClicked = {
+                        folderReceiptsViewModel.setEvent(
+                            FolderReceiptsEvent.MoveReceiptOutOfFolder(receiptData = receiptData)
+                        )
+                        showRemovingReceiptFromFolderDialog = false
+                        receiptToRemoveFromFolder = null
+                    },
+                    infoText = stringResource(R.string.do_you_want_to_remove_this_receipt_from)
                 )
             }
         }

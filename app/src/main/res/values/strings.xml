@@ -200,6 +200,7 @@
     <string name="clear_report_button">Clear report button</string>
     <string name="clear_report">Clear report</string>
     <string name="clear_all_names">Clear all names</string>
+    <string name="do_you_want_to_remove_this_receipt_from">Do you really want to remove the receipt from this folder? Do not worry, this receipt will not be deleted</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>
