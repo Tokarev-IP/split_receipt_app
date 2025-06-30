@@ -28,6 +28,12 @@ class AllFoldersUseCase(
         }
     }
 
+    override suspend fun getFolderById(folderId: Long): FolderData? {
+        return withContext(Dispatchers.IO) {
+            folderDbRepository.getFolderById(id = folderId)
+        }
+    }
+
     override suspend fun getFoldersWithReceiptsFlow(): Flow<List<FolderWithReceiptsData>> {
         return withContext(Dispatchers.IO) {
             folderDbRepository.getFoldersWithReceipts()
@@ -150,6 +156,7 @@ class AllFoldersUseCase(
 interface AllFoldersUseCaseInterface {
     suspend fun getAllFoldersFlow(): Flow<List<FolderData>>
     suspend fun getFolderByIdFlow(folderId: Long): Flow<FolderData?>
+    suspend fun getFolderById(folderId: Long): FolderData?
     suspend fun getFoldersWithReceiptsFlow(): Flow<List<FolderWithReceiptsData>>
     suspend fun saveFolder(folderData: FolderData): BasicFunResponse
     suspend fun archiveFolder(folderData: FolderData): BasicFunResponse

@@ -13,6 +13,20 @@ import kotlinx.coroutines.withContext
 class AllReceiptsUseCase(
     private val receiptDbRepository: ReceiptDbRepositoryInterface
 ) : AllReceiptsUseCaseInterface {
+    override suspend fun insertReceiptData(receiptData: ReceiptData): BasicFunResponse {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                receiptDbRepository.insertReceiptData(receiptData = receiptData)
+            }
+        }.fold(
+            onSuccess = { BasicFunResponse.Success },
+            onFailure = { e ->
+                BasicFunResponse.Error(
+                    e.message ?: ReceiptUiMessage.INTERNAL_ERROR.msg
+                )
+            }
+        )
+    }
 
     override suspend fun getAllReceiptsFlow(): Flow<List<ReceiptData>> {
         return withContext(Dispatchers.IO) {
@@ -127,6 +141,7 @@ class AllReceiptsUseCase(
 }
 
 interface AllReceiptsUseCaseInterface {
+    suspend fun insertReceiptData(receiptData: ReceiptData): BasicFunResponse
     suspend fun getAllReceiptsFlow(): Flow<List<ReceiptData>>
     suspend fun gelReceiptsByFolderIdFlow(folderId: Long): Flow<List<ReceiptData>>
     suspend fun getAllReceiptsWithFolderFlow(): Flow<List<ReceiptWithFolderData>>
