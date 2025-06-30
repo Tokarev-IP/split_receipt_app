@@ -3,7 +3,6 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels
 import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
-import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataService
 import com.iliatokarev.receipt_splitter_app.receipt.domain.OrderDataServiceInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.reports.OrderReportCreatorInterface
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.SplitReceiptUseCaseInterface
