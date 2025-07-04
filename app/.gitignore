@@ -1,1 +1,4 @@
 /build
+/google-services.json
+/receipt_splitter-sign_in_key.jks
+/src/main/java/com/iliatokarev/receipt_splitter_app/login/data/DataConstantsLogin.kt
