@@ -50,24 +50,20 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                     }
                 }
 
-                if ((receiptData.discount != null
-                            || receiptData.tip != null
-                            || receiptData.tax != null)
-                    && finalPrice.isNotZero()
-                ) {
+                if ((receiptData.discount.isNotZero() || receiptData.tip.isNotZero() || receiptData.tax.isNotZero()) && finalPrice.isNotZero()) {
                     orderReport.append(" $EQUAL_STRING ${finalPrice.roundToTwoDecimalPlaces()}")
 
-                    receiptData.discount?.let { discount ->
-                        finalPrice -= (finalPrice * discount) / 100
-                        orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %")
+                    if (receiptData.discount.isNotZero()) {
+                        finalPrice -= (finalPrice * receiptData.discount) / 100
+                        orderReport.append(" - ${receiptData.discount.roundToTwoDecimalPlaces()} %")
                     }
-                    receiptData.tip?.let { tip ->
-                        finalPrice += (finalPrice * tip) / 100
-                        orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %")
+                    if (receiptData.tip.isNotZero()) {
+                        finalPrice += (finalPrice * receiptData.tip) / 100
+                        orderReport.append(" + ${receiptData.tip.roundToTwoDecimalPlaces()} %")
                     }
-                    receiptData.tax?.let { tax ->
-                        finalPrice += (finalPrice * tax) / 100
-                        orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %")
+                    if (receiptData.tax.isNotZero()) {
+                        finalPrice += (finalPrice * receiptData.tax) / 100
+                        orderReport.append(" + ${receiptData.tax.roundToTwoDecimalPlaces()} %")
                     }
                     orderReport.append(" $EQUAL_STRING ${finalPrice.roundToTwoDecimalPlaces()}\n")
                 }
@@ -122,24 +118,20 @@ class OrderReportCreator() : OrderReportCreatorInterface {
                         index++
                     }
 
-                    if ((receiptData.discount != null
-                                || receiptData.tip != null
-                                || receiptData.tax != null)
-                        && consumerFinalPrice.isNotZero()
-                    ) {
+                    if ((receiptData.discount.isNotZero() || receiptData.tip.isNotZero() || receiptData.tax.isNotZero()) && consumerFinalPrice.isNotZero()) {
                         orderReport.append("  $EQUAL_STRING ${consumerFinalPrice.roundToTwoDecimalPlaces()}")
 
-                        receiptData.discount?.let { discount ->
-                            consumerFinalPrice -= (consumerFinalPrice * discount) / 100
-                            orderReport.append(" - ${discount.roundToTwoDecimalPlaces()} %")
+                        if (receiptData.discount.isNotZero()) {
+                            consumerFinalPrice -= (consumerFinalPrice * receiptData.discount) / 100
+                            orderReport.append(" - ${receiptData.discount.roundToTwoDecimalPlaces()} %")
                         }
-                        receiptData.tip?.let { tip ->
-                            consumerFinalPrice += (consumerFinalPrice * tip) / 100
-                            orderReport.append(" + ${tip.roundToTwoDecimalPlaces()} %")
+                        if (receiptData.tip.isNotZero()) {
+                            consumerFinalPrice += (consumerFinalPrice * receiptData.tip) / 100
+                            orderReport.append(" + ${receiptData.tip.roundToTwoDecimalPlaces()} %")
                         }
-                        receiptData.tax?.let { tax ->
-                            consumerFinalPrice += (consumerFinalPrice * tax) / 100
-                            orderReport.append(" + ${tax.roundToTwoDecimalPlaces()} %")
+                        if (receiptData.tax.isNotZero()) {
+                            consumerFinalPrice += (consumerFinalPrice * receiptData.tax) / 100
+                            orderReport.append(" + ${receiptData.tax.roundToTwoDecimalPlaces()} %")
                         }
                         orderReport.append(" $EQUAL_STRING ${consumerFinalPrice.roundToTwoDecimalPlaces()}\n")
                     }

@@ -34,7 +34,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllR
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.AllReceiptsViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AcceptDeletionDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.AddNewFolderDialog
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.sheets.ChooseFolderNameBottomSheet
+import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.sheets.ChooseFolderBottomSheet
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.dialogs.EditFolderDialog
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens.AllReceiptsScreenView
 
@@ -216,7 +216,7 @@ fun AllReceiptsScreen(
             chosenReceiptIdToMove?.let { receiptId ->
                 val receiptData = allReceiptsWithFolderList?.find { it.receipt.id == receiptId }
                 receiptData?.let {
-                    ChooseFolderNameBottomSheet(
+                    ChooseFolderBottomSheet(
                         onDismissRequest = {
                             showChooseFolderNameBottomSheet = false
                             chosenReceiptIdToMove = null

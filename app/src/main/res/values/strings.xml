@@ -13,11 +13,14 @@
     <string name="receipt_photo">Receipt photo</string>
     <string name="clear_quantity_button">Clear quantity button</string>
     <string name="add_one_quantity_button">Add one quantity button</string>
-    <string name="total_sum">Total: %.2f</string>
+    <string name="total_is">Total: %.2f</string>
     <string name="sum">Sum</string>
-    <string name="tax_number">Tax: %.2f %%</string>
-    <string name="discount_number">Discount: %.2f %%</string>
-    <string name="tip_number">Tip: %.2f %%</string>
+    <string name="tax_is">Tax: %.2f %%</string>
+    <string name="discount_is">Discount: %.2f %%</string>
+    <string name="tip_is">Tip: %.2f %%</string>
+    <string name="name_is">Name: %s</string>
+    <string name="translated_name_is">Translated name: %s</string>
+    <string name="date_is">Date: %s</string>
     <string name="quantity_x">%d x</string>
     <string name="share">Share</string>
     <string name="share_receipt_button">Share receipt button</string>
@@ -112,7 +115,7 @@
     <string name="quantity">Quantity</string>
     <string name="price">Price</string>
     <string name="field_is_empty">The field is empty</string>
-    <string name="keep_this_field_empty">Keep this filed empty if you do not need this parameter</string>
+    <string name="keep_this_field_empty">Keep this field empty if you do not need this parameter</string>
     <string name="maximum_letters">%d out of %d</string>
     <string name="no_more_than">No more than %d</string>
     <string name="must_be_from_to">Must be from %d to %d</string>
@@ -181,6 +184,7 @@
     <string name="split_mode_off_button">Split mode off button</string>
     <string name="folder_icon">Folder icon</string>
     <string name="choose_folder_name_title">Choose folder name</string>
+    <string name="choose_folder_title">Choose folder</string>
     <string name="maximum_amount_of_folders_reached">Maximum amount of folders is reached</string>
     <string name="maximum_amount_of_receipts_reached">Maximum amount of receipts is reached</string>
     <string name="short_report">Short report</string>

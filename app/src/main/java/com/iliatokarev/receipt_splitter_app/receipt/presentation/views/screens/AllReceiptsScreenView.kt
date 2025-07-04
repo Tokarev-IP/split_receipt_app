@@ -3,6 +3,8 @@ package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -471,7 +473,7 @@ private fun AllFoldersColumnView(
                     onUnarchiveFolderClicked(folderData)
                 },
                 onDeletedFolderClicked = { folderId ->
-                  onDeleteFolderClicked(folderId)
+                    onDeleteFolderClicked(folderId)
                 },
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -496,15 +498,17 @@ private fun AllFoldersColumnView(
                 )
             }
 
-            if (foldersWithReceiptsArchived.isNotEmpty())
-                AnimatedContent(
-                    targetState = archivedFoldersExpanded,
-                ) { expand ->
-                    IconButton(
-                        onClick = {
-                            archivedFoldersExpanded = !archivedFoldersExpanded
-                        },
-                    ) {
+            AnimatedVisibility(
+                visible = foldersWithReceiptsArchived.isNotEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                IconButton(
+                    onClick = { archivedFoldersExpanded = !archivedFoldersExpanded },
+                ) {
+                    AnimatedContent(
+                        targetState = archivedFoldersExpanded
+                    ) { expand ->
                         if (expand)
                             Icon(
                                 Icons.Outlined.KeyboardArrowUp,
@@ -517,7 +521,9 @@ private fun AllFoldersColumnView(
                             )
                     }
                 }
+            }
         }
+
         AnimatedVisibility(
             visible = archivedFoldersExpanded && foldersWithReceiptsArchived.isNotEmpty()
         ) {
@@ -525,10 +531,6 @@ private fun AllFoldersColumnView(
                 modifier = modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = stringResource(R.string.archived_folders),
                     fontSize = 16.sp,
@@ -744,7 +746,7 @@ private fun ShimmedAllReceiptsScreenView(
 private fun AllReceiptScreenViewPreview() {
     AllReceiptsView(
         allReceiptsWithFolder =
-            listOf<ReceiptWithFolderData>(
+            listOf(
                 ReceiptWithFolderData(
                     receipt = ReceiptData(
                         id = 1L,

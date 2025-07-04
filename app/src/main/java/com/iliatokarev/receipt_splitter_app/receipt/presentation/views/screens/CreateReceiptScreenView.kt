@@ -39,7 +39,6 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 
 @Composable
 internal fun CreateReceiptScreenView(
@@ -131,7 +130,7 @@ private fun ImagesAreSelectedView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        if (listOfUri.size == ReceiptUIConstants.ONE_ELEMENT) {
+        if (listOfUri.size == ONE_ELEMENT) {
             PhotoBoxView(
                 uri = listOfUri.firstOrNull(),
                 onClearPhotoClicked = { onClearPhotoClicked() }
@@ -305,6 +304,8 @@ private fun ChooseTranslatedLanguageView(
         }
     }
 }
+
+private const val ONE_ELEMENT = 1
 
 @Composable
 @Preview(showBackground = true)

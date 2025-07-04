@@ -26,7 +26,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.Flo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ChooseFolderNameBottomSheet(
+internal fun ChooseFolderBottomSheet(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     unarchivedFoldersWithReceipts: List<FolderWithReceiptsData>,
@@ -36,7 +36,7 @@ internal fun ChooseFolderNameBottomSheet(
         modifier = modifier.fillMaxWidth(),
         onDismissRequest = { onDismissRequest() }
     ) {
-        ChooseFolderNameView(
+        ChooseFolderView(
             unarchivedFoldersWithReceipts = unarchivedFoldersWithReceipts,
             onFolderIsChosen = { folderId ->
                 onFolderIsChosen(folderId)
@@ -46,7 +46,7 @@ internal fun ChooseFolderNameBottomSheet(
 }
 
 @Composable
-private fun ChooseFolderNameView(
+private fun ChooseFolderView(
     modifier: Modifier = Modifier,
     unarchivedFoldersWithReceipts: List<FolderWithReceiptsData> = emptyList(),
     onFolderIsChosen: (folderId: Long) -> Unit = {},
@@ -60,7 +60,7 @@ private fun ChooseFolderNameView(
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.choose_folder_name_title),
+                text = stringResource(R.string.choose_folder_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Normal,
             )
@@ -106,8 +106,8 @@ private const val MAXIMUM_LINES_IS_1 = 1
 
 @Preview(showBackground = true)
 @Composable
-private fun ChooseFolderNameViewPreview() {
-    ChooseFolderNameView(
+private fun ChooseFolderViewPreview() {
+    ChooseFolderView(
         unarchivedFoldersWithReceipts = listOf(
             FolderWithReceiptsData(
                 folder = FolderData(

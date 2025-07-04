@@ -1,6 +1,10 @@
 package com.iliatokarev.receipt_splitter_app.receipt.presentation.views.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +31,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -86,9 +96,11 @@ private fun SplitReceiptForOneView(
             .padding(horizontal = 12.dp),
     ) {
         item {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             ReceiptInfoView(receiptData = receiptData)
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
         }
         items(orderDataList.size) { index ->
             val orderData = orderDataList[index]
@@ -115,68 +127,107 @@ internal fun ReceiptInfoView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData,
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             fontWeight = FontWeight.Medium,
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             text = receiptData.receiptName,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        receiptData.translatedReceiptName?.let { translatedRestaurant ->
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                fontSize = 20.sp,
-                text = translatedRestaurant,
-                textAlign = TextAlign.Center,
-            )
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .animateContentSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                receiptData.translatedReceiptName?.let { translatedRestaurant ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        fontSize = 20.sp,
+                        text = translatedRestaurant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 20.sp,
+                    text = receiptData.date,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    fontSize = 20.sp,
+                    text = stringResource(R.string.total_is, receiptData.total),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    fontSize = 20.sp,
+                    text = stringResource(R.string.discount_is, receiptData.discount),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    fontSize = 20.sp,
+                    text = stringResource(R.string.tip_is, receiptData.tip),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    fontSize = 20.sp,
+                    text = stringResource(R.string.tax_is, receiptData.tax),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            fontWeight = FontWeight.Normal,
-            fontSize = 20.sp,
-            text = receiptData.date,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        receiptData.discount?.let { discount ->
-            Text(
-                fontSize = 20.sp,
-                text = stringResource(R.string.discount_number, discount),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        IconButton(
+            onClick = { expanded = !expanded }
+        ) {
+            AnimatedContent(targetState = expanded) { expand ->
+                if (expand)
+                    Icon(
+                        modifier = modifier.animateEnterExit(
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ),
+                        imageVector = Icons.Outlined.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.expand_receipt_info_button),
+                    )
+                else
+                    Icon(
+                        modifier = modifier.animateEnterExit(
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ),
+                        imageVector = Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.narrow_down_receipt_info_button)
+                    )
+            }
         }
-
-        receiptData.tip?.let { tip ->
-            Text(
-                fontSize = 20.sp,
-                text = stringResource(R.string.tip_number, tip),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        receiptData.tax?.let { tax ->
-            Text(
-                fontSize = 20.sp,
-                text = stringResource(R.string.tax_number, tax),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        Text(
-            fontSize = 20.sp,
-            text = stringResource(R.string.total_sum, receiptData.total),
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
@@ -279,7 +330,7 @@ private fun ReportBottomSheetView(
         AnimatedContent(
             targetState = orderReportText == null
         ) { reportIsEmpty ->
-            if (reportIsEmpty){
+            if (reportIsEmpty) {
                 Column(
                     modifier = modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -363,12 +414,10 @@ private fun SplitReceiptViewPreview() {
         receiptData =
             ReceiptData(
                 id = 1,
-                receiptName = "restaurant abdi paluma kulupa group",
+                receiptName = "restaurant abdi paluma kulupa group hgfh fgh fgh  fh f",
+                translatedReceiptName = "перевод названия ресторана",
                 date = "18/03/2024",
                 total = 60.0f,
-                tax = null,
-                discount = null,
-                tip = null,
             ),
         orderDataList =
             listOf(

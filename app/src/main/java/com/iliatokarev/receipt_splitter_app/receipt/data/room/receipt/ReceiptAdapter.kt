@@ -21,9 +21,9 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 translatedReceiptName = receiptEntity.translatedReceiptName,
                 date = receiptEntity.date,
                 total = receiptEntity.total.roundToTwoDecimalPlaces(),
-                tax = receiptEntity.tax?.roundToTwoDecimalPlaces(),
-                discount = receiptEntity.discount?.roundToTwoDecimalPlaces(),
-                tip = receiptEntity.tip?.roundToTwoDecimalPlaces(),
+                tax = receiptEntity.tax.roundToTwoDecimalPlaces(),
+                discount = receiptEntity.discount.roundToTwoDecimalPlaces(),
+                tip = receiptEntity.tip.roundToTwoDecimalPlaces(),
                 folderId = receiptEntity.folderId,
                 isShared = receiptEntity.isShared,
             )
@@ -40,9 +40,9 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 translatedReceiptName = translatedReceiptName,
                 date = date,
                 total = total.roundToTwoDecimalPlaces(),
-                tax = tax?.roundToTwoDecimalPlaces(),
-                discount = discount?.roundToTwoDecimalPlaces(),
-                tip = tip?.roundToTwoDecimalPlaces(),
+                tax = tax.roundToTwoDecimalPlaces(),
+                discount = discount.roundToTwoDecimalPlaces(),
+                tip = tip.roundToTwoDecimalPlaces(),
                 folderId = folderId,
                 isShared = isShared
             )
@@ -59,9 +59,9 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 translatedReceiptName = translatedReceiptName,
                 date = date,
                 total = total.roundToTwoDecimalPlaces(),
-                tax = tax?.roundToTwoDecimalPlaces(),
-                discount = discount?.roundToTwoDecimalPlaces(),
-                tip = tip?.roundToTwoDecimalPlaces(),
+                tax = tax.roundToTwoDecimalPlaces(),
+                discount = discount.roundToTwoDecimalPlaces(),
+                tip = tip.roundToTwoDecimalPlaces(),
                 folderId = folderId,
             )
         }
@@ -110,9 +110,9 @@ class ReceiptAdapter : ReceiptAdapterInterface {
                 translatedReceiptName = translatedReceiptName,
                 date = date,
                 total = total.roundToTwoDecimalPlaces(),
-                tax = tax?.roundToTwoDecimalPlaces(),
-                discount = discount?.roundToTwoDecimalPlaces(),
-                tip = tip?.roundToTwoDecimalPlaces(),
+                tax = tax.roundToTwoDecimalPlaces(),
+                discount = discount.roundToTwoDecimalPlaces(),
+                tip = tip.roundToTwoDecimalPlaces(),
                 folderId = folderId,
                 isShared = isShared,
             )
@@ -178,7 +178,7 @@ interface ReceiptAdapterInterface {
     ): ReceiptEntity
 
     suspend fun transformOrderDataJsonListToOrderEntityList(
-        orderListData: List<OrderDataJson>,
+        orderDataJsonList: List<OrderDataJson>,
         receiptId: Long,
     ): List<OrderEntity>
 

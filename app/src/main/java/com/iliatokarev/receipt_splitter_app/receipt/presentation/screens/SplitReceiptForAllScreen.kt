@@ -39,7 +39,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.SaveIcon
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllEvents
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForAllUiMessageIntent
@@ -121,7 +120,7 @@ fun SplitReceiptForAllScreen(
                 scrollBehavior = scrollBehavior,
                 title = {
                     Text(
-                        maxLines = ReceiptUIConstants.ONE_LINE,
+                        maxLines = ONE_LINE,
                         text = stringResource(R.string.split_the_receipt_for_all),
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -276,3 +275,5 @@ fun SplitReceiptForAllScreen(
         )
     }
 }
+
+private const val ONE_LINE = 1

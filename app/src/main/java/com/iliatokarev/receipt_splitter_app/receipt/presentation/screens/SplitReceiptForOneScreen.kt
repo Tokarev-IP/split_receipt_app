@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.SplitReceiptForOneViewModel
@@ -72,7 +71,7 @@ internal fun SplitReceiptForOneScreen(
                 scrollBehavior = scrollBehavior,
                 title = {
                     Text(
-                        maxLines = ReceiptUIConstants.ONE_LINE,
+                        maxLines = ONE_LINE,
                         text = stringResource(R.string.split_the_receipt_for_one),
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -139,3 +138,5 @@ internal fun SplitReceiptForOneScreen(
         )
     }
 }
+
+private const val ONE_LINE = 1

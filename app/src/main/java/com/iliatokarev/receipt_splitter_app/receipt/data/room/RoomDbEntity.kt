@@ -42,11 +42,11 @@ data class ReceiptEntity(
     @ColumnInfo(name = "total_sum")
     val total: Float = 0.0F,
     @ColumnInfo(name = "tax_in_percent")
-    val tax: Float? = null,
+    val tax: Float = 0.0F,
     @ColumnInfo(name = "discount_in_percent")
-    val discount: Float? = null,
+    val discount: Float = 0.0F,
     @ColumnInfo(name = "tip_in_percent")
-    val tip: Float? = null,
+    val tip: Float = 0.0F,
     @ColumnInfo(name = "folder_id")
     val folderId: Long? = null,
     @ColumnInfo(name = "is_shared")

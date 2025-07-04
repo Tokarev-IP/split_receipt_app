@@ -136,9 +136,11 @@ private fun SplitReceiptForAllView(
             .padding(horizontal = 12.dp),
     ) {
         item {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             ReceiptInfoView(receiptData = receiptData)
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
         }
         items(orderDataSplitList.size) { index ->
             val orderDataCheck = orderDataSplitList[index]
@@ -344,7 +346,7 @@ private fun OrderConsumerNameView(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AnimatedContent(
-                    targetState = expandConsumerNames == false,
+                    targetState = !expandConsumerNames,
                     modifier = modifier.weight(12f),
                 ) { showNames ->
                     if (showNames)
@@ -809,9 +811,9 @@ private fun SplitReceiptForAllViewPreview() {
                 receiptName = "restaurant abdi paluma kulupa group",
                 date = "18/03/2024",
                 total = 60.0f,
-                tax = null,
-                discount = null,
-                tip = null,
+                tax = 1.5F,
+                discount = 0.0F,
+                tip = 2.0F,
             ),
         orderDataSplitList =
             listOf(

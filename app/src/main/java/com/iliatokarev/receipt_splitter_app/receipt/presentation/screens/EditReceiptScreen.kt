@@ -26,7 +26,6 @@ import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.icons.Receipt
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptEvent
-import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptUIConstants
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptViewModel
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptEvent
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.viewmodels.EditReceiptViewModel
@@ -71,7 +70,7 @@ fun EditReceiptScreen(
                 scrollBehavior = scrollBehavior,
                 title = {
                     Text(
-                        maxLines = ReceiptUIConstants.ONE_LINE,
+                        maxLines = ONE_LINE,
                         text = stringResource(R.string.edit_the_receipt),
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -115,10 +114,10 @@ fun EditReceiptScreen(
                 showEditReceiptDialog = true
             },
             onAddNewOrderClicked = {
-                if (isOrderCountAtLimit == false)
-                    showAddNewOrderDialog = true
-                else
+                if (isOrderCountAtLimit)
                     receiptViewModel.setEvent(ReceiptEvent.SetUiMessage(limitExceededMessage))
+                else
+                    showAddNewOrderDialog = true
             },
         )
 
@@ -182,3 +181,5 @@ fun EditReceiptScreen(
             )
     }
 }
+
+private const val ONE_LINE = 1

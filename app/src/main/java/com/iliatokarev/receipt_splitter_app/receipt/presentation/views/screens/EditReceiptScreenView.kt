@@ -29,7 +29,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,8 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
@@ -81,7 +83,7 @@ internal fun EditReceiptScreenView(
 private fun EditReceiptView(
     modifier: Modifier = Modifier,
     receiptData: ReceiptData = ReceiptData(id = 0),
-    orderDataList: List<OrderData> = emptyList<OrderData>(),
+    orderDataList: List<OrderData> = emptyList(),
     onEditOrderClicked: (id: Long) -> Unit = {},
     onDeleteOrderClicked: (id: Long) -> Unit = {},
     onEditReceiptClicked: () -> Unit = {},
@@ -93,14 +95,14 @@ private fun EditReceiptView(
             .padding(horizontal = 12.dp),
     ) {
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             EditReceiptInfo(
                 receiptData = receiptData,
                 onEditReceiptClicked = { onEditReceiptClicked() },
             )
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         items(orderDataList.size) { index ->
             val orderData = orderDataList[index]
@@ -134,9 +136,7 @@ private fun EditReceiptInfo(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .animateContentSize(),
+            modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -146,11 +146,11 @@ private fun EditReceiptInfo(
                     .animateContentSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                OutlinedTextField(
-                    value = receiptData.receiptName,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(text = stringResource(R.string.receipt_name)) },
+                Text(
+                    text = stringResource(R.string.name_is, receiptData.receiptName),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -159,51 +159,53 @@ private fun EditReceiptInfo(
                         modifier = modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        OutlinedTextField(
-                            value = receiptData.translatedReceiptName ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.translated_receipt_name)) },
+                        receiptData.translatedReceiptName?.let { translatedName ->
+                            Text(
+                                text = stringResource(R.string.translated_name_is, translatedName),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = stringResource(R.string.date_is, receiptData.date),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = receiptData.date,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.date)) }
+                        Text(
+                            text = stringResource(R.string.total_is, receiptData.total),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = receiptData.total.toString(),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.total)) }
+                        Text(
+                            text = stringResource(R.string.tax_is, receiptData.tax),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = receiptData.tax?.toString() ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.tax)) }
+                        Text(
+                            text = stringResource(R.string.discount_is, receiptData.discount),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = receiptData.discount?.toString() ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.discount)) }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = receiptData.tip?.toString() ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(text = stringResource(R.string.tip)) }
+                        Text(
+                            text = stringResource(R.string.tip_is, receiptData.tip),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -342,13 +344,11 @@ private fun EditReceiptViewPreview() {
         receiptData =
             ReceiptData(
                 id = 1,
-                receiptName = "restaurant",
-                translatedReceiptName = "ресторан",
+                receiptName = "restaurant fhgf hgfh gfh gfh gfh gfh gf hgfhgf",
+                translatedReceiptName = "ресторан пар апр апр апр парап р  папр апр ап",
                 date = "18/03/2024",
                 total = 60.0f,
-                tax = null,
-                discount = null,
-                tip = null,
+                tax = 10.0f,
             ),
         orderDataList =
             listOf(

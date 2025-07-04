@@ -32,6 +32,7 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                 report.append("$index. ${consumer}\n")
 
                 for (receiptWithOrdersDataSplit in receiptWithOrdersDataSplitList) {
+                    val receipt = receiptWithOrdersDataSplit.receipt
                     val isContained = isConsumerNameInOrders(
                         consumerName = consumer,
                         ordersList = receiptWithOrdersDataSplit.orders,
@@ -47,17 +48,17 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                             }
                         }
 
-                        receiptWithOrdersDataSplit.receipt.discount?.let { discount ->
-                            receiptTotalSum -= (receiptTotalSum * discount) / 100
+                        if (receipt.discount.isNotZero()) {
+                            receiptTotalSum -= (receiptTotalSum * receipt.discount) / 100
                         }
-                        receiptWithOrdersDataSplit.receipt.tip?.let { tip ->
-                            receiptTotalSum += (receiptTotalSum * tip) / 100
+                        if (receipt.tip.isNotZero()) {
+                            receiptTotalSum += (receiptTotalSum * receipt.tip) / 100
                         }
-                        receiptWithOrdersDataSplit.receipt.tax?.let { tax ->
-                            receiptTotalSum += (receiptTotalSum * tax) / 100
+                        if (receipt.tax.isNotZero()) {
+                            receiptTotalSum += (receiptTotalSum * receipt.tax) / 100
                         }
 
-                        report.append("  $START_STRING ${receiptWithOrdersDataSplit.receipt.receiptName} ${receiptWithOrdersDataSplit.receipt.translatedReceiptName ?: EMPTY_STRING} $EQUAL_STRING ${receiptTotalSum.roundToTwoDecimalPlaces()}\n")
+                        report.append("  $START_STRING ${receipt.receiptName} ${receipt.translatedReceiptName ?: EMPTY_STRING} $EQUAL_STRING ${receiptTotalSum.roundToTwoDecimalPlaces()}\n")
                         consumerTotalSum += receiptTotalSum
                     }
                 }
@@ -79,7 +80,7 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
             val report = StringBuilder()
             var index = 1
 
-            for (receipt in receiptWithOrdersDataSplitList){
+            for (receipt in receiptWithOrdersDataSplitList) {
                 report.append("$START_STRING ${receipt.receipt.receiptName} ${receipt.receipt.translatedReceiptName ?: EMPTY_STRING}\n")
             }
 
@@ -89,6 +90,7 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                 var consumerTotalSum = 0F
 
                 for (receiptWithOrdersDataSplit in receiptWithOrdersDataSplitList) {
+                    val receipt = receiptWithOrdersDataSplit.receipt
                     val isContained = isConsumerNameInOrders(
                         consumerName = consumer,
                         ordersList = receiptWithOrdersDataSplit.orders,
@@ -103,14 +105,14 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                                 receiptTotalSum += orderPrice
                             }
                         }
-                        receiptWithOrdersDataSplit.receipt.discount?.let { discount ->
-                            receiptTotalSum -= (receiptTotalSum * discount) / 100
+                        if (receipt.discount.isNotZero()) {
+                            receiptTotalSum -= (receiptTotalSum * receipt.discount) / 100
                         }
-                        receiptWithOrdersDataSplit.receipt.tip?.let { tip ->
-                            receiptTotalSum += (receiptTotalSum * tip) / 100
+                        if (receipt.tip.isNotZero()) {
+                            receiptTotalSum += (receiptTotalSum * receipt.tip) / 100
                         }
-                        receiptWithOrdersDataSplit.receipt.tax?.let { tax ->
-                            receiptTotalSum += (receiptTotalSum * tax) / 100
+                        if (receipt.tax.isNotZero()) {
+                            receiptTotalSum += (receiptTotalSum * receipt.tax) / 100
                         }
 
                         consumerTotalSum += receiptTotalSum
@@ -138,6 +140,7 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                 report.append("$consumer\n")
 
                 for (receiptWithOrdersDataSplit in receiptWithOrdersDataSplitList) {
+                    val receipt = receiptWithOrdersDataSplit.receipt
                     val isContained = isConsumerNameInOrders(
                         consumerName = consumer,
                         ordersList = receiptWithOrdersDataSplit.orders,
@@ -164,24 +167,20 @@ class FolderReceiptsReportCreator() : FolderReceiptsReportCreatorInterface {
                             }
                         }
 
-                        if ((receiptWithOrdersDataSplit.receipt.discount != null
-                            || receiptWithOrdersDataSplit.receipt.tip != null
-                            || receiptWithOrdersDataSplit.receipt.tax != null)
-                            && receiptTotalSum.isNotZero()
-                        ) {
+                        if ((receipt.discount.isNotZero() || receipt.tip.isNotZero() || receipt.tax.isNotZero()) && receiptTotalSum.isNotZero()) {
                             report.append("   $EQUAL_STRING ${receiptTotalSum.roundToTwoDecimalPlaces()}")
 
-                            receiptWithOrdersDataSplit.receipt.discount?.let { discount ->
-                                receiptTotalSum -= (receiptTotalSum * discount) / 100
-                                report.append(" - ${discount.roundToTwoDecimalPlaces()} %")
+                            if (receipt.discount.isNotZero()) {
+                                receiptTotalSum -= (receiptTotalSum * receipt.discount) / 100
+                                report.append(" - ${receipt.discount.roundToTwoDecimalPlaces()} %")
                             }
-                            receiptWithOrdersDataSplit.receipt.tip?.let { tip ->
-                                receiptTotalSum += (receiptTotalSum * tip) / 100
-                                report.append(" + ${tip.roundToTwoDecimalPlaces()} %")
+                            if (receipt.tip.isNotZero()) {
+                                receiptTotalSum += (receiptTotalSum * receipt.tip) / 100
+                                report.append(" + ${receipt.tip.roundToTwoDecimalPlaces()} %")
                             }
-                            receiptWithOrdersDataSplit.receipt.tax?.let { tax ->
-                                receiptTotalSum += (receiptTotalSum * tax) / 100
-                                report.append(" + ${tax.roundToTwoDecimalPlaces()} %")
+                            if (receipt.tax.isNotZero()) {
+                                receiptTotalSum += (receiptTotalSum * receipt.tax) / 100
+                                report.append(" + ${receipt.tax.roundToTwoDecimalPlaces()} %")
                             }
                             report.append(" $EQUAL_STRING ${receiptTotalSum.roundToTwoDecimalPlaces()}\n")
                         } else

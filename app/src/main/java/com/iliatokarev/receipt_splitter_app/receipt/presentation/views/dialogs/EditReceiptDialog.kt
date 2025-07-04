@@ -120,19 +120,11 @@ private fun EditReceiptDialogView(
     onDateTextChange: (String) -> Unit,
 ) {
     var nameText: String by rememberSaveable { mutableStateOf(receiptData.receiptName) }
-    var translatedNameText: String by rememberSaveable {
-        mutableStateOf(
-            receiptData.translatedReceiptName ?: ""
-        )
-    }
+    var translatedNameText: String by rememberSaveable { mutableStateOf(receiptData.translatedReceiptName ?: "") }
     var totalSumText: String by rememberSaveable { mutableStateOf(receiptData.total.toString()) }
-    var taxText: String by rememberSaveable { mutableStateOf(receiptData.tax?.toString() ?: "") }
-    var discountText: String by rememberSaveable {
-        mutableStateOf(
-            receiptData.discount?.toString() ?: ""
-        )
-    }
-    var tipText: String by rememberSaveable { mutableStateOf(receiptData.tip?.toString() ?: "") }
+    var taxText: String by rememberSaveable { mutableStateOf(receiptData.tax.toString()) }
+    var discountText: String by rememberSaveable { mutableStateOf(receiptData.discount.toString()) }
+    var tipText: String by rememberSaveable { mutableStateOf(receiptData.tip.toString()) }
 
     var isNameError by rememberSaveable { mutableStateOf(false) }
     var isTranslatedNameError by rememberSaveable { mutableStateOf(false) }
@@ -503,9 +495,9 @@ private fun EditReceiptDialogView(
                             if (translatedNameText.isEmpty()) null else translatedNameText.trim(),
                         date = dateText().trim(),
                         total = totalSumText.trim().toFloat(),
-                        tax = taxText.trim().toFloatOrNull(),
-                        discount = discountText.trim().toFloatOrNull(),
-                        tip = tipText.trim().toFloatOrNull(),
+                        tax = taxText.trim().toFloatOrNull() ?: 0.0F,
+                        discount = discountText.trim().toFloatOrNull() ?: 0.0F,
+                        tip = tipText.trim().toFloatOrNull() ?: 0.0F,
                     )
                     onSaveButtonClicked(receiptData)
                 }

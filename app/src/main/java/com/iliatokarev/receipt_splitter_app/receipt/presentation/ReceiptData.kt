@@ -17,11 +17,11 @@ data class ReceiptDataJson(
     @SerialName("total_sum")
     val total: Float = 0.0F,
     @SerialName("tax_in_percent")
-    val tax: Float? = null,
+    val tax: Float = 0.0F,
     @SerialName("discount_in_percent")
-    val discount: Float? = null,
+    val discount: Float = 0.0F,
     @SerialName("tip_in_percent")
-    val tip: Float? = null,
+    val tip: Float = 0.0F,
 )
 
 @Serializable
@@ -42,9 +42,9 @@ data class ReceiptData(
     val translatedReceiptName: String? = null,
     val date: String = "no date",
     val total: Float = 0.0F,
-    val tax: Float? = null,
-    val discount: Float? = null,
-    val tip: Float? = null,
+    val tax: Float = 0.0F,
+    val discount: Float = 0.0F,
+    val tip: Float = 0.0F,
     val folderId: Long? = null,
     val isShared: Boolean = false,
     val isChecked: Boolean = false,
@@ -111,8 +111,3 @@ class ReceiptVertexData(
     @PropertyName("aiModel")
     val aiModel: String = "",
 )
-
-object ReceiptUIConstants {
-    const val ONE_LINE = 1
-    const val ONE_ELEMENT = 1
-}
