@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicEvent
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicSimpleViewModel
 import com.iliatokarev.receipt_splitter_app.main.basic.BasicUiState
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt
 import com.iliatokarev.receipt_splitter_app.receipt.domain.usecases.EditReceiptUseCaseInterface
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
