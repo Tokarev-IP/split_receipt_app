@@ -23,9 +23,6 @@ class EditReceiptViewModel(
     private val orderDataList = MutableStateFlow<List<OrderData>>(emptyList())
     private val orderDataListState = orderDataList.asStateFlow()
 
-    private val isOrderCountAtLimit = MutableStateFlow(false)
-    private val isOrderCountAtLimitState = isOrderCountAtLimit.asStateFlow()
-
     private fun setReceiptData(newReceiptData: ReceiptData?) {
         receiptData.value = newReceiptData
     }
@@ -34,20 +31,14 @@ class EditReceiptViewModel(
         orderDataList.value = newOrderDataList
     }
 
-    private fun setIsOrderCountAtLimit(newState: Boolean) {
-        isOrderCountAtLimit.value = newState
-    }
-
     fun getReceiptData() = receiptDataState
     fun getOrderDataList() = orderDataListState
-    fun getIsOrderCountAtLimit() = isOrderCountAtLimitState
 
     override fun setEvent(newEvent: EditReceiptEvent) {
         when (newEvent) {
             is EditReceiptEvent.RetrieveReceiptData -> {
                 retrieveReceiptData(receiptId = newEvent.receiptId)
                 retrieveOrderDataList(receiptId = newEvent.receiptId)
-                monitorAmountOfOrders()
             }
 
             is EditReceiptEvent.DeleteOrder -> {
@@ -105,17 +96,6 @@ class EditReceiptViewModel(
     private fun addNewOrderData(orderData: OrderData) {
         viewModelScope.launch {
             editReceiptUseCase.insertNewOrderData(orderData = orderData)
-        }
-    }
-
-    private fun monitorAmountOfOrders(){
-        viewModelScope.launch(Dispatchers.Default) {
-            orderDataList.collect { list ->
-                if (list.size > DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES)
-                    setIsOrderCountAtLimit(true)
-                else
-                    setIsOrderCountAtLimit(false)
-            }
         }
     }
 }

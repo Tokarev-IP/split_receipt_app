@@ -44,7 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iliatokarev.receipt_splitter_app.R
+import com.iliatokarev.receipt_splitter_app.main.basic.icons.Receipt
 import com.iliatokarev.receipt_splitter_app.main.basic.shimmerBrush
+import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.OrderData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.ReceiptData
 import com.iliatokarev.receipt_splitter_app.receipt.presentation.views.basic.OrderItemView
@@ -59,6 +61,7 @@ internal fun EditReceiptScreenView(
     onDeleteOrderClicked: (id: Long) -> Unit,
     onEditReceiptClicked: () -> Unit,
     onAddNewOrderClicked: () -> Unit,
+    goToSplitReceiptScreenClick: () -> Unit,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -73,6 +76,7 @@ internal fun EditReceiptScreenView(
                 },
                 onEditReceiptClicked = { onEditReceiptClicked() },
                 onAddNewOrderClicked = { onAddNewOrderClicked() },
+                goToSplitReceiptScreenClick = { goToSplitReceiptScreenClick() },
             )
         } ?: ShimmedEditReceiptsScreenView()
     }
@@ -88,6 +92,7 @@ private fun EditReceiptView(
     onDeleteOrderClicked: (id: Long) -> Unit = {},
     onEditReceiptClicked: () -> Unit = {},
     onAddNewOrderClicked: () -> Unit = {},
+    goToSplitReceiptScreenClick: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
@@ -114,9 +119,10 @@ private fun EditReceiptView(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            Spacer(modifier = Modifier.height(12.dp))
-            AddOrderView(
-                onAddNewOrderClicked = { onAddNewOrderClicked() }
+            BottomActionsView(
+                onAddNewOrderClicked = { onAddNewOrderClicked() },
+                enabled = orderDataList.size < MAXIMUM_AMOUNT_OF_DISHES,
+                goToSplitReceiptScreenClick = { goToSplitReceiptScreenClick() },
             )
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -289,16 +295,78 @@ private fun OrderCardView(
 }
 
 @Composable
-private fun AddOrderView(
+private fun BottomActionsView(
     modifier: Modifier = Modifier,
     onAddNewOrderClicked: () -> Unit,
+    enabled: Boolean,
+    goToSplitReceiptScreenClick: () -> Unit,
 ) {
-    Box(
-        modifier = modifier.fillMaxWidth()
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        AnimatedVisibility(
+            visible = !enabled,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Column(
+                modifier = modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.maximum_amount_of_dishes_reached),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+        AddOrderButtonView(
+            onAddNewOrderClicked = { onAddNewOrderClicked() },
+            enabled = enabled,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedButton(
-            onClick = { onAddNewOrderClicked() },
-            modifier = modifier.align(Alignment.Center)
+            onClick = { goToSplitReceiptScreenClick() },
+            modifier = modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.go_to_split_receipt_screen),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center,
+                )
+                Icon(
+                    imageVector = Icons.Filled.Receipt,
+                    contentDescription = stringResource(R.string.go_to_split_receipt_screen_button),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddOrderButtonView(
+    modifier: Modifier = Modifier,
+    onAddNewOrderClicked: () -> Unit,
+    enabled: Boolean,
+) {
+    ElevatedCard(
+        onClick = { onAddNewOrderClicked() },
+        enabled = enabled,
+    ) {
+        Box(
+            modifier = modifier.fillMaxSize().padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.Add, stringResource(R.string.add_new_order_button))
         }
