@@ -187,6 +187,7 @@
     <string name="choose_folder_title">Choose folder</string>
     <string name="maximum_amount_of_folders_reached">Maximum amount of folders is reached</string>
     <string name="maximum_amount_of_receipts_reached">Maximum amount of receipts is reached</string>
+    <string name="maximum_amount_of_dishes_reached">Maximum amount of dishes is reached</string>
     <string name="short_report">Short report</string>
     <string name="long_report">Long report</string>
     <string name="basic_report">Basic report</string>
@@ -205,6 +206,7 @@
     <string name="clear_report">Clear report</string>
     <string name="clear_all_names">Clear all names</string>
     <string name="do_you_want_to_remove_this_receipt_from">Do you really want to remove the receipt from this folder? Do not worry, this receipt will not be deleted</string>
+    <string name="go_to_split_receipt_screen">Go to split receipt screen</string>
 
     //Settings
     <string name="sign_out">Sign Out</string>

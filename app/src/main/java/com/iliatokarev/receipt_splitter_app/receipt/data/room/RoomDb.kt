@@ -7,7 +7,7 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.room.receipt.ReceiptDao
 
 @Database(
     entities = [ReceiptEntity::class, OrderEntity::class, FolderEntity::class],
-    version = 1
+    version = 2
 )
 abstract class ReceiptSplitterDatabase : RoomDatabase() {
     abstract fun receiptDao(): ReceiptDao

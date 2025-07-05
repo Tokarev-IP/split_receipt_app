@@ -20,12 +20,13 @@ val roomDbModule = module {
             androidContext(),
             ReceiptSplitterDatabase::class.java,
             "receipt_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     single { get<ReceiptSplitterDatabase>().receiptDao() }
     single { get<ReceiptSplitterDatabase>().folderDao() }
-
 
     factoryOf(::ReceiptAdapter) { bind<ReceiptAdapterInterface>() }
     factoryOf(::ReceiptDbRepository) { bind<ReceiptDbRepositoryInterface>() }
