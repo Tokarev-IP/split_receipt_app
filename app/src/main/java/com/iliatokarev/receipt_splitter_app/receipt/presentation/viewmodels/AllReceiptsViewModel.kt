@@ -96,7 +96,7 @@ class AllReceiptsViewModel(
     private fun retrieveAllReceipts() {
         viewModelScope.launch(Dispatchers.IO) {
             allReceiptsUseCase.getAllReceiptsWithFolderFlow().collect { data ->
-                setAllReceiptsWithFolder(data)
+                setAllReceiptsWithFolder(data.reversed())
             }
         }
     }
