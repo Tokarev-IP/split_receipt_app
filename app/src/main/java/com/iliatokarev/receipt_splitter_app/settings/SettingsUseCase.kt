@@ -24,12 +24,14 @@ class SettingsUseCase(
             currentUser?.let { user ->
                 fireStoreRepository.deleteUserAttemptsData(documentId = user.uid)
                 firebaseAuthentication.deleteUserAccount(currentUser = currentUser)
+                firebaseAuthentication.signOut()
             } ?: return DeleteUserAccountResponse.EmptyUser
             return DeleteUserAccountResponse.Success
         }.getOrElse { e: Throwable ->
-            return if (e is FirebaseAuthRecentLoginRequiredException)
+            return if (e is FirebaseAuthRecentLoginRequiredException) {
+                firebaseAuthentication.signOut()
                 DeleteUserAccountResponse.EmptyUser
-            else
+            } else
                 DeleteUserAccountResponse.Error(
                     e.message ?: SettingsUiMessages.INTERNAL_ERROR.message
                 )
