@@ -9,7 +9,6 @@ import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsR
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.APPROPRIATE_LABELS
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_AMOUNT_OF_DISHES
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.MAXIMUM_TEXT_LENGTH
-import com.iliatokarev.receipt_splitter_app.receipt.data.services.DataConstantsReceipt.ONE_ATTEMPT
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageConverterInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ImageLabelingKitInterface
 import com.iliatokarev.receipt_splitter_app.receipt.data.services.ReceiptJsonServiceInterface
@@ -35,6 +34,7 @@ class CreateReceiptUseCase(
 
     private companion object {
         private const val DELAY_TIME = 3000L
+        private const val ONE_ATTEMPT = 1
     }
 
     override suspend fun createReceiptFromUriImage(
@@ -49,10 +49,10 @@ class CreateReceiptUseCase(
         )
     }
 
-    override suspend fun haveImagesGotNotAppropriateImages(images: List<Uri>): Boolean =
+    override suspend fun haveImagesGotNotAppropriateImages(listOfImages: List<Uri>): Boolean =
         withContext(Dispatchers.Default) {
             runCatching {
-                val bitmapImages = images.map {
+                val bitmapImages = listOfImages.map {
                     imageConverter.convertImageFromUriToBitmap(it)
                 }
                 hasNotAppropriateLabel(bitmapImages)
@@ -125,42 +125,33 @@ class CreateReceiptUseCase(
         deltaTimeBetweenAttempts: Long,
         maximumAttemptsForUser: Int,
     ): Int {
+        val currentTime = System.currentTimeMillis()
         val userAttemptsData: UserAttemptsData? =
             firestoreRepository.getUserAttemptsData(documentId = userId)
-        userAttemptsData?.let { userAttempts ->
-            val currentTime = System.currentTimeMillis()
-            val userLastAttemptTime = userAttempts.lastAttemptTime
-            if (currentTime - userLastAttemptTime < deltaTimeBetweenAttempts) {
-                if (userAttempts.attempts >= maximumAttemptsForUser)
-                    return userAttempts.attempts + oneAttempt
-                else
-                    firestoreRepository.putUserAttemptsData(
-                        documentId = userId,
-                        data = UserAttemptsData(
-                            lastAttemptTime = currentTime,
-                            attempts = userAttempts.attempts + oneAttempt,
-                        )
-                    )
-                return userAttempts.attempts + oneAttempt
-            } else {
-                firestoreRepository.putUserAttemptsData(
-                    documentId = userId,
-                    data = UserAttemptsData(
-                        lastAttemptTime = currentTime,
-                        attempts = oneAttempt,
-                    )
-                )
-                return oneAttempt
-            }
-        } ?: run {
+
+        if (userAttemptsData == null || currentTime - userAttemptsData.lastAttemptTime >= deltaTimeBetweenAttempts) {
             firestoreRepository.putUserAttemptsData(
                 documentId = userId,
                 data = UserAttemptsData(
-                    lastAttemptTime = System.currentTimeMillis(),
+                    lastAttemptTime = currentTime,
                     attempts = oneAttempt,
                 )
             )
             return oneAttempt
+        } else {
+            if (userAttemptsData.attempts >= maximumAttemptsForUser) {
+                return userAttemptsData.attempts + oneAttempt
+            } else {
+                val newAttempts = userAttemptsData.attempts + oneAttempt
+                firestoreRepository.putUserAttemptsData(
+                    documentId = userId,
+                    data = UserAttemptsData(
+                        lastAttemptTime = currentTime,
+                        attempts = newAttempts,
+                    )
+                )
+                return newAttempts
+            }
         }
     }
 
