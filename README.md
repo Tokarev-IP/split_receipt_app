@@ -2,7 +2,9 @@ Android App for splitting receipt with ability to share this receipt with your f
 
 Technology: Kotlin, Coroutines, ViewModel, Vertex AI, Koin, Firebase, Room DB, Google SignIn.
 
-This app is uploaded to Google Play: https://play.google.com/store/apps/details?id=com.iliatokarev.receipt_splitter_app
+## 📱 Android Version
+
+[![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg)](https://play.google.com/store/apps/details?id=com.iliatokarev.receipt_splitter_app)
 
 <table>
   <tr>
