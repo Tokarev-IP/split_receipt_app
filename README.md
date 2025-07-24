@@ -4,8 +4,6 @@ Technology: Kotlin, Coroutines, ViewModel, Vertex AI, Koin, Firebase, Room DB, G
 
 ## 📱 Android Version
 
-[![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg)](https://play.google.com/store/apps/details?id=com.iliatokarev.receipt_splitter_app)
-
 <table>
   <tr>
     <th>SignIn screen</th>
