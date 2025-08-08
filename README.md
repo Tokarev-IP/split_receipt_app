@@ -7,6 +7,7 @@ Here's a **modernized and visually appealing** version of your GitHub README usi
 A **cross-platform bill-splitting app** for Android and Web that helps users effortlessly split expenses from receipts — powered by AI and Firebase.
 
 [![Google Play Status](https://img.shields.io/badge/Google%20Play-In%20Review-yellowgreen?style=flat\&logo=google-play)](https://play.google.com/store)
+
 🌐 Web App Repo: [receipt\_splitter\_web](https://github.com/Tokarev-IP/receipt_splitter_web)
 
 ---
@@ -85,6 +86,6 @@ A sneak peek into the Android app experience:
 
 ## 🙌 Author
 
-Made with ❤️ by [**Ilya Tokarev**](https://github.com/Tokarev-IP)
+Made with ❤️ by [**Ilia Tokarev**](https://github.com/Tokarev-IP)
 
 ---
